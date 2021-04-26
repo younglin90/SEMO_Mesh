@@ -1,0 +1,40 @@
+file(REMOVE_RECURSE
+  "../../lib/libvtkIOLegacy-9.0.pdb"
+  "../../lib/libvtkIOLegacy-9.0.so"
+  "../../lib/libvtkIOLegacy-9.0.so.1"
+  "../../lib/libvtkIOLegacy-9.0.so.9.0.1"
+  "CMakeFiles/IOLegacy.dir/vtkCompositeDataReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkCompositeDataWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkDataObjectReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkDataObjectWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkDataReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkDataSetReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkDataSetWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkDataWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkGenericDataObjectReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkGenericDataObjectWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkGraphReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkGraphWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkPixelExtentIO.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkPolyDataReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkPolyDataWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkRectilinearGridReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkRectilinearGridWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkSimplePointsReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkSimplePointsWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkStructuredGridReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkStructuredGridWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkStructuredPointsReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkStructuredPointsWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkTableReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkTableWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkTreeReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkTreeWriter.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkUnstructuredGridReader.cxx.o"
+  "CMakeFiles/IOLegacy.dir/vtkUnstructuredGridWriter.cxx.o"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/IOLegacy.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

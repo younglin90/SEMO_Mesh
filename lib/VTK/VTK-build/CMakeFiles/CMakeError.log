@@ -1,0 +1,1594 @@
+Checking whether C++ compiler has '__int64' failed to compile with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_eb9f8/fast && /usr/bin/make -f CMakeFiles/cmTC_eb9f8.dir/build.make CMakeFiles/cmTC_eb9f8.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 들어감
+Building CXX object CMakeFiles/cmTC_eb9f8.dir/kwsysPlatformTestsCXX.cxx.o
+/usr/bin/c++  -DTEST_KWSYS_CXX_HAS___INT64  -fPIE   -std=c++11 -o CMakeFiles/cmTC_eb9f8.dir/kwsysPlatformTestsCXX.cxx.o -c /home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:24:1: error: ‘__int64’ does not name a type
+   24 | __int64 f(__int64 n)
+      | ^~~~~~~
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx: In function ‘int main()’:
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:30:3: error: ‘__int64’ was not declared in this scope
+   30 |   __int64 n = 0;
+      |   ^~~~~~~
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:31:29: error: ‘n’ was not declared in this scope
+   31 |   return static_cast<int>(f(n));
+      |                             ^
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:31:27: error: ‘f’ was not declared in this scope
+   31 |   return static_cast<int>(f(n));
+      |                           ^
+make[1]: *** [CMakeFiles/cmTC_eb9f8.dir/build.make:66: CMakeFiles/cmTC_eb9f8.dir/kwsysPlatformTestsCXX.cxx.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_eb9f8/fast] 오류 2
+
+
+
+Checking whether CXX compiler has environ in stdlib.h failed to compile with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_fbf3c/fast && /usr/bin/make -f CMakeFiles/cmTC_fbf3c.dir/build.make CMakeFiles/cmTC_fbf3c.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 들어감
+Building CXX object CMakeFiles/cmTC_fbf3c.dir/kwsysPlatformTestsCXX.cxx.o
+/usr/bin/c++  -DTEST_KWSYS_CXX_HAS_ENVIRON_IN_STDLIB_H  -fPIE   -std=c++11 -o CMakeFiles/cmTC_fbf3c.dir/kwsysPlatformTestsCXX.cxx.o -c /home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx: In function ‘int main()’:
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:160:13: error: ‘environ’ was not declared in this scope; did you mean ‘union’?
+  160 |   char* e = environ[0];
+      |             ^~~~~~~
+      |             union
+make[1]: *** [CMakeFiles/cmTC_fbf3c.dir/build.make:66: CMakeFiles/cmTC_fbf3c.dir/kwsysPlatformTestsCXX.cxx.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_fbf3c/fast] 오류 2
+
+
+
+Checking whether CXX compiler struct stat has st_mtimespec member failed to compile with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_8222a/fast && /usr/bin/make -f CMakeFiles/cmTC_8222a.dir/build.make CMakeFiles/cmTC_8222a.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 들어감
+Building CXX object CMakeFiles/cmTC_8222a.dir/kwsysPlatformTestsCXX.cxx.o
+/usr/bin/c++  -DTEST_KWSYS_CXX_STAT_HAS_ST_MTIMESPEC  -fPIE   -std=c++11 -o CMakeFiles/cmTC_8222a.dir/kwsysPlatformTestsCXX.cxx.o -c /home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx: In function ‘int main()’:
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:57:15: error: ‘struct stat’ has no member named ‘st_mtimespec’
+   57 |   (void)stat1.st_mtimespec.tv_sec;
+      |               ^~~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:58:15: error: ‘struct stat’ has no member named ‘st_mtimespec’
+   58 |   (void)stat1.st_mtimespec.tv_nsec;
+      |               ^~~~~~~~~~~~
+make[1]: *** [CMakeFiles/cmTC_8222a.dir/build.make:66: CMakeFiles/cmTC_8222a.dir/kwsysPlatformTestsCXX.cxx.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_8222a/fast] 오류 2
+
+
+
+Checking whether CXX compiler has _atoi64 failed to compile with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_27b8d/fast && /usr/bin/make -f CMakeFiles/cmTC_27b8d.dir/build.make CMakeFiles/cmTC_27b8d.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 들어감
+Building CXX object CMakeFiles/cmTC_27b8d.dir/kwsysPlatformTestsCXX.cxx.o
+/usr/bin/c++  -DTEST_KWSYS_CXX_HAS__ATOI64  -fPIE   -std=c++11 -o CMakeFiles/cmTC_27b8d.dir/kwsysPlatformTestsCXX.cxx.o -c /home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx: In function ‘int main()’:
+/home/yyl/SEMO/lib/VTK/Utilities/KWSys/vtksys/kwsysPlatformTestsCXX.cxx:210:27: error: ‘_atoi64’ was not declared in this scope; did you mean ‘atoi’?
+  210 |   return static_cast<int>(_atoi64(str));
+      |                           ^~~~~~~
+      |                           atoi
+make[1]: *** [CMakeFiles/cmTC_27b8d.dir/build.make:66: CMakeFiles/cmTC_27b8d.dir/kwsysPlatformTestsCXX.cxx.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys/vtksys/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_27b8d/fast] 오류 2
+
+
+
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e5e62/fast && /usr/bin/make -f CMakeFiles/cmTC_e5e62.dir/build.make CMakeFiles/cmTC_e5e62.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_e5e62.dir/src.c.o
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD -fPIE   -o CMakeFiles/cmTC_e5e62.dir/src.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_e5e62
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5e62.dir/link.txt --verbose=1
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_e5e62.dir/src.c.o  -o cmTC_e5e62 
+/usr/bin/ld: CMakeFiles/cmTC_e5e62.dir/src.c.o: in function `main':
+src.c:(.text+0x46): undefined reference to `pthread_create'
+/usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
+/usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_e5e62.dir/build.make:87: cmTC_e5e62] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_e5e62/fast] 오류 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_da592/fast && /usr/bin/make -f CMakeFiles/cmTC_da592.dir/build.make CMakeFiles/cmTC_da592.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_da592.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create -fPIE   -o CMakeFiles/cmTC_da592.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_da592
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_da592.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_da592.dir/CheckFunctionExists.c.o  -o cmTC_da592  -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_da592.dir/build.make:87: cmTC_da592] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_da592/fast] 오류 2
+
+
+
+Determining if the function getsockname exists in the socket failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_07c95/fast && /usr/bin/make -f CMakeFiles/cmTC_07c95.dir/build.make CMakeFiles/cmTC_07c95.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_07c95.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=getsockname -fPIE   -o CMakeFiles/cmTC_07c95.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_07c95
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_07c95.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=getsockname   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_07c95.dir/CheckFunctionExists.c.o  -o cmTC_07c95  -lsocket 
+/usr/bin/ld: cannot find -lsocket
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_07c95.dir/build.make:87: cmTC_07c95] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_07c95/fast] 오류 2
+
+
+
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_Wshorten64to32 failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_2e89e/fast && /usr/bin/make -f CMakeFiles/cmTC_2e89e.dir/build.make CMakeFiles/cmTC_2e89e.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_2e89e.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -DCOMPILER_SUPPORT_Wshorten64to32 -Werror -fPIE   -Wshorten-64-to-32 -std=c++11 -o CMakeFiles/cmTC_2e89e.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wshorten-64-to-32'
+make[1]: *** [CMakeFiles/cmTC_2e89e.dir/build.make:66: CMakeFiles/cmTC_2e89e.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_2e89e/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_Wenumconversion failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_ada8a/fast && /usr/bin/make -f CMakeFiles/cmTC_ada8a.dir/build.make CMakeFiles/cmTC_ada8a.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_ada8a.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -Wlogical-op -DCOMPILER_SUPPORT_Wenumconversion -Werror -fPIE   -Wenum-conversion -std=c++11 -o CMakeFiles/cmTC_ada8a.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wenum-conversion'; did you mean '-Wno-conversion'?
+make[1]: *** [CMakeFiles/cmTC_ada8a.dir/build.make:66: CMakeFiles/cmTC_ada8a.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_ada8a/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_Wcpp11extensions failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_bc237/fast && /usr/bin/make -f CMakeFiles/cmTC_bc237.dir/build.make CMakeFiles/cmTC_bc237.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_bc237.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -Wlogical-op -DCOMPILER_SUPPORT_Wcpp11extensions -Werror -fPIE   -Wc++11-extensions -std=c++11 -o CMakeFiles/cmTC_bc237.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wc++11-extensions'; did you mean '-fms-extensions'?
+make[1]: *** [CMakeFiles/cmTC_bc237.dir/build.make:66: CMakeFiles/cmTC_bc237.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_bc237/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_wd981 failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_bbc44/fast && /usr/bin/make -f CMakeFiles/cmTC_bbc44.dir/build.make CMakeFiles/cmTC_bbc44.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_bbc44.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -Wlogical-op -Wdouble-promotion -Wno-psabi -Wno-variadic-macros -Wno-long-long -fno-check-new -fno-common -fstrict-aliasing -DCOMPILER_SUPPORT_wd981 -Werror -fPIE   -wd981 -std=c++11 -o CMakeFiles/cmTC_bbc44.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-wd981'
+make[1]: *** [CMakeFiles/cmTC_bbc44.dir/build.make:66: CMakeFiles/cmTC_bbc44.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_bbc44/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_wd2304 failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_edafc/fast && /usr/bin/make -f CMakeFiles/cmTC_edafc.dir/build.make CMakeFiles/cmTC_edafc.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_edafc.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -Wlogical-op -Wdouble-promotion -Wno-psabi -Wno-variadic-macros -Wno-long-long -fno-check-new -fno-common -fstrict-aliasing -DCOMPILER_SUPPORT_wd2304 -Werror -fPIE   -wd2304 -std=c++11 -o CMakeFiles/cmTC_edafc.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-wd2304'
+make[1]: *** [CMakeFiles/cmTC_edafc.dir/build.make:66: CMakeFiles/cmTC_edafc.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_edafc/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_STRICTANSI failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_d1d62/fast && /usr/bin/make -f CMakeFiles/cmTC_d1d62.dir/build.make CMakeFiles/cmTC_d1d62.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d1d62.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -Wlogical-op -Wdouble-promotion -Wno-psabi -Wno-variadic-macros -Wno-long-long -fno-check-new -fno-common -fstrict-aliasing -DCOMPILER_SUPPORT_STRICTANSI -Werror -fPIE   -strict-ansi -std=c++11 -o CMakeFiles/cmTC_d1d62.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-strict-ansi'; did you mean '-fstrict-enums'?
+make[1]: *** [CMakeFiles/cmTC_d1d62.dir/build.make:66: CMakeFiles/cmTC_d1d62.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_d1d62/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test COMPILER_SUPPORT_Qunusedarguments failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a9e91/fast && /usr/bin/make -f CMakeFiles/cmTC_a9e91.dir/build.make CMakeFiles/cmTC_a9e91.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a9e91.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -pedantic -Wall -Wextra -Wundef -Wcast-align -Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith -Wwrite-strings -Wformat-security -Wlogical-op -Wdouble-promotion -Wno-psabi -Wno-variadic-macros -Wno-long-long -fno-check-new -fno-common -fstrict-aliasing -DCOMPILER_SUPPORT_Qunusedarguments -Werror -fPIE   -Qunused-arguments -std=c++11 -o CMakeFiles/cmTC_a9e91.dir/src.cxx.o -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Qunused-arguments'
+make[1]: *** [CMakeFiles/cmTC_a9e91.dir/build.make:66: CMakeFiles/cmTC_a9e91.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_a9e91/fast] Error 2
+
+
+Source file was:
+int main() { return 0; }
+Determining if the include file sys/endian.h exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_190eb/fast && /usr/bin/make -f CMakeFiles/cmTC_190eb.dir/build.make CMakeFiles/cmTC_190eb.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_190eb.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_190eb.dir/CheckIncludeFile.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: sys/endian.h: 그런 파일이나 디렉터리가 없습니다
+    1 | #include <sys/endian.h>
+      |          ^~~~~~~~~~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_190eb.dir/build.make:66: CMakeFiles/cmTC_190eb.dir/CheckIncludeFile.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_190eb/fast] 오류 2
+
+
+
+Determining if the HAVE_BSWAP_16 exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_f8f89/fast && /usr/bin/make -f CMakeFiles/cmTC_f8f89.dir/build.make CMakeFiles/cmTC_f8f89.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_f8f89.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_f8f89.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘HAVE_BSWAP_16’ undeclared (first use in this function)
+    8 |   return ((int*)(&HAVE_BSWAP_16))[argc];
+      |                   ^~~~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_f8f89.dir/build.make:66: CMakeFiles/cmTC_f8f89.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_f8f89/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <byteswap.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef HAVE_BSWAP_16
+  return ((int*)(&HAVE_BSWAP_16))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the HAVE_BSWAP_32 exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_30967/fast && /usr/bin/make -f CMakeFiles/cmTC_30967.dir/build.make CMakeFiles/cmTC_30967.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_30967.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_30967.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘HAVE_BSWAP_32’ undeclared (first use in this function)
+    8 |   return ((int*)(&HAVE_BSWAP_32))[argc];
+      |                   ^~~~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_30967.dir/build.make:66: CMakeFiles/cmTC_30967.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_30967/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <byteswap.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef HAVE_BSWAP_32
+  return ((int*)(&HAVE_BSWAP_32))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the HAVE_BSWAP_64 exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_41a0a/fast && /usr/bin/make -f CMakeFiles/cmTC_41a0a.dir/build.make CMakeFiles/cmTC_41a0a.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_41a0a.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_41a0a.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘HAVE_BSWAP_64’ undeclared (first use in this function)
+    8 |   return ((int*)(&HAVE_BSWAP_64))[argc];
+      |                   ^~~~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_41a0a.dir/build.make:66: CMakeFiles/cmTC_41a0a.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_41a0a/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <byteswap.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef HAVE_BSWAP_64
+  return ((int*)(&HAVE_BSWAP_64))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining size of __int64 failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_0ea7d/fast && /usr/bin/make -f CMakeFiles/cmTC_0ea7d.dir/build.make CMakeFiles/cmTC_0ea7d.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_0ea7d.dir/__INT64.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_0ea7d.dir/__INT64.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/__INT64.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/__INT64.c:23:22: error: ‘__int64’ undeclared here (not in a function); did you mean ‘__int64_t’?
+   23 | #define SIZE (sizeof(__int64))
+      |                      ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/__INT64.c:25:12: note: in expansion of macro ‘SIZE’
+   25 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_0ea7d.dir/build.make:66: CMakeFiles/cmTC_0ea7d.dir/__INT64.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_0ea7d/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/__INT64.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(__int64))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Determining size of unsigned __int64 failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_54685/fast && /usr/bin/make -f CMakeFiles/cmTC_54685.dir/build.make CMakeFiles/cmTC_54685.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_54685.dir/UNSIGNED___INT64.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_54685.dir/UNSIGNED___INT64.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:23:31: error: expected ‘)’ before ‘__int64’
+   23 | #define SIZE (sizeof(unsigned __int64))
+      |                     ~         ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:25:12: note: in expansion of macro ‘SIZE’
+   25 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:23:31: error: expected ‘)’ before ‘__int64’
+   23 | #define SIZE (sizeof(unsigned __int64))
+      |                     ~         ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:26:12: note: in expansion of macro ‘SIZE’
+   26 |   ('0' + ((SIZE / 1000)%10)),
+      |            ^~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:23:31: error: expected ‘)’ before ‘__int64’
+   23 | #define SIZE (sizeof(unsigned __int64))
+      |                     ~         ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:27:12: note: in expansion of macro ‘SIZE’
+   27 |   ('0' + ((SIZE / 100)%10)),
+      |            ^~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:23:31: error: expected ‘)’ before ‘__int64’
+   23 | #define SIZE (sizeof(unsigned __int64))
+      |                     ~         ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:28:12: note: in expansion of macro ‘SIZE’
+   28 |   ('0' + ((SIZE / 10)%10)),
+      |            ^~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:23:31: error: expected ‘)’ before ‘__int64’
+   23 | #define SIZE (sizeof(unsigned __int64))
+      |                     ~         ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:29:12: note: in expansion of macro ‘SIZE’
+   29 |   ('0' +  (SIZE    % 10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_54685.dir/build.make:66: CMakeFiles/cmTC_54685.dir/UNSIGNED___INT64.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_54685/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/UNSIGNED___INT64.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(unsigned __int64))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Determining if the arc4random_buf exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_048bd/fast && /usr/bin/make -f CMakeFiles/cmTC_048bd.dir/build.make CMakeFiles/cmTC_048bd.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_048bd.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_048bd.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘arc4random_buf’ undeclared (first use in this function)
+    8 |   return ((int*)(&arc4random_buf))[argc];
+      |                   ^~~~~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_048bd.dir/build.make:66: CMakeFiles/cmTC_048bd.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_048bd/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef arc4random_buf
+  return ((int*)(&arc4random_buf))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the arc4random exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_7d9fd/fast && /usr/bin/make -f CMakeFiles/cmTC_7d9fd.dir/build.make CMakeFiles/cmTC_7d9fd.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_7d9fd.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_7d9fd.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘arc4random’ undeclared (first use in this function); did you mean ‘srandom’?
+    8 |   return ((int*)(&arc4random))[argc];
+      |                   ^~~~~~~~~~
+      |                   srandom
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_7d9fd.dir/build.make:66: CMakeFiles/cmTC_7d9fd.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_7d9fd/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef arc4random
+  return ((int*)(&arc4random))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the off_t exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_6ff9a/fast && /usr/bin/make -f CMakeFiles/cmTC_6ff9a.dir/build.make CMakeFiles/cmTC_6ff9a.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_6ff9a.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_6ff9a.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: expected expression before ‘off_t’
+    8 |   return ((int*)(&off_t))[argc];
+      |                   ^~~~~
+make[1]: *** [CMakeFiles/cmTC_6ff9a.dir/build.make:66: CMakeFiles/cmTC_6ff9a.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_6ff9a/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef off_t
+  return ((int*)(&off_t))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the size_t exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a9de6/fast && /usr/bin/make -f CMakeFiles/cmTC_a9de6.dir/build.make CMakeFiles/cmTC_a9de6.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_a9de6.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_a9de6.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: expected expression before ‘size_t’
+    8 |   return ((int*)(&size_t))[argc];
+      |                   ^~~~~~
+make[1]: *** [CMakeFiles/cmTC_a9de6.dir/build.make:66: CMakeFiles/cmTC_a9de6.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_a9de6/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef size_t
+  return ((int*)(&size_t))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the include file io.h exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e12dd/fast && /usr/bin/make -f CMakeFiles/cmTC_e12dd.dir/build.make CMakeFiles/cmTC_e12dd.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_e12dd.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -Wall -Winline -W -Wformat-security -Wpointer-arith -Wdisabled-optimization -Wno-unknown-pragmas -Wdeclaration-after-statement -fstrict-aliasing  -fPIE   -o CMakeFiles/cmTC_e12dd.dir/CheckIncludeFile.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: io.h: 그런 파일이나 디렉터리가 없습니다
+    1 | #include <io.h>
+      |          ^~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_e12dd.dir/build.make:66: CMakeFiles/cmTC_e12dd.dir/CheckIncludeFile.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_e12dd/fast] 오류 2
+
+
+
+Determining if files sys/file.h;sys/ioctl.h;sys/resource.h;sys/stat.h;sys/time.h;sys/types.h;features.h;dirent.h;setjmp.h;stddef.h;stdint.h;unistd.h;mach/mach_time.h exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_34335/fast && /usr/bin/make -f CMakeFiles/cmTC_34335.dir/build.make CMakeFiles/cmTC_34335.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_34335.dir/H5_HAVE_MACH_MACH_TIME_H.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_34335.dir/H5_HAVE_MACH_MACH_TIME_H.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/H5_HAVE_MACH_MACH_TIME_H.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/H5_HAVE_MACH_MACH_TIME_H.c:14:10: fatal error: mach/mach_time.h: 그런 파일이나 디렉터리가 없습니다
+   14 | #include <mach/mach_time.h>
+      |          ^~~~~~~~~~~~~~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_34335.dir/build.make:66: CMakeFiles/cmTC_34335.dir/H5_HAVE_MACH_MACH_TIME_H.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_34335/fast] 오류 2
+
+
+Source:
+/* */
+#include <sys/file.h>
+#include <sys/ioctl.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <features.h>
+#include <dirent.h>
+#include <setjmp.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <mach/mach_time.h>
+
+
+int main(void){return 0;}
+
+Determining if files sys/file.h;sys/ioctl.h;sys/resource.h;sys/stat.h;sys/time.h;sys/types.h;features.h;dirent.h;setjmp.h;stddef.h;stdint.h;unistd.h;io.h exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_71bc8/fast && /usr/bin/make -f CMakeFiles/cmTC_71bc8.dir/build.make CMakeFiles/cmTC_71bc8.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_71bc8.dir/H5_HAVE_IO_H.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_71bc8.dir/H5_HAVE_IO_H.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/H5_HAVE_IO_H.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/H5_HAVE_IO_H.c:14:10: fatal error: io.h: 그런 파일이나 디렉터리가 없습니다
+   14 | #include <io.h>
+      |          ^~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_71bc8.dir/build.make:66: CMakeFiles/cmTC_71bc8.dir/H5_HAVE_IO_H.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_71bc8/fast] 오류 2
+
+
+Source:
+/* */
+#include <sys/file.h>
+#include <sys/ioctl.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <features.h>
+#include <dirent.h>
+#include <setjmp.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <io.h>
+
+
+int main(void){return 0;}
+
+Determining if files sys/file.h;sys/ioctl.h;sys/resource.h;sys/stat.h;sys/time.h;sys/types.h;features.h;dirent.h;setjmp.h;stddef.h;stdint.h;unistd.h;winsock2.h exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_61eab/fast && /usr/bin/make -f CMakeFiles/cmTC_61eab.dir/build.make CMakeFiles/cmTC_61eab.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_61eab.dir/H5_HAVE_WINSOCK2_H.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_61eab.dir/H5_HAVE_WINSOCK2_H.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/H5_HAVE_WINSOCK2_H.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/H5_HAVE_WINSOCK2_H.c:14:10: fatal error: winsock2.h: 그런 파일이나 디렉터리가 없습니다
+   14 | #include <winsock2.h>
+      |          ^~~~~~~~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_61eab.dir/build.make:66: CMakeFiles/cmTC_61eab.dir/H5_HAVE_WINSOCK2_H.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_61eab/fast] 오류 2
+
+
+Source:
+/* */
+#include <sys/file.h>
+#include <sys/ioctl.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <features.h>
+#include <dirent.h>
+#include <setjmp.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <winsock2.h>
+
+
+int main(void){return 0;}
+
+Determining size of __int64 failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e070a/fast && /usr/bin/make -f CMakeFiles/cmTC_e070a.dir/build.make CMakeFiles/cmTC_e070a.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_e070a.dir/H5_SIZEOF___INT64.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -fPIE   -o CMakeFiles/cmTC_e070a.dir/H5_SIZEOF___INT64.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF___INT64.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF___INT64.c:23:22: error: ‘__int64’ undeclared here (not in a function); did you mean ‘__int64_t’?
+   23 | #define SIZE (sizeof(__int64))
+      |                      ^~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF___INT64.c:25:12: note: in expansion of macro ‘SIZE’
+   25 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_e070a.dir/build.make:66: CMakeFiles/cmTC_e070a.dir/H5_SIZEOF___INT64.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_e070a/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF___INT64.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(__int64))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Performing Other Test HAVE___TM_GMTOFF failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_ac0fb/fast && /usr/bin/make -f CMakeFiles/cmTC_ac0fb.dir/build.make CMakeFiles/cmTC_ac0fb.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_ac0fb.dir/HDFTests.c.o
+/usr/bin/cc   -fPIE   -DHAVE___TM_GMTOFF  -DHAVE_SYS_TIME_H -DHAVE_UNISTD_H -DHAVE_SYS_TYPES_H -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_ac0fb.dir/HDFTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c:156:30: error: ‘struct tm’ has no member named ‘__tm_gmtoff’; did you mean ‘tm_gmtoff’?
+  156 | SIMPLE_TEST(struct tm tm; tm.__tm_gmtoff=0);
+      |                              ^~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c:12:36: note: in definition of macro ‘SIMPLE_TEST’
+   12 | #define SIMPLE_TEST(x) int main(){ x; return 0; }
+      |                                    ^
+make[1]: *** [CMakeFiles/cmTC_ac0fb.dir/build.make:66: CMakeFiles/cmTC_ac0fb.dir/HDFTests.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_ac0fb/fast] 오류 2
+
+
+Performing Other Test HAVE_TM_ZONE failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_234b7/fast && /usr/bin/make -f CMakeFiles/cmTC_234b7.dir/build.make CMakeFiles/cmTC_234b7.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_234b7.dir/HDFTests.c.o
+/usr/bin/cc   -fPIE   -DHAVE_TM_ZONE  -DHAVE_SYS_TIME_H -DHAVE_UNISTD_H -DHAVE_SYS_TYPES_H -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_234b7.dir/HDFTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c
+Linking C executable cmTC_234b7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_234b7.dir/link.txt --verbose=1
+/usr/bin/cc      -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_234b7.dir/HDFTests.c.o  -o cmTC_234b7 
+/usr/bin/ld: /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x24): undefined reference to `main'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_234b7.dir/build.make:87: cmTC_234b7] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_234b7/fast] 오류 2
+
+
+Performing Other Test HAVE_STRUCT_TM_TM_ZONE failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_1b3d2/fast && /usr/bin/make -f CMakeFiles/cmTC_1b3d2.dir/build.make CMakeFiles/cmTC_1b3d2.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_1b3d2.dir/HDFTests.c.o
+/usr/bin/cc   -fPIE   -DHAVE_STRUCT_TM_TM_ZONE  -DHAVE_SYS_TIME_H -DHAVE_UNISTD_H -DHAVE_SYS_TYPES_H -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_1b3d2.dir/HDFTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c
+Linking C executable cmTC_1b3d2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1b3d2.dir/link.txt --verbose=1
+/usr/bin/cc      -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_1b3d2.dir/HDFTests.c.o  -o cmTC_1b3d2 
+/usr/bin/ld: /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x24): undefined reference to `main'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_1b3d2.dir/build.make:87: cmTC_1b3d2] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_1b3d2/fast] 오류 2
+
+
+Performing Other Test HAVE_STRUCT_VIDEOCONFIG failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_d0602/fast && /usr/bin/make -f CMakeFiles/cmTC_d0602.dir/build.make CMakeFiles/cmTC_d0602.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_d0602.dir/HDFTests.c.o
+/usr/bin/cc   -fPIE   -DHAVE_STRUCT_VIDEOCONFIG  -DHAVE_SYS_TIME_H -DHAVE_UNISTD_H -DHAVE_SYS_TYPES_H -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_d0602.dir/HDFTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c:409:32: error: storage size of ‘w’ isn’t known
+  409 | SIMPLE_TEST(struct videoconfig w; w.numtextcols=0);
+      |                                ^
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c:12:36: note: in definition of macro ‘SIMPLE_TEST’
+   12 | #define SIMPLE_TEST(x) int main(){ x; return 0; }
+      |                                    ^
+make[1]: *** [CMakeFiles/cmTC_d0602.dir/build.make:66: CMakeFiles/cmTC_d0602.dir/HDFTests.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_d0602/fast] 오류 2
+
+
+Performing Other Test HAVE_STRUCT_TEXT_INFO failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e1437/fast && /usr/bin/make -f CMakeFiles/cmTC_e1437.dir/build.make CMakeFiles/cmTC_e1437.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_e1437.dir/HDFTests.c.o
+/usr/bin/cc   -fPIE   -DHAVE_STRUCT_TEXT_INFO  -DHAVE_SYS_TIME_H -DHAVE_UNISTD_H -DHAVE_SYS_TYPES_H -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_e1437.dir/HDFTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c:415:30: error: storage size of ‘w’ isn’t known
+  415 | SIMPLE_TEST(struct text_info w; w.screenwidth=0);
+      |                              ^
+/home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake_ext_mod/HDFTests.c:12:36: note: in definition of macro ‘SIMPLE_TEST’
+   12 | #define SIMPLE_TEST(x) int main(){ x; return 0; }
+      |                                    ^
+make[1]: *** [CMakeFiles/cmTC_e1437.dir/build.make:66: CMakeFiles/cmTC_e1437.dir/HDFTests.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_e1437/fast] 오류 2
+
+
+Determining if the function _getvideoconfig exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_aea95/fast && /usr/bin/make -f CMakeFiles/cmTC_aea95.dir/build.make CMakeFiles/cmTC_aea95.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_aea95.dir/CheckFunctionExists.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -DCHECK_FUNCTION_EXISTS=_getvideoconfig -fPIE   -o CMakeFiles/cmTC_aea95.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_aea95
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_aea95.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=_getvideoconfig   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_aea95.dir/CheckFunctionExists.c.o  -o cmTC_aea95 
+/usr/bin/ld: CMakeFiles/cmTC_aea95.dir/CheckFunctionExists.c.o: in function `main':
+CheckFunctionExists.c:(.text+0x14): undefined reference to `_getvideoconfig'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_aea95.dir/build.make:87: cmTC_aea95] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_aea95/fast] 오류 2
+
+
+
+Determining if the function gettextinfo exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_5faee/fast && /usr/bin/make -f CMakeFiles/cmTC_5faee.dir/build.make CMakeFiles/cmTC_5faee.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_5faee.dir/CheckFunctionExists.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -DCHECK_FUNCTION_EXISTS=gettextinfo -fPIE   -o CMakeFiles/cmTC_5faee.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_5faee
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5faee.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=gettextinfo   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_5faee.dir/CheckFunctionExists.c.o  -o cmTC_5faee 
+/usr/bin/ld: CMakeFiles/cmTC_5faee.dir/CheckFunctionExists.c.o: in function `main':
+CheckFunctionExists.c:(.text+0x14): undefined reference to `gettextinfo'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_5faee.dir/build.make:87: cmTC_5faee] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_5faee/fast] 오류 2
+
+
+
+Determining if the function _scrsize exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a4624/fast && /usr/bin/make -f CMakeFiles/cmTC_a4624.dir/build.make CMakeFiles/cmTC_a4624.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_a4624.dir/CheckFunctionExists.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -DCHECK_FUNCTION_EXISTS=_scrsize -fPIE   -o CMakeFiles/cmTC_a4624.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_a4624
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a4624.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=_scrsize   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_a4624.dir/CheckFunctionExists.c.o  -o cmTC_a4624 
+/usr/bin/ld: CMakeFiles/cmTC_a4624.dir/CheckFunctionExists.c.o: in function `main':
+CheckFunctionExists.c:(.text+0x14): undefined reference to `_scrsize'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_a4624.dir/build.make:87: cmTC_a4624] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_a4624/fast] 오류 2
+
+
+
+Determining if the function GetConsoleScreenBufferInfo exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_4225e/fast && /usr/bin/make -f CMakeFiles/cmTC_4225e.dir/build.make CMakeFiles/cmTC_4225e.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_4225e.dir/CheckFunctionExists.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -DCHECK_FUNCTION_EXISTS=GetConsoleScreenBufferInfo -fPIE   -o CMakeFiles/cmTC_4225e.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_4225e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4225e.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=GetConsoleScreenBufferInfo   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_4225e.dir/CheckFunctionExists.c.o  -o cmTC_4225e 
+/usr/bin/ld: CMakeFiles/cmTC_4225e.dir/CheckFunctionExists.c.o: in function `main':
+CheckFunctionExists.c:(.text+0x14): undefined reference to `GetConsoleScreenBufferInfo'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_4225e.dir/build.make:87: cmTC_4225e] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_4225e/fast] 오류 2
+
+
+
+Determining if the function setsysinfo exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e2fd7/fast && /usr/bin/make -f CMakeFiles/cmTC_e2fd7.dir/build.make CMakeFiles/cmTC_e2fd7.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_e2fd7.dir/CheckFunctionExists.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -DCHECK_FUNCTION_EXISTS=setsysinfo -fPIE   -o CMakeFiles/cmTC_e2fd7.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_e2fd7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e2fd7.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=setsysinfo   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_e2fd7.dir/CheckFunctionExists.c.o  -o cmTC_e2fd7 
+/usr/bin/ld: CMakeFiles/cmTC_e2fd7.dir/CheckFunctionExists.c.o: in function `main':
+CheckFunctionExists.c:(.text+0x14): undefined reference to `setsysinfo'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_e2fd7.dir/build.make:87: cmTC_e2fd7] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_e2fd7/fast] 오류 2
+
+
+
+Determining if the function sigsetjmp exists failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_b191b/fast && /usr/bin/make -f CMakeFiles/cmTC_b191b.dir/build.make CMakeFiles/cmTC_b191b.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_b191b.dir/CheckFunctionExists.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -DCHECK_FUNCTION_EXISTS=sigsetjmp -fPIE   -o CMakeFiles/cmTC_b191b.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_b191b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b191b.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=sigsetjmp   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_b191b.dir/CheckFunctionExists.c.o  -o cmTC_b191b 
+/usr/bin/ld: CMakeFiles/cmTC_b191b.dir/CheckFunctionExists.c.o: in function `main':
+CheckFunctionExists.c:(.text+0x14): undefined reference to `sigsetjmp'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_b191b.dir/build.make:87: cmTC_b191b] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_b191b/fast] 오류 2
+
+
+
+Determining size of _Quad failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_1ea01/fast && /usr/bin/make -f CMakeFiles/cmTC_1ea01.dir/build.make CMakeFiles/cmTC_1ea01.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_1ea01.dir/H5_SIZEOF__QUAD.c.o
+/usr/bin/cc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  -fPIE   -o CMakeFiles/cmTC_1ea01.dir/H5_SIZEOF__QUAD.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF__QUAD.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF__QUAD.c:24:22: error: ‘_Quad’ undeclared here (not in a function)
+   24 | #define SIZE (sizeof(_Quad))
+      |                      ^~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF__QUAD.c:26:12: note: in expansion of macro ‘SIZE’
+   26 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_1ea01.dir/build.make:66: CMakeFiles/cmTC_1ea01.dir/H5_SIZEOF__QUAD.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_1ea01/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/H5_SIZEOF__QUAD.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+#include "stdbool.h"
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(_Quad))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Test H5_LDOUBLE_TO_LONG_SPECIAL Run failed with the following output and exit code:
+ Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_bc9d7/fast && /usr/bin/make -f CMakeFiles/cmTC_bc9d7.dir/build.make CMakeFiles/cmTC_bc9d7.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_bc9d7.dir/ConversionTests.c.o
+/usr/bin/cc   -DH5_LDOUBLE_TO_LONG_SPECIAL_TEST -fPIE   -o CMakeFiles/cmTC_bc9d7.dir/ConversionTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake/ConversionTests.c
+Linking C executable cmTC_bc9d7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bc9d7.dir/link.txt --verbose=1
+/usr/bin/cc   -DH5_LDOUBLE_TO_LONG_SPECIAL_TEST   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_bc9d7.dir/ConversionTests.c.o  -o cmTC_bc9d7 
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+
+
+Test H5_LONG_TO_LDOUBLE_SPECIAL Run failed with the following output and exit code:
+ Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_8f4f6/fast && /usr/bin/make -f CMakeFiles/cmTC_8f4f6.dir/build.make CMakeFiles/cmTC_8f4f6.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_8f4f6.dir/ConversionTests.c.o
+/usr/bin/cc   -DH5_LONG_TO_LDOUBLE_SPECIAL_TEST -fPIE   -o CMakeFiles/cmTC_8f4f6.dir/ConversionTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake/ConversionTests.c
+Linking C executable cmTC_8f4f6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8f4f6.dir/link.txt --verbose=1
+/usr/bin/cc   -DH5_LONG_TO_LDOUBLE_SPECIAL_TEST   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_8f4f6.dir/ConversionTests.c.o  -o cmTC_8f4f6 
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+
+
+Test H5_DISABLE_SOME_LDOUBLE_CONV Run failed with the following output and exit code:
+ Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_7f7fa/fast && /usr/bin/make -f CMakeFiles/cmTC_7f7fa.dir/build.make CMakeFiles/cmTC_7f7fa.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_7f7fa.dir/ConversionTests.c.o
+/usr/bin/cc   -DH5_DISABLE_SOME_LDOUBLE_CONV_TEST -fPIE   -o CMakeFiles/cmTC_7f7fa.dir/ConversionTests.c.o   -c /home/yyl/SEMO/lib/VTK/ThirdParty/hdf5/vtkhdf5/config/cmake/ConversionTests.c
+Linking C executable cmTC_7f7fa
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7f7fa.dir/link.txt --verbose=1
+/usr/bin/cc   -DH5_DISABLE_SOME_LDOUBLE_CONV_TEST   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_7f7fa.dir/ConversionTests.c.o  -o cmTC_7f7fa 
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+
+
+Performing C SOURCE FILE Test have_flag_logical-op-parentheses failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a4040/fast && /usr/bin/make -f CMakeFiles/cmTC_a4040.dir/build.make CMakeFiles/cmTC_a4040.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a4040.dir/src.c.o
+/usr/bin/cc   -Dhave_flag_logical-op-parentheses -fPIE   -Wno-logical-op-parentheses -o CMakeFiles/cmTC_a4040.dir/src.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.c
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+cc1: warning: unrecognized command line option '-Wno-logical-op-parentheses'
+Linking C executable cmTC_a4040
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a4040.dir/link.txt --verbose=1
+/usr/bin/cc   -Dhave_flag_logical-op-parentheses   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_a4040.dir/src.c.o  -o cmTC_a4040 
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test have_flag_shift-op-parentheses failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_69726/fast && /usr/bin/make -f CMakeFiles/cmTC_69726.dir/build.make CMakeFiles/cmTC_69726.dir/build
+make[1]: Entering directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_69726.dir/src.c.o
+/usr/bin/cc   -Dhave_flag_shift-op-parentheses -fPIE   -Wno-shift-op-parentheses -o CMakeFiles/cmTC_69726.dir/src.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/src.c
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+cc1: warning: unrecognized command line option '-Wno-shift-op-parentheses'
+Linking C executable cmTC_69726
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_69726.dir/link.txt --verbose=1
+/usr/bin/cc   -Dhave_flag_shift-op-parentheses   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_69726.dir/src.c.o  -o cmTC_69726 
+make[1]: Leaving directory '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp'
+
+
+Source file was:
+int main(void) { return 0; }
+Determining if the _filelengthi64 exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_c5786/fast && /usr/bin/make -f CMakeFiles/cmTC_c5786.dir/build.make CMakeFiles/cmTC_c5786.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_c5786.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_c5786.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:10: fatal error: io.h: 그런 파일이나 디렉터리가 없습니다
+    2 | #include <io.h>
+      |          ^~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_c5786.dir/build.make:66: CMakeFiles/cmTC_c5786.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_c5786/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <io.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef _filelengthi64
+  return ((int*)(&_filelengthi64))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the strlcat exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_623c1/fast && /usr/bin/make -f CMakeFiles/cmTC_623c1.dir/build.make CMakeFiles/cmTC_623c1.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_623c1.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_623c1.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘strlcat’ undeclared (first use in this function); did you mean ‘strncat’?
+    8 |   return ((int*)(&strlcat))[argc];
+      |                   ^~~~~~~
+      |                   strncat
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_623c1.dir/build.make:66: CMakeFiles/cmTC_623c1.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_623c1/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <string.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strlcat
+  return ((int*)(&strlcat))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the st_blocksize exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e3b6c/fast && /usr/bin/make -f CMakeFiles/cmTC_e3b6c.dir/build.make CMakeFiles/cmTC_e3b6c.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_e3b6c.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_e3b6c.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘st_blocksize’ undeclared (first use in this function)
+    8 |   return ((int*)(&st_blocksize))[argc];
+      |                   ^~~~~~~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_e3b6c.dir/build.make:66: CMakeFiles/cmTC_e3b6c.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_e3b6c/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/stat.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef st_blocksize
+  return ((int*)(&st_blocksize))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining size of longlong failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_d2ae7/fast && /usr/bin/make -f CMakeFiles/cmTC_d2ae7.dir/build.make CMakeFiles/cmTC_d2ae7.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_d2ae7.dir/HAVE_LONGLONG.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_d2ae7.dir/HAVE_LONGLONG.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_LONGLONG.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_LONGLONG.c:23:22: error: ‘longlong’ undeclared here (not in a function)
+   23 | #define SIZE (sizeof(longlong))
+      |                      ^~~~~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_LONGLONG.c:25:12: note: in expansion of macro ‘SIZE’
+   25 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_d2ae7.dir/build.make:66: CMakeFiles/cmTC_d2ae7.dir/HAVE_LONGLONG.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_d2ae7/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_LONGLONG.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(longlong))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Determining size of uchar failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a659c/fast && /usr/bin/make -f CMakeFiles/cmTC_a659c.dir/build.make CMakeFiles/cmTC_a659c.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_a659c.dir/HAVE_UCHAR.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_a659c.dir/HAVE_UCHAR.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_UCHAR.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_UCHAR.c:23:22: error: ‘uchar’ undeclared here (not in a function); did you mean ‘u_char’?
+   23 | #define SIZE (sizeof(uchar))
+      |                      ^~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_UCHAR.c:25:12: note: in expansion of macro ‘SIZE’
+   25 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_a659c.dir/build.make:66: CMakeFiles/cmTC_a659c.dir/HAVE_UCHAR.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_a659c/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_UCHAR.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(uchar))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Determining size of schar failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_11912/fast && /usr/bin/make -f CMakeFiles/cmTC_11912.dir/build.make CMakeFiles/cmTC_11912.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_11912.dir/HAVE_SCHAR.c.o
+/usr/bin/cc   -fPIE   -o CMakeFiles/cmTC_11912.dir/HAVE_SCHAR.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_SCHAR.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_SCHAR.c:23:22: error: ‘schar’ undeclared here (not in a function); did you mean ‘char’?
+   23 | #define SIZE (sizeof(schar))
+      |                      ^~~~~
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_SCHAR.c:25:12: note: in expansion of macro ‘SIZE’
+   25 |   ('0' + ((SIZE / 10000)%10)),
+      |            ^~~~
+make[1]: *** [CMakeFiles/cmTC_11912.dir/build.make:66: CMakeFiles/cmTC_11912.dir/HAVE_SCHAR.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_11912/fast] 오류 2
+
+
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckTypeSize/HAVE_SCHAR.c:
+#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
+
+
+#undef KEY
+#if defined(__i386)
+# define KEY '_','_','i','3','8','6'
+#elif defined(__x86_64)
+# define KEY '_','_','x','8','6','_','6','4'
+#elif defined(__ppc__)
+# define KEY '_','_','p','p','c','_','_'
+#elif defined(__ppc64__)
+# define KEY '_','_','p','p','c','6','4','_','_'
+#elif defined(__aarch64__)
+# define KEY '_','_','a','a','r','c','h','6','4','_','_'
+#elif defined(__ARM_ARCH_7A__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','A','_','_'
+#elif defined(__ARM_ARCH_7S__)
+# define KEY '_','_','A','R','M','_','A','R','C','H','_','7','S','_','_'
+#endif
+
+#define SIZE (sizeof(schar))
+static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
+  ('0' + ((SIZE / 10000)%10)),
+  ('0' + ((SIZE / 1000)%10)),
+  ('0' + ((SIZE / 100)%10)),
+  ('0' + ((SIZE / 10)%10)),
+  ('0' +  (SIZE    % 10)),
+  ']',
+#ifdef KEY
+  ' ','k','e','y','[', KEY, ']',
+#endif
+  '\0'};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_size[argc];
+  (void)argv;
+  return require;
+}
+
+
+Determining if the function shl_load exists in the dld; failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_87eec/fast && /usr/bin/make -f CMakeFiles/cmTC_87eec.dir/build.make CMakeFiles/cmTC_87eec.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_87eec.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=shl_load -fPIE   -o CMakeFiles/cmTC_87eec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_87eec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_87eec.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=shl_load   -Wl,-lc  -Wl,-lc    CMakeFiles/cmTC_87eec.dir/CheckFunctionExists.c.o  -o cmTC_87eec  -ldld 
+/usr/bin/ld: cannot find -ldld
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_87eec.dir/build.make:87: cmTC_87eec] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_87eec/fast] 오류 2
+
+
+
+Determining if files sys/types.h;dlfcn.h;fcntl.h;malloc.h;inttypes.h;limits.h;stdint.h;stdio.h;stdlib.h;string.h;sys/stat.h;time.h;unistd.h;signal.h;errno.h;ansidecl.h;ctype.h;dl.h exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_9072e/fast && /usr/bin/make -f CMakeFiles/cmTC_9072e.dir/build.make CMakeFiles/cmTC_9072e.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_9072e.dir/HAVE_DL_H.c.o
+/usr/bin/cc -D_GNU_SOURCE  -fPIE   -o CMakeFiles/cmTC_9072e.dir/HAVE_DL_H.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/HAVE_DL_H.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CheckIncludeFiles/HAVE_DL_H.c:19:10: fatal error: dl.h: 그런 파일이나 디렉터리가 없습니다
+   19 | #include <dl.h>
+      |          ^~~~~~
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTC_9072e.dir/build.make:66: CMakeFiles/cmTC_9072e.dir/HAVE_DL_H.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_9072e/fast] 오류 2
+
+
+Source:
+/* */
+#include <sys/types.h>
+#include <dlfcn.h>
+#include <fcntl.h>
+#include <malloc.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <ansidecl.h>
+#include <ctype.h>
+#include <dl.h>
+
+
+int main(void){return 0;}
+
+Determining if the _stat exist failed with the following output:
+Change Dir: /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_8022a/fast && /usr/bin/make -f CMakeFiles/cmTC_8022a.dir/build.make CMakeFiles/cmTC_8022a.dir/build
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 들어감
+Building C object CMakeFiles/cmTC_8022a.dir/CheckSymbolExists.c.o
+/usr/bin/cc -D_GNU_SOURCE  -fPIE   -o CMakeFiles/cmTC_8022a.dir/CheckSymbolExists.c.o   -c /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:27:19: error: ‘_stat’ undeclared (first use in this function); did you mean ‘lstat’?
+   27 |   return ((int*)(&_stat))[argc];
+      |                   ^~~~~
+      |                   lstat
+/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:27:19: note: each undeclared identifier is reported only once for each function it appears in
+make[1]: *** [CMakeFiles/cmTC_8022a.dir/build.make:66: CMakeFiles/cmTC_8022a.dir/CheckSymbolExists.c.o] 오류 1
+make[1]: 디렉터리 '/home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp' 나감
+make: *** [Makefile:121: cmTC_8022a/fast] 오류 2
+
+
+File /home/yyl/SEMO/lib/VTK/VTK-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+#include <dlfcn.h>
+#include <fcntl.h>
+#include <malloc.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <ansidecl.h>
+#include <ctype.h>
+#include <float.h>
+#include <math.h>
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef _stat
+  return ((int*)(&_stat))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}

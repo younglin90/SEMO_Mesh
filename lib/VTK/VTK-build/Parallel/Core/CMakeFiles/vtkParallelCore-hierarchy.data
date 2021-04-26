@@ -1,0 +1,16 @@
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkCommunicator.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkDummyCommunicator.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkDummyController.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkFieldDataSerializer.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkMultiProcessController.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkMultiProcessStream.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkPDirectory.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkProcess.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkProcessGroup.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkPSystemTools.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkSocketCommunicator.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkSocketController.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkSubCommunicator.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkSubGroup.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/Parallel/Core/vtkThreadedTaskQueue.h;vtkParallelCore
+/home/yyl/SEMO/lib/VTK/VTK-build/Parallel/Core/vtkParallelCoreModule.h;vtkParallelCore

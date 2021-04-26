@@ -1,0 +1,47 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant/polyMesh";
+    object      meshMetaDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaceFile     "bunnyWrapped.stl";
+
+surfaceMeta
+{
+    nPoints         38507;
+    nFacets         77010;
+    nPatches        1;
+    nFeatureEdges   0;
+    patches
+    {
+        VOLUME_SURFACE
+        {
+            type            empty;
+            nFacets         77010;
+        }
+    }
+    pointSubsets
+    {
+    }
+    facetSubsets
+    {
+    }
+    featureEdgeSubsets
+    {
+    }
+}
+
+lastStep        meshOptimisation;
+
+completedSteps  16 ( start start templateGeneration templateGeneration surfaceTopology surfaceTopology surfaceProjection surfaceProjection patchAssignment patchAssignment edgeExtraction edgeExtraction boundaryLayerGeneration boundaryLayerGeneration meshOptimisation meshOptimisation );

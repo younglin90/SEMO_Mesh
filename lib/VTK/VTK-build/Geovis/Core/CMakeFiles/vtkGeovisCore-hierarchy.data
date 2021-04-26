@@ -1,0 +1,5 @@
+/home/yyl/SEMO/lib/VTK/Geovis/Core/vtkCompassRepresentation.h;vtkGeovisCore
+/home/yyl/SEMO/lib/VTK/Geovis/Core/vtkCompassWidget.h;vtkGeovisCore
+/home/yyl/SEMO/lib/VTK/Geovis/Core/vtkGeoProjection.h;vtkGeovisCore
+/home/yyl/SEMO/lib/VTK/Geovis/Core/vtkGeoTransform.h;vtkGeovisCore
+/home/yyl/SEMO/lib/VTK/VTK-build/Geovis/Core/vtkGeovisCoreModule.h;vtkGeovisCore

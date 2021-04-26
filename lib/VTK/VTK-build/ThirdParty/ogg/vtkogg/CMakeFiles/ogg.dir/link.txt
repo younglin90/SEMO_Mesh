@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC   -g  -Wl,-lc   -shared -Wl,-soname,libvtkogg-9.0.so.1 -o ../../../lib/libvtkogg-9.0.so.9.0.1 CMakeFiles/ogg.dir/src/bitwise.c.o CMakeFiles/ogg.dir/src/framing.c.o 

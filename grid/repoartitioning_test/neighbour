@@ -1,0 +1,14 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       labelList;
+    location    "constant/polyMesh";
+    object      neighbour;
+}
+
+13        
+(
+ 1 2 3 4 5 6 6 7 7 8
+ 8 9 9
+)

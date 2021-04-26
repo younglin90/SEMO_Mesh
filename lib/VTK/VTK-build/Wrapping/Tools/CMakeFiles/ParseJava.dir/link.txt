@@ -1,0 +1,1 @@
+/usr/bin/cc   -g   -Wl,-lc  -Wl,-lc   CMakeFiles/ParseJava.dir/vtkParseJava.c.o  -o ../../bin/vtkParseJava-9.0  -Wl,-rpath,"\$ORIGIN/../lib:" ../../lib/libvtkWrappingTools-9.0.so.9.0.1 

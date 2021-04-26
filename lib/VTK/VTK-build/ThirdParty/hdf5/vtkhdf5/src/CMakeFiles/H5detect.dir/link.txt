@@ -1,0 +1,1 @@
+/usr/bin/cc  -std=c99   -Og -ftrapv -fno-common -pedantic -Wall -Wextra -fmessage-length=0 -g   -Wl,-lc  -Wl,-lc   CMakeFiles/H5detect.dir/H5detect.c.o  -o ../../../../bin/vtkH5detect 

@@ -1,0 +1,8 @@
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkMPASReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkNetCDFCAMReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkNetCDFCFReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkNetCDFPOPReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkNetCDFReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkSLACParticleReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/IO/NetCDF/vtkSLACReader.h;vtkIONetCDF
+/home/yyl/SEMO/lib/VTK/VTK-build/IO/NetCDF/vtkIONetCDFModule.h;vtkIONetCDF

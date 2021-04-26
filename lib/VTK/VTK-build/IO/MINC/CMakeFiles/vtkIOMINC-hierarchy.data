@@ -1,0 +1,11 @@
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMINC.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMINCImageAttributes.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMINCImageReader.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMINCImageWriter.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMNIObjectReader.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMNIObjectWriter.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMNITagPointReader.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMNITagPointWriter.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMNITransformReader.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/IO/MINC/vtkMNITransformWriter.h;vtkIOMINC
+/home/yyl/SEMO/lib/VTK/VTK-build/IO/MINC/vtkIOMINCModule.h;vtkIOMINC

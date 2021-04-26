@@ -1,0 +1,13 @@
+
+-D'VTK_IN_VTK'
+
+
+-I'/home/yyl/SEMO/lib/VTK/VTK-build/Common/Math'
+-I'/home/yyl/SEMO/lib/VTK/Common/Math'
+-I'/home/yyl/SEMO/lib/VTK/VTK-build/Common/Core'
+-I'/home/yyl/SEMO/lib/VTK/Common/Core'
+-I'/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWIML'
+-I'/home/yyl/SEMO/lib/VTK/Utilities/KWIML'
+-I'/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys'
+-I'/home/yyl/SEMO/lib/VTK/VTK-build/Utilities/KWSys'
+-I'/home/yyl/SEMO/lib/VTK/Utilities/KWSys'

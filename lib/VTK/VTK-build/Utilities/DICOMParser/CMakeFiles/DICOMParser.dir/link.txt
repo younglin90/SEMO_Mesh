@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC   -g  -Wl,-lc   -shared -Wl,-soname,libvtkDICOMParser-9.0.so.1 -o ../../lib/libvtkDICOMParser-9.0.so.9.0.1 CMakeFiles/DICOMParser.dir/DICOMAppHelper.cxx.o CMakeFiles/DICOMParser.dir/DICOMFile.cxx.o CMakeFiles/DICOMParser.dir/DICOMParser.cxx.o  -Wl,-rpath,/home/yyl/SEMO/lib/VTK/VTK-build/lib: ../../lib/libvtksys-9.0.so.9.0.1 -ldl 
