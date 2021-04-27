@@ -14,6 +14,7 @@ public:
     }
 	
 	void OpenFoam(SEMO_Mesh_Builder &in);
+	void vtu(SEMO_Mesh_Builder &in);
 
 };
 

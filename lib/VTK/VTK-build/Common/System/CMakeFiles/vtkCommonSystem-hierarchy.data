@@ -1,8 +1,0 @@
-/home/yyl/SEMO/lib/VTK/Common/System/vtkClientSocket.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/Common/System/vtkDirectory.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/Common/System/vtkServerSocket.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/Common/System/vtkSocket.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/Common/System/vtkSocketCollection.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/Common/System/vtkThreadMessager.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/Common/System/vtkTimerLog.h;vtkCommonSystem
-/home/yyl/SEMO/lib/VTK/VTK-build/Common/System/vtkCommonSystemModule.h;vtkCommonSystem

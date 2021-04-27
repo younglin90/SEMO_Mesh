@@ -1,9 +1,0 @@
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageDivergence.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageDotProduct.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageLogarithmicScale.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageLogic.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageMagnitude.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageMaskBits.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageMathematics.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/Imaging/Math/vtkImageWeightedSum.h;vtkImagingMath
-/home/yyl/SEMO/lib/VTK/VTK-build/Imaging/Math/vtkImagingMathModule.h;vtkImagingMath

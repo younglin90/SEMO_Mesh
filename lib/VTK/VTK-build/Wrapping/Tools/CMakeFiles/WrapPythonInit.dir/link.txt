@@ -1,1 +1,0 @@
-/usr/bin/cc   -g   -Wl,-lc  -Wl,-lc   CMakeFiles/WrapPythonInit.dir/vtkWrapPythonInit.c.o  -o ../../bin/vtkWrapPythonInit-9.0  -Wl,-rpath,:::::::::::::: 

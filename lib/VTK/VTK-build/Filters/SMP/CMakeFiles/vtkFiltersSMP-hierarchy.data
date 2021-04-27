@@ -1,9 +1,0 @@
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkSMPContourGrid.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkSMPMergePoints.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkSMPMergePolyDataHelper.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkSMPContourGridManyPieces.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkThreadedSynchronizedTemplates3D.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkThreadedSynchronizedTemplatesCutter3D.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkSMPTransform.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/Filters/SMP/vtkSMPWarpVector.h;vtkFiltersSMP
-/home/yyl/SEMO/lib/VTK/VTK-build/Filters/SMP/vtkFiltersSMPModule.h;vtkFiltersSMP

@@ -66,14 +66,14 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	mesh.setDisplsProcFaces(); 
 	
 	// mesh.saveFile("vtu");
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	int idBlockCell[mesh.cells.size()];
 	
 	
 	mesh.parMETIS(nBlocks, idBlockCell);
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	//======================================================================
 	
@@ -89,7 +89,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	int sendSize = 0;
 	int recvSize = 0;
 	
-	SEMO_Mesh_Builder newMesh[nBlocks];
+	vector<SEMO_Mesh_Builder> newMesh(nBlocks);
 	
 
 	vector<int> rank_Send;
@@ -831,6 +831,35 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				   MPI_COMM_WORLD);
 	
 	
+	
+	// boundary name save
+	vector<string> boundaryNames; 
+	string test; 
+	for(auto& boundary : mesh.boundary){
+		if(boundary.neighbProcNo == -1) {
+			
+
+			// boundary.name.erase(std::find_if(boundary.name.rbegin(), boundary.name.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), boundary.name.end());
+			// boundary.name.erase(boundary.name.begin(), std::find_if(boundary.name.begin(), boundary.name.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			
+			// boundary.name.erase(remove(boundary.name.begin(), boundary.name.end(), ' '), boundary.name.end());
+			boundaryNames.push_back(boundary.name);
+
+			// strrrr.erase(std::find_if(strrrr.rbegin(), strrrr.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), strrrr.end());
+			// strrrr.erase(strrrr.begin(), std::find_if(strrrr.begin(), strrrr.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			
+			
+			// cout << boundary.name.length() << endl;
+		}
+	}
+	// for(int i=0; i<boundaryNames.size(); ++i){
+		// cout << boundaryNames[i] << boundaryNames[i].length() << endl;
+	// }
+	// for(auto& i : boundaryNames){
+		// cout << i.data() << endl;
+		
+	// } 
+	
 	for(int ip=0; ip<nBlocks; ++ip){
 		for(int ibcs=0; ibcs<bound_num; ++ibcs){
 			int numm = ip*bound_num + ibcs;
@@ -1003,6 +1032,9 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				newMesh[ip].addBoundary();
 				string bcnames = "procBoundary" + to_string(myProcNoProcessorFaceLocal_Recv[numm]) + "to" + to_string(neighbProcNoProcessorFaceLocal_Recv[numm]);
 				newMesh[ip].boundary.back().name = bcnames;
+				
+				// cout << newMesh[ip].boundary.back().name << endl;
+				
 				newMesh[ip].boundary.back().nFaces = nFaceToBeProcessorFaceLocal_Recv[numm];
 				newMesh[ip].boundary.back().startFace = nStartToBeProcessorFaceLocal_Recv[numm];
 				newMesh[ip].boundary.back().myProcNo = myProcNoToBeProcessorFaceLocal_Recv[numm];
@@ -1016,14 +1048,20 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	
 	for(int ip=0; ip<nBlocks; ++ip){
 		int nbc=0;
+		int startProcsFace=0;
 		for(auto& ibc : newMesh[ip].boundary){
-			if(ibc.neighbProcNo == -1) ++nbc;
+			if(ibc.neighbProcNo == -1) {
+				if(ibc.nFaces>0) startProcsFace = ibc.startFace + ibc.nFaces;
+				++nbc;
+			}
 		}
+		
 		
 		for(int ibc=nbc; ibc<newMesh[ip].boundary.size(); ++ibc){
 			int ostart = newMesh[ip].boundary[ibc-1].startFace;
 			int onface = newMesh[ip].boundary[ibc-1].nFaces;
 			int nstart = ostart + onface;
+			if(ibc==nbc) nstart = startProcsFace;
 			newMesh[ip].boundary[ibc].startFace = nstart;
 		}
 	}
@@ -1168,9 +1206,10 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	// if(rank==1){
-		// int ip=3;
+		// int ip=1;
 		
 		// // for(auto& i : newMesh[ip].faces){
+			// // cout << endl;
 			// // for(auto& j : i.points){
 				// // cout << " face's points : " << j << endl;
 			// // }
@@ -1181,12 +1220,12 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		// // for(auto& i : newMesh[ip].faces){
 			// // cout << " face's neighbour : " << i.neighbour << endl;
 		// // }
-		// // for(auto& i : newMesh[ip].boundary){
-			// // cout << " boundary name : " << i.name << endl;
-			// // cout << " boundary startFace : " << i.startFace << endl;
-			// // cout << " boundary nFaces : " << i.nFaces << endl;
-			// // cout << " boundary neighbProcNo : " << i.neighbProcNo << endl;
-		// // }
+		// for(auto& i : newMesh[ip].boundary){
+			// cout << " boundary name : " << i.name << endl;
+			// cout << " boundary startFace : " << i.startFace << endl;
+			// cout << " boundary nFaces : " << i.nFaces << endl;
+			// cout << " boundary neighbProcNo : " << i.neighbProcNo << endl;
+		// }
 		
 		// newMesh[ip].check();
 		
@@ -1475,9 +1514,9 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		
 			
 		
-		for(auto& i : replacePointsId){
-			if(rank==1) cout << i << endl;
-		}
+		// for(auto& i : replacePointsId){
+			// if(rank==1) cout << i << endl;
+		// }
 
 		// faces , faces points
 		for(auto& face : newMesh[ip].faces){
@@ -1584,14 +1623,29 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	
 
 	// boundary
-	int nbcs = 0;
-	for(int ibcs=0; ibcs<newMesh[0].boundary.size(); ++ibcs){
-		if(newMesh[0].boundary[ibcs].myProcNo == -1){
-			mesh.addBoundary();
-			mesh.boundary[ibcs].name = newMesh[0].boundary[ibcs].name;
-			++nbcs;
-		}
+	// for(auto& i : boundaryNames){
+		// cout << i << endl;
+		
+	// } 
+	// for(auto& i : boundaryNames){
+	for(int i=0; i<boundaryNames.size(); ++i){
+		mesh.addBoundary();
+		
+		// char tmp_ptr[50];
+		// memmove(tmp_ptr, boundaryNames[i].c_str(), boundaryNames[i].length());
+		// string strrrr(tmp_ptr);
+		
+		// boundaryNames[i].erase(std::find_if(boundaryNames[i].rbegin(), boundaryNames[i].rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), boundaryNames[i].end());
+		// boundaryNames[i].erase(boundaryNames[i].begin(), std::find_if(boundaryNames[i].begin(), boundaryNames[i].end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+		
+		mesh.boundary.back().name = boundaryNames[i];
+		// for(int j=0; j<10; ++j){
+			// cout << boundaryNames[i][j];
+		// }
+		// cout << boundaryNames[i].length() << endl;
+		// cout <<  boundaryNames[i][0] << boundaryNames[i][1] << boundaryNames[i][2] << boundaryNames[i][3] << boundaryNames[i][4] << boundaryNames[i][5] << boundaryNames[i][6] << endl;
 	}
+	int nbcs = boundaryNames.size();
 	
 	
 	// if(rank==0){
@@ -1695,6 +1749,10 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				}
 				++nFaces;
 			}
+			
+			string bcnames = "procBoundary" + to_string(rank) + "to" + to_string(ip);
+			
+			mesh.boundary[nbcs+iii_proc].name = bcnames;
 			mesh.boundary[nbcs+iii_proc].nFaces = nFaces;
 			mesh.boundary[nbcs+iii_proc].myProcNo = rank;
 			mesh.boundary[nbcs+iii_proc].neighbProcNo = ip;
@@ -1772,8 +1830,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		// }
 	// }
 	
-	
-	
+		newMesh.clear();
 
 		mesh.check();
 		
@@ -1939,7 +1996,8 @@ void SEMO_Mesh_Builder::parMETIS(int nBlocks, int idBlockCell[]){
 	
 	int options[METIS_NOPTIONS];
 	METIS_SetDefaultOptions(options);
-	options[METIS_OPTION_DBGLVL]=1;
+	options[METIS_OPTION_DBGLVL]=0;
+	options[0] = 0;
 	
 	// int idBlockCell[ncells];
 	// int dummy1[npoints];

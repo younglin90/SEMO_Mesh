@@ -44,6 +44,18 @@ int main(int argc, char* argv[]) {
 	mesh.mpi.setRank();
 	
 	
+	bool boolLoad = false;
+	
+	if(boolLoad){
+		
+		mesh.loadFile("vtu");
+		
+	
+	
+	
+	}
+	
+	
 	if(mesh.mpi.getRank() == 0){
 		
 		mesh.loadFile("OpenFoam");
@@ -87,6 +99,13 @@ int main(int argc, char* argv[]) {
 		// mesh.partition("METIS");
 		
 	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	

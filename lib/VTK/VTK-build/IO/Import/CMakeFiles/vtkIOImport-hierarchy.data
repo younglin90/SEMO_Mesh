@@ -1,8 +1,0 @@
-/home/yyl/SEMO/lib/VTK/IO/Import/vtk3DS.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/IO/Import/vtk3DSImporter.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/IO/Import/vtkGLTFImporter.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/IO/Import/vtkImporter.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/IO/Import/vtkVRMLImporter.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/IO/Import/vtkOBJImporter.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/IO/Import/vtkOBJImporterInternals.h;vtkIOImport
-/home/yyl/SEMO/lib/VTK/VTK-build/IO/Import/vtkIOImportModule.h;vtkIOImport

@@ -42,8 +42,8 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 
 	stringstream streamXYZ;
 	// for(auto iter=mesh.points.begin(); iter!=mesh.points.end(); iter++){
-	for(auto iter=mesh.listPoints.begin(); iter!=mesh.listPoints.end(); iter++){
-		outputFile << scientific << (*iter)->x << " " << (*iter)->y << " " << (*iter)->z << endl;
+	for(auto& point : mesh.points){
+		outputFile << scientific << point.x << " " << point.y << " " << point.z << endl;
 
 	}
 	
@@ -55,8 +55,8 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 	// connectivity (cell's points)
 	outputFile << "    <DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">" << endl;
 
-	for(auto iter=mesh.listCells.begin(); iter!=mesh.listCells.end(); iter++){
-		for(auto i : (*iter)->points){
+	for(auto& cell : mesh.cells){
+		for(auto i : cell.points){
 			outputFile << i << " ";
 		}
 		outputFile << endl;
@@ -69,8 +69,8 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 	outputFile << "    <DataArray type=\"Int64\" Name=\"offsets\" format=\"ascii\">" << endl;
 	
 	cellFaceOffset = 0;
-	for(auto iter=mesh.listCells.begin(); iter!=mesh.listCells.end(); iter++){
-		cellFaceOffset += (*iter)->points.size();
+	for(auto& cell : mesh.cells){
+		cellFaceOffset += cell.points.size();
 		outputFile << cellFaceOffset << " ";
 	}
 	outputFile << endl;
@@ -80,7 +80,7 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 	// types (cell's type, 42 = polyhedron)
 	outputFile << "    <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">" << endl;
 	
-	for(auto iter=mesh.listCells.begin(); iter!=mesh.listCells.end(); iter++){
+	for(auto& cell : mesh.cells){
 		outputFile << "42" << " ";
 	}
 	outputFile << endl;
@@ -91,9 +91,9 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 	outputFile << "    <DataArray type=\"Int64\" IdType=\"1\" Name=\"faces\" format=\"ascii\">" << endl;
 	
 	// outputFile << mesh.faces.size() << endl;
-	for(auto iter=mesh.listCells.begin(); iter!=mesh.listCells.end(); iter++){
-		outputFile << (*iter)->faces.size() << endl;
-		for(auto& i : (*iter)->faces){
+	for(auto& cell : mesh.cells){
+		outputFile << cell.faces.size() << endl;
+		for(auto& i : cell.faces){
 			outputFile << mesh.faces[i].points.size() << " ";
 			for(auto& j : mesh.faces[i].points){
 				outputFile << j << " ";
@@ -110,9 +110,9 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 	outputFile << "    <DataArray type=\"Int64\" IdType=\"1\" Name=\"faceoffsets\" format=\"ascii\">" << endl;
 	
 	cellFacePointOffset = 0;
-	for(auto iter=mesh.listCells.begin(); iter!=mesh.listCells.end(); iter++){
-		int numbering = 1 + (*iter)->faces.size();
-		for(auto& i : (*iter)->faces){
+	for(auto& cell : mesh.cells){
+		int numbering = 1 + cell.faces.size();
+		for(auto& i : cell.faces){
 			numbering += mesh.faces[i].points.size();
 		}
 		cellFacePointOffset += numbering;
@@ -123,8 +123,56 @@ void SEMO_Mesh_Save::vtu(SEMO_Mesh_Builder &mesh){
 	outputFile << "    </DataArray>" << endl;
 	outputFile << "   </Cells>" << endl;
 	
+	
 	outputFile << "  </Piece>" << endl;
 	outputFile << " </UnstructuredGrid>" << endl;
+	
+
+	// additional informations
+	outputFile << " <owner>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.owner << " ";
+	}
+	outputFile << endl;
+	outputFile << " </owner>" << endl;
+	
+	outputFile << " <neighbour>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.neighbour << " ";
+	}
+	outputFile << endl;
+	outputFile << " </neighbour>" << endl;
+	
+	outputFile << " <bcName>" << endl;
+	for(auto& boundary : mesh.boundary){
+		// cout << boundary.name << endl;
+		outputFile << boundary.name << " ";
+	}
+	outputFile << endl;
+	outputFile << " </bcName>" << endl;
+	
+	outputFile << " <bcStartFace>" << endl;
+	for(auto& boundary : mesh.boundary){
+		outputFile << boundary.startFace << " ";
+	}
+	outputFile << endl;
+	outputFile << " </bcStartFace>" << endl;
+	
+	outputFile << " <bcNFaces>" << endl;
+	for(auto& boundary : mesh.boundary){
+		outputFile << boundary.nFaces << " ";
+	}
+	outputFile << endl;
+	outputFile << " </bcNFaces>" << endl;
+	
+	outputFile << " <bcNeighbProcNo>" << endl;
+	for(auto& boundary : mesh.boundary){
+		outputFile << boundary.neighbProcNo << " ";
+	}
+	outputFile << endl;
+	outputFile << " </bcNeighbProcNo>" << endl;
+	
+	
 	outputFile << "</VTKFile>" << endl;
 	
 	outputFile.close();

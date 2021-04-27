@@ -1,1 +1,0 @@
-/usr/bin/cc  -std=c99   -Og -ftrapv -fno-common -pedantic -Wall -Wextra -fmessage-length=0 -g   -Wl,-lc  -Wl,-lc   CMakeFiles/H5make_libsettings.dir/H5make_libsettings.c.o  -o ../../../../bin/vtkH5make_libsettings 

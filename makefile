@@ -31,4 +31,4 @@ $(EXE) : $(OBJECTS)
 
 clean:
 	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log
-	@rm -fr $(OBJECTS) $(EXE) *.o
+	@rm -fr $(OBJECTS) $(EXE) *.o make.log

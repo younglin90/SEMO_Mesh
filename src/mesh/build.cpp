@@ -42,6 +42,9 @@ void SEMO_Mesh_Builder::loadFile(string filetype){
 	if(filetype=="OpenFoam"){
 		meshLoad.OpenFoam(*this);
 	} 
+	if(filetype=="vtu"){
+		meshLoad.vtu(*this);
+	} 
 }
 
 

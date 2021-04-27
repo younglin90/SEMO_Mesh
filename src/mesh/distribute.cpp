@@ -536,14 +536,38 @@ void SEMO_Mesh_Builder::distributeEvenlyOneToAll(){
 		
 		string namesBoundaryFaceLocal_Recv[nBoundaryFaceLocal_Recv];
 		for(int i=0; i<nBoundaryFaceLocal_Recv; ++i){
+
+			mesh.boundary[i].name.erase(std::find_if(mesh.boundary[i].name.rbegin(), mesh.boundary[i].name.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), mesh.boundary[i].name.end());
+			mesh.boundary[i].name.erase(mesh.boundary[i].name.begin(), std::find_if(mesh.boundary[i].name.begin(), mesh.boundary[i].name.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			
 			int temp_size = mesh.boundary[i].name.length();
 			MPI_Bcast(&temp_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-			char tmp_ptr[50];
+			char tmp_ptr[50] = " ";
 			memmove(tmp_ptr, mesh.boundary[i].name.c_str(), mesh.boundary[i].name.length());
-			MPI_Bcast(tmp_ptr, temp_size, MPI_BYTE, 0, MPI_COMM_WORLD);
+			MPI_Bcast(tmp_ptr, 45, MPI_BYTE, 0, MPI_COMM_WORLD);
+			
 			
 			string strrrr(tmp_ptr);
-			namesBoundaryFaceLocal_Recv[i] = strrrr;
+			
+			
+			strrrr.erase(std::find_if(strrrr.rbegin(), strrrr.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), strrrr.end());
+			strrrr.erase(strrrr.begin(), std::find_if(strrrr.begin(), strrrr.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			// strrrr.erase(std::remove(strrrr.begin(), strrrr.end(), ' '), strrrr.end());
+			
+			// cout << strrrr << endl;
+			// cout << rank << " " << strrrr.length() << endl;
+			if(rank != 0){
+				namesBoundaryFaceLocal_Recv[i] = strrrr;
+			}
+			else{
+				string strrrrrrr = mesh.boundary[i].name;
+				// trim;
+				strrrrrrr.erase(std::find_if(strrrrrrr.rbegin(), strrrrrrr.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), strrrrrrr.end());
+				strrrrrrr.erase(strrrrrrr.begin(), std::find_if(strrrrrrr.begin(), strrrrrrr.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+				namesBoundaryFaceLocal_Recv[i] = strrrrrrr;
+			}
+			
+			// cout << mesh.boundary[i].name << endl;
 		}
 		
 
@@ -778,10 +802,14 @@ void SEMO_Mesh_Builder::distributeEvenlyOneToAll(){
 		for(int i=0; i<nBoundaryFaceLocal_Recv; ++i){
 			int temp_size;
 			MPI_Bcast(&temp_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-			char tmp_ptr[50];
-			MPI_Bcast(tmp_ptr, temp_size, MPI_BYTE, 0, MPI_COMM_WORLD);
+			char tmp_ptr[50] = " ";
+			MPI_Bcast(tmp_ptr, 45, MPI_BYTE, 0, MPI_COMM_WORLD);
 			// mesh.addBoundary();
 			string strrrr(tmp_ptr);
+			
+			// trim;
+			strrrr.erase(std::find_if(strrrr.rbegin(), strrrr.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), strrrr.end());
+			strrrr.erase(strrrr.begin(), std::find_if(strrrr.begin(), strrrr.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
 			namesBoundaryFaceLocal_Recv[i] = strrrr;
 		}
 		
@@ -894,11 +922,11 @@ void SEMO_Mesh_Builder::distributeEvenlyOneToAll(){
 	
 	
 	
-	// // check
-	// // if(rank==2){
-		// // for(auto& i : mesh.faces){
-			// // cout << i.neighbour << endl;
-		// // }
+	// // // check
+	// // // if(rank==2){
+		// // // for(auto& i : mesh.faces){
+			// // // cout << i.neighbour << endl;
+		// // // }
 		// mesh.check();
 		
 		// mesh.buildCells();
@@ -922,12 +950,15 @@ void SEMO_Mesh_Builder::distributeEvenlyOneToAll(){
 		
 		
 		// mesh.saveFile("vtu");
-	// // }
+	// // // }
 	
 	
 	
 	
-	
+
+	// for(auto& i : mesh.boundary){
+		// cout << rank << " " << i.name.size() << endl;
+	// }
 	
 	
 	

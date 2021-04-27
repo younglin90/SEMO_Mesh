@@ -1,8 +1,0 @@
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkAMRCutPlane.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkAMRGaussianPulseSource.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkAMRResampleFilter.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkAMRSliceFilter.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkAMRToMultiBlockFilter.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkImageToAMR.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/Filters/AMR/vtkParallelAMRUtilities.h;vtkFiltersAMR
-/home/yyl/SEMO/lib/VTK/VTK-build/Filters/AMR/vtkFiltersAMRModule.h;vtkFiltersAMR

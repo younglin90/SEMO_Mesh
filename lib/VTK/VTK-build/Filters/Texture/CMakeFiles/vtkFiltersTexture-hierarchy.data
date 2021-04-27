@@ -1,9 +1,0 @@
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkImplicitTextureCoords.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkScalarsToTextureFilter.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkTextureMapToCylinder.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkTextureMapToPlane.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkTextureMapToSphere.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkThresholdTextureCoords.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkTransformTextureCoords.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/Filters/Texture/vtkTriangularTCoords.h;vtkFiltersTexture
-/home/yyl/SEMO/lib/VTK/VTK-build/Filters/Texture/vtkFiltersTextureModule.h;vtkFiltersTexture

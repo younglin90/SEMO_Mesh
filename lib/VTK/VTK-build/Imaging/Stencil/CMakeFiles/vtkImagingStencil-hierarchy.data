@@ -1,8 +1,0 @@
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkImageStencil.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkImageStencilToImage.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkImageToImageStencil.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkImplicitFunctionToImageStencil.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkLassoStencilSource.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkPolyDataToImageStencil.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/Imaging/Stencil/vtkROIStencilSource.h;vtkImagingStencil
-/home/yyl/SEMO/lib/VTK/VTK-build/Imaging/Stencil/vtkImagingStencilModule.h;vtkImagingStencil

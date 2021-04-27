@@ -1,8 +1,0 @@
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkEnSight6BinaryReader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkEnSight6Reader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkEnSightGoldBinaryReader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkEnSightGoldReader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkEnSightMasterServerReader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkEnSightReader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/IO/EnSight/vtkGenericEnSightReader.h;vtkIOEnSight
-/home/yyl/SEMO/lib/VTK/VTK-build/IO/EnSight/vtkIOEnSightModule.h;vtkIOEnSight
