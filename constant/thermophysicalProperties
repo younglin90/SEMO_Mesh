@@ -1,0 +1,71 @@
+
+phases = (air air)
+
+air
+{
+	thermodynamics
+	{
+		rho
+		{
+			type = NASG
+			Pinf = 0.0
+			cv = 717.0
+			gamma = 1.4
+			b = 0.0
+			q = 0.0
+		}
+	}
+	
+	transport
+	{
+		mu
+		{
+			type = const
+			value = 1.e-3
+		}
+	}
+}
+
+air
+{
+	thermodynamics
+	{
+		rho
+		{
+			type = NASG
+			Pinf = 0.0
+			cv = 717.0
+			gamma = 1.4
+			b = 0.0
+			q = 0.0
+		}
+	}
+	
+	transport
+	{
+		mu
+		{
+			type = const
+			value = 1.8e-5
+		}
+	}
+	
+}
+
+transfer
+{
+	surfaceTension
+	{
+		sigma = 0.0
+	}
+	
+	massTransfer
+	{
+	}
+
+	heatTransfer
+	{
+	}
+
+}
+

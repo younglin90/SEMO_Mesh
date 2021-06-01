@@ -1,7 +1,12 @@
 #pragma once
 #include <iostream>
+#include <vector>
+#include <array>
+#include <list>
 #include "mpi.h"
+using namespace std;
 
+#include "../mesh/build.h"
 
 
 class SEMO_MPI_Builder{
@@ -35,6 +40,31 @@ class SEMO_MPI_Builder{
 		void setRecvDispls(int in){
 			recvDispls = new int[in];
 		}
+		
+		void exchangeDatas(
+			vector<int>& sendCounts, vector<int>& recvCounts, 
+			vector<int>& sendValues, vector<int>& recvValues);
+		void exchangeDatas(
+			vector<int>& sendCounts, vector<int>& recvCounts, 
+			vector<double>& sendValues, vector<double>& recvValues);
+		void setCellDatasToFaceRight(
+				SEMO_Mesh_Builder& mesh, 
+				int cin, int fin,
+				vector<int>& sendCounts, vector<int>& recvCounts, 
+				vector<int>& sendDisps, vector<int>& recvDisps
+				);
+		
+		
+		void setProcsFaceDatas(
+			vector<int>& sendValues, vector<int>& recvValues,
+			vector<int>& sendCounts, vector<int>& recvCounts, 
+			vector<int>& sendDisps, vector<int>& recvDisps);
+		
+		
+		void setProcsFaceDatasDouble(
+			vector<double>& sendValues, vector<double>& recvValues,
+			vector<int>& sendCounts, vector<int>& recvCounts, 
+			vector<int>& sendDisps, vector<int>& recvDisps);
 		
 		int* sendCounts;
 		int* recvCounts;

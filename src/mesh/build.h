@@ -9,6 +9,8 @@ using namespace std;
 #include "load.h"
 #include "save.h"
 #include "../mpi/build.h"
+#include "../math/math.h"
+
 // #include "geometric.h"
 
 // class SEMO_Mesh_Load;
@@ -27,11 +29,16 @@ class SEMO_Point{
 	public:
 		int level;
 		double x, y, z;
+		
+		vector<double> var;
+		
+		vector<int> stencil;
 };
 
 class SEMO_Face{
 	public:
 		SEMO_Face(){
+			unitNormals.resize(3,0.0);
 			neighbour=-1;
 		}
 		
@@ -47,14 +54,25 @@ class SEMO_Face{
 		int getTypeBC(){
 			return typeBC;
 		}
+		
+		// double var(int in){
+			// return variables[in];
+		// }
 	
 	public:
 		int level;
-		double unitNormals[3];
+		vector<double> unitNormals;
 		double area;
+		double wC;
 		int owner, neighbour;
 		vector<int> points;
 		double x, y, z;
+		vector<double> distCells;
+		
+		vector<double> var;
+		vector<double> varL;
+		vector<double> varR;
+		
 		
 	private:
 		SEMO_Types type;
@@ -63,10 +81,29 @@ class SEMO_Face{
 
 class SEMO_Cell{
 	public:
+		SEMO_Cell(){
+			level=0;
+		}
+		
+		// double var(int in){
+			// return variables[in];
+		// }
+		
 		int level;
 		vector<int> points;
 		vector<int> faces;
+		
+		double x, y, z;
 		double volume;
+		
+		vector<double> var;
+	
+		vector<double> coeffLeastSquare;
+		
+		vector<int> stencil;
+		
+	private:
+		
 };
 
 class SEMO_Boundary{
@@ -77,6 +114,8 @@ class SEMO_Boundary{
 		}
 		
 		string name;
+		vector<string> type;
+		vector<double> var;
 		int nFaces;
 		int startFace;
 		int myProcNo;
@@ -110,9 +149,10 @@ class SEMO_Mesh_Builder{
 			return *this;
 		}
 		
-		void loadFile(string filetype);
-		void saveFile(string filetype);
+		void loadFile(string filetype, string folder);
+		void saveFile(string filetype, string folder, SEMO_Controls_Builder &controls);
 		void check();
+		void checkQualities();
 		void buildCells();
 		void buildCells2();
 		void setFaceTypes();
@@ -131,7 +171,13 @@ class SEMO_Mesh_Builder{
 		void parMETIS(int nBlocks, int idBlockCell[]);
 		void distribute(int nBlocks, int idBlockCell[]);
 		
+		void informations();
+		
+		// AMR
+		void hexaOctAMR();
+		
 		// processor faces
+		void searchNeighbProcFaces();
 		void setCountsProcFaces();
 		void setDisplsProcFaces();
 		
@@ -143,6 +189,7 @@ class SEMO_Mesh_Builder{
 		
 		list<SEMO_Point*> listPoints;
 		list<SEMO_Cell*> listCells;
+		list<SEMO_Face*> listFaces;
 		list<SEMO_Face*> listInternalFaces;
 		list<SEMO_Face*> listBoundaryFaces;
 		list<SEMO_Face*> listProcessorFaces;
@@ -150,7 +197,7 @@ class SEMO_Mesh_Builder{
 		vector<int> countsProcFaces;
 		vector<int> displsProcFaces;
 		
-		SEMO_MPI_Builder mpi;
+		// SEMO_MPI_Builder mpi;
 		
 		
 	private:

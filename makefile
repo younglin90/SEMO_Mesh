@@ -1,34 +1,183 @@
 CCOMPLR = mpiicpc
-CFLAGS = -c -O3
+
+CFLAGS = -std=c++17 -c -O2
+
 EXE = SEMO
-LIBINCLUDE = -I./lib/Metis\
-             -I./lib/Scotch\
 
-LIBRARIES = ./lib/Metis/libparmetis.a\
-            ./lib/Metis/libmetis.a\
-            ./lib/Scotch/libscotcherr.a\
-            ./lib/Scotch/libscotch.a\
+LIBINCLUDE = \
+             -Ilib/zlib\
+             -Ilib/PETSc/include\
+             -Ilib/Metis\
+             -Ilib/Scotch\
+             -Ilib/HYPRE/include\
+             # -I/home/yyl/petsc/arch-linux-c-debug/include\
 
-SOURCES = src/main.cpp\
-	      src/mesh/build.cpp\
+LIBRARIES = \
+            lib/zlib/libz.a\
+            lib/PETSc/lib/libpetsc.so.3.14\
+            -Wl,-rpath,lib/PETSc/lib\
+            lib/Metis/libparmetis.a\
+            lib/Metis/libmetis.a\
+            lib/Scotch/libscotch.a\
+            lib/Scotch/libscotcherr.a\
+            lib/HYPRE/lib/libHYPRE.a\
+             # ./lib/Scotch/libscotchmetis.a\
+             # -Wl,-rpath,/home/yyl/petsc/arch-linux-c-debug/lib\
+             # -L/home/yyl/petsc/arch-linux-c-debug/lib\
+             # -lm\
+             # -lpetsc\
+             # ./lib/PETSc/lib/libpetsc.so.3.14\
+             # -Wl,-rpath,./lib/PETSc/lib\
+
+SOURCES = src/mesh/build.cpp\
 	      src/mesh/load.cpp\
 	      src/mesh/save.cpp\
 	      src/mesh/geometric.cpp\
 	      src/mesh/partition.cpp\
 	      src/mesh/distribute.cpp\
-	      src/math/functions.cpp\
+	      src/mesh/hexaOctAMR.cpp\
+	      src/math/math.cpp\
+	      src/math/gradient.cpp\
+	      src/solvers/transport.cpp\
+	      src/solvers/viscousFlux.cpp\
+	      src/mesh/saveGnuplot.cpp\
 	      src/mpi/build.cpp\
+	      src/controls/build.cpp\
+	      src/variables/build.cpp\
+	      src/solvers/build.cpp\
+	      src/solvers/pressureBased.cpp\
+	      src/solvers/densityBased.cpp\
+	      src/solvers/reconIncom.cpp\
+	      src/solvers/reconComp.cpp\
+	      src/solvers/eqMomentum.cpp\
+	      src/solvers/eqPressure.cpp\
+	      src/solvers/eqVolfrac.cpp\
+	      src/solvers/solvePETSc.cpp\
+	      src/solvers/solveHYPRE.cpp\
+	      src/solvers/timestep.cpp\
+	      src/solvers/RHS.cpp\
+	      src/solvers/flux.cpp\
+	      src/solvers/source.cpp\
+	      src/solvers/linearSolver.cpp\
+	      src/solvers/eos.cpp\
+	      src/solvers/norm.cpp\
+	      src/solvers/NVD.cpp\
+	      src/solvers/hybridBased.cpp\
+	      src/solvers/curvature.cpp\
+	      src/utility/read.cpp\
 
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = src/main.o $(SOURCES:.cpp=.o)
 
-all : $(EXE)
+# Density based single time
+EXE_CompDensitySingle = CompDensitySingle
+
+OBJECTS_CompDensitySingle = src/main/compressible/densityBasedSingle.o $(SOURCES:.cpp=.o)
+
+# Density based dual time
+EXE_CompDensityDual = CompDensityDual
+
+OBJECTS_CompDensityDual = src/main/compressible/densityBasedDual.o $(SOURCES:.cpp=.o)
+
+# Pressure based 
+EXE_IncomPressure = IncomPressure
+
+OBJECTS_IncomPressure = src/main/incompressible/pressureBased.o $(SOURCES:.cpp=.o)
+
+# hybrid based
+EXE_CompHybrid = CompHybrid
+
+OBJECTS_CompHybrid = src/main/compressible/hybridBased.o $(SOURCES:.cpp=.o)
+
+# partitioning
+EXE_PARTITION = Partition
+
+SOURCES_PARTITION = src/utility/partition.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/load.cpp\
+                    src/mesh/save.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+
+OBJECTS_PARTITION = $(SOURCES_PARTITION:.cpp=.o)
+
+# initialization
+EXE_INITIAL = Initial
+
+SOURCES_INITIAL = src/utility/initial.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/load.cpp\
+                    src/mesh/save.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/controls/build.cpp\
+                    src/utility/read.cpp\
+
+OBJECTS_INITIAL = $(SOURCES_INITIAL:.cpp=.o)
+
+# potential flow
+EXE_POTENTIAL = Potential
+
+SOURCES_POTENTIAL = src/utility/potential.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/load.cpp\
+                    src/mesh/save.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
+                    src/utility/read.cpp\
+                    src/solvers/build.cpp\
+                    src/solvers/eos.cpp\
+                    src/solvers/solvePETSc.cpp\
+                    src/solvers/reconIncom.cpp\
+                    src/solvers/reconComp.cpp\
+                    src/solvers/NVD.cpp\
+
+OBJECTS_POTENTIAL = $(SOURCES_POTENTIAL:.cpp=.o)
+
+COTEXT  = "\033[1;31m Compiling\033[0m\033[1m $< \033[0m"
+
+# all : $(EXE)
+all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL)
+# all : $(EXE_LOAD)
 
 $(EXE) : $(OBJECTS)
-	$(CCOMPLR) -o $@ $(OBJECTS) $(LIBRARIES)
+	@$(CCOMPLR) -o $@ $(OBJECTS) $(LIBRARIES)
+	@echo "\033[1;31m Main code compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_CompDensitySingle) : $(OBJECTS_CompDensitySingle)
+	@$(CCOMPLR) -o $@ $(OBJECTS_CompDensitySingle) $(LIBRARIES)
+	@echo "\033[1;31m Comp_density_single CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_CompDensityDual) : $(OBJECTS_CompDensityDual)
+	@$(CCOMPLR) -o $@ $(OBJECTS_CompDensityDual) $(LIBRARIES)
+	@echo "\033[1;31m Comp_density_dual CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_IncomPressure) : $(OBJECTS_IncomPressure)
+	@$(CCOMPLR) -o $@ $(OBJECTS_IncomPressure) $(LIBRARIES)
+	@echo "\033[1;31m Incom_pressure CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_CompHybrid) : $(OBJECTS_CompHybrid)
+	@$(CCOMPLR) -o $@ $(OBJECTS_CompHybrid) $(LIBRARIES)
+	@echo "\033[1;31m Comp_hybrid CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_PARTITION) : $(OBJECTS_PARTITION)
+	@$(CCOMPLR) -o $@ $(OBJECTS_PARTITION) $(LIBRARIES)
+	@echo "\033[1;31m PARTITION CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_INITIAL) : $(OBJECTS_INITIAL)
+	@$(CCOMPLR) -o $@ $(OBJECTS_INITIAL) $(LIBRARIES)
+	@echo "\033[1;31m INITIAL CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_POTENTIAL) : $(OBJECTS_POTENTIAL)
+	@$(CCOMPLR) -o $@ $(OBJECTS_POTENTIAL) $(LIBRARIES)
+	@echo "\033[1;31m POTENTIAL CODE compile/link complete \033[0m" | tee -a make.log
 
 %.o : %.cpp
-	$(CCOMPLR) $(CFLAGS) $(LIBINCLUDE) $< -o $@
+	@echo $(COTEXT) | tee -a make.log
+	@$(CCOMPLR) $(CFLAGS) $(LIBINCLUDE) $< -o $@
 
 clean:
-	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log
-	@rm -fr $(OBJECTS) $(EXE) *.o make.log
+	@echo "\033[1;31m deleting objects \033[0m" | tee make.log
+	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) make.log *.o

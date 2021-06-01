@@ -1,0 +1,35 @@
+//============================================
+// temperature conditions
+//============================================
+initialField
+{
+	type	fixedValue;
+	value	300.0;
+}
+
+
+
+boundaryField
+{
+	invwall
+	{
+		type	zeroGradient;
+	}
+
+	viswall
+	{
+		type	zeroGradient;
+	}
+
+	subinlet
+	{
+		type	fixedValue;
+		value	300.0;
+	}
+
+	suboutlet
+	{
+		type	zeroGradient;
+	}
+	
+}

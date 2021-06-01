@@ -1,0 +1,20 @@
+
+simulationType = none
+
+LES
+{
+	LESModel = kEqn
+	turbulence = on
+	printCoeffs = on
+	delta = smooth
+
+}
+
+
+RANS
+{
+	RANSModel = kEpsilon
+	turbulence = on
+	printCoeffs = on
+
+}

@@ -3,8 +3,12 @@
 #include <cmath>
 #include <array>
 #include "mpi.h"
+#include "geometric.h" 
 
 void SEMO_Mesh_Builder::check(){
+	
+	int rank = MPI::COMM_WORLD.Get_rank(); 
+	int size = MPI::COMM_WORLD.Get_size(); 
 	
 	int owner_max=-1;
 	int neighbour_max=-1;
@@ -13,48 +17,212 @@ void SEMO_Mesh_Builder::check(){
 		owner_max = max(owner_max , face.owner);
 		neighbour_max = max(neighbour_max , face.neighbour);
 	}
+	int cell_id_max = max(owner_max,neighbour_max);
 	
-	// if(owner_max < neighbour_max){
-		// cerr << "#error, owner_max(" << owner_max << ") < neighbour_max(" << neighbour_max << ")" << endl;
-		// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-	// }
-	
-	
+	// check, owner < neighbour 
 	for(auto& face : (*this).faces){
 		if(face.neighbour > owner_max){
-			// cerr << "#error face, owner = " << face.owner << " neighbour = " << face.neighbour << endl;
+			// cerr << "#error face, owner = " << face.owner << " neighbour = " << face.neighbour << " max cell id = " << owner_max << endl;
 			int tempnum = face.owner;
 			face.owner = face.neighbour;
 			face.neighbour = tempnum;
 			std::reverse(face.points.begin(),face.points.end());
 			++checkOwnerNeighbourReverse;
 		}
+		// else{
+			// if(face.owner < 0)
+				// cerr << "#error face, owner = " << face.owner << " neighbour = " << face.neighbour << " max cell id = " << owner_max << endl;
+		// }
 	}
-	cout << "  #check face owner < neighbour, executed reverse : " << checkOwnerNeighbourReverse << endl;
+	
+	if(size>0){
+		if(rank == 0){
+			vector<int> buffer(size,0);
+			int gatherValue = checkOwnerNeighbourReverse;
+			MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+			cout << "| #check face owner < neighbour, executed reverse : ";
+			for(auto& i : buffer) cout << i << " | ";
+			cout << endl;
+		}
+		else{
+			int gatherValue = checkOwnerNeighbourReverse;
+			MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		}
+	}
+	else{			
+		cout << "| #check face owner < neighbour, executed reverse : ";
+		cout << checkOwnerNeighbourReverse << " | ";
+		cout << endl;
+	}
+	
+	for(int i=0; i<(*this).faces.size(); ++i){
+		SEMO_Face& face = (*this).faces[i];
+		
+		if(face.neighbour == -1){
+			if(i < (*this).boundary[0].startFace){
+				cout << "| #Warning : face i(" << i << ") < boundary start face(" 
+				<< (*this).boundary[0].startFace << ")" << endl;
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+}
+
+void SEMO_Mesh_Builder::checkQualities(){
+	
+	// check, orthogonality
+	for(auto& face : (*this).faces){
+		vector<double> faceCenterXYZ(3,0.0);
+		for(auto& i : face.points){
+			faceCenterXYZ[0] += (*this).points[i].x;
+			faceCenterXYZ[1] += (*this).points[i].y;
+			faceCenterXYZ[2] += (*this).points[i].z;
+		}
+		int facePointsSize = face.points.size();
+		faceCenterXYZ[0] /= (double)facePointsSize;
+		faceCenterXYZ[1] /= (double)facePointsSize;
+		faceCenterXYZ[2] /= (double)facePointsSize;
+		
+		vector<double> cellCenterXYZ(3,0.0);
+		for(auto& i : (*this).cells[face.owner].points){
+			cellCenterXYZ[0] += (*this).points[i].x;
+			cellCenterXYZ[1] += (*this).points[i].y;
+			cellCenterXYZ[2] += (*this).points[i].z;
+		}
+		int cellPointsSize = (*this).cells[face.owner].points.size();
+		cellCenterXYZ[0] /= (double)cellPointsSize;
+		cellCenterXYZ[1] /= (double)cellPointsSize;
+		cellCenterXYZ[2] /= (double)cellPointsSize;
+		
+		vector<double> cellToFaceNvec(3,0.0); 
+		cellToFaceNvec[0] = faceCenterXYZ[0] - cellCenterXYZ[0];
+		cellToFaceNvec[1] = faceCenterXYZ[1] - cellCenterXYZ[1];
+		cellToFaceNvec[2] = faceCenterXYZ[2] - cellCenterXYZ[2];
+		double normalized = sqrt(cellToFaceNvec[0]*cellToFaceNvec[0] 
+								+cellToFaceNvec[1]*cellToFaceNvec[1]
+								+cellToFaceNvec[2]*cellToFaceNvec[2]);
+		cellToFaceNvec[0] /= normalized;
+		cellToFaceNvec[1] /= normalized;
+		cellToFaceNvec[2] /= normalized;
+		
+		
+		
+		SEMO_Mesh_Geometric geometric;
+		vector<double> faceNvec(3,0.0); 
+		
+		vector<double> Vx, Vy, Vz;
+		for(auto& i : face.points){
+			Vx.push_back((*this).points[i].x);
+			Vy.push_back((*this).points[i].y);
+			Vz.push_back((*this).points[i].z);
+		}
+		
+		geometric.calcUnitNormals_Area3dPolygon(
+			face.points.size(), Vx,Vy,Vz,
+			face.unitNormals, face.area );
+			
+		vector<double> orthogonality(3,0.0); 
+		orthogonality[0] = face.unitNormals[0] - cellToFaceNvec[0];
+		orthogonality[1] = face.unitNormals[1] - cellToFaceNvec[1];
+		orthogonality[2] = face.unitNormals[2] - cellToFaceNvec[2];
+
+		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			// // cout << "INTERNAL_FACE" << endl;
+		// }
+		// else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
+			// // cout << "BOUNDARY_FACE" << endl;
+		// }
+		// else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			// // cout << "PROCESSOR_FACE" << endl;
+		// }
+		// else{
+			// cout << "PROCESSOR_FACE" << endl;
+			// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		// }
+			
+		if( (orthogonality[0] > -0.001 && orthogonality[0] < 0.001) &&
+		    (orthogonality[1] > -0.001 && orthogonality[1] < 0.001) &&
+			(orthogonality[2] > -0.001 && orthogonality[2] < 0.001) ){
+			
+			
+			
+		}
+		else{
+			
+			cout << endl;
+			cout << " # Warning : orthogonality large" << endl;
+			
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				cout << "INTERNAL_FACE" << endl;
+			}
+			else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
+				cout << "BOUNDARY_FACE" << endl;
+			}
+			else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				cout << "PROCESSOR_FACE" << endl;
+			}
+			
+			// cout << face.owner << " " << face.neighbour << endl;
+			// for(auto& j : face.points){
+				// cout << j << endl;
+			// }
+			// cout << face.points[0] << " " << face.points[1] << endl;
+			// cout << (*this).cells[face.owner].points.size() << endl;
+			// cout << face.points.size() << endl;
+			cout << "cell center : " << cellCenterXYZ[0] << " " << cellCenterXYZ[1] << " " << cellCenterXYZ[2] << endl;
+			cout << "face center : " << faceCenterXYZ[0] << " " << faceCenterXYZ[1] << " " << faceCenterXYZ[2] << endl;
+			cout << "face Normal : " << face.unitNormals[0] << " " << face.unitNormals[1] << " " << face.unitNormals[2] << endl;
+			cout << "cell->face Normal : " << cellToFaceNvec[0] << " " << cellToFaceNvec[1] << " " << cellToFaceNvec[2] << endl;
+			cout << "orthogonality : " << orthogonality[0] << " " << orthogonality[1] << " " << orthogonality[2] << endl;
+		}
+			
+	}
+	
+	
+	
+	// // check, skewness
+	
+	
+	
+	
+	
+	// // check, aspect ratio 
+	
+	
 	
 	
 }
 
 
-void SEMO_Mesh_Builder::loadFile(string filetype){
+void SEMO_Mesh_Builder::loadFile(string filetype, string folder){
 	SEMO_Mesh_Load meshLoad;
 	 
 	if(filetype=="OpenFoam"){
-		meshLoad.OpenFoam(*this);
+		meshLoad.OpenFoam(*this, folder);
 	} 
 	if(filetype=="vtu"){
-		meshLoad.vtu(*this);
+		meshLoad.vtu(*this, folder);
 	} 
 }
 
 
 
-void SEMO_Mesh_Builder::saveFile(string filetype){
+void SEMO_Mesh_Builder::saveFile(string filetype, string folder, SEMO_Controls_Builder &controls){
 	SEMO_Mesh_Save meshSave;
 	 
-	if(filetype=="vtu"){
-		meshSave.vtu(*this);
-	} 
+	// if(filetype=="vtu"){
+		// // meshSave.vtu(*this, controls);
+		// meshSave.vtu(folder, *this, controls);
+	// } 
+	// if(filetype=="vtuZlib"){
+		// meshSave.vtuZlib(*this, controls);
+	// } 
 }
 
 
@@ -119,6 +287,7 @@ void SEMO_Mesh_Builder::setFaceTypes(){
 	
 	for(int ibc=0; ibc<(*this).boundary.size(); ++ibc){
 		int startFace = (*this).boundary[ibc].startFace;
+		// cout << startFace << " " << (*this).boundary[ibc].nFaces << " " << (*this).boundary.size() << endl;
 		for(int i=startFace; i<startFace+(*this).boundary[ibc].nFaces; ++i){
 			if( (*this).boundary[ibc].myProcNo == -1 ){
 				(*this).faces[i].setType(SEMO_Types::BOUNDARY_FACE);
@@ -150,6 +319,9 @@ void SEMO_Mesh_Builder::buildLists(){
 	}
 	
 	for(auto iter=(*this).faces.begin(); iter!=(*this).faces.end(); iter++){
+		
+		(*this).listFaces.push_back(&*iter);
+		
 		if(iter->getType() == SEMO_Types::INTERNAL_FACE){
 			(*this).listInternalFaces.push_back(&*iter);
 		}
@@ -185,24 +357,30 @@ void SEMO_Mesh_Builder::checkLists(){
 
 void SEMO_Mesh_Builder::connectCelltoFaces(){
 
+	int rank = MPI::COMM_WORLD.Get_rank(); 
+	int size = MPI::COMM_WORLD.Get_size(); 
+	
 	// cell connection (cell's face)
-	cout << "------------------------------------" << endl;
-	cout << "| execute cell's face connecting ... ";
-	int faceNum=0;
-	for(auto iter=(*this).faces.begin(); iter!=(*this).faces.end(); iter++){
-		if(iter->getType() == SEMO_Types::INTERNAL_FACE){
-			(*this).cells[iter->owner].faces.push_back(faceNum);
-			(*this).cells[iter->neighbour].faces.push_back(faceNum);
+		
+	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	if(rank==0) cout << "| execute cell's face connecting ... ";
+	for(int i=0; i<(*this).faces.size(); ++i){
+		SEMO_Face& face = (*this).faces[i];
+		
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+		// cout << face.owner << " " << face.neighbour << " " << (*this).cells.size() << endl;
+			(*this).cells[face.owner].faces.push_back(i);
+			(*this).cells[face.neighbour].faces.push_back(i);
 		}
-		else if(iter->getType() == SEMO_Types::BOUNDARY_FACE){
-			(*this).cells[iter->owner].faces.push_back(faceNum);
+		else if(
+		face.getType() == SEMO_Types::BOUNDARY_FACE ||
+		face.getType() == SEMO_Types::PROCESSOR_FACE ){
+			(*this).cells[face.owner].faces.push_back(i);
 		}
-		else if(iter->getType() == SEMO_Types::PROCESSOR_FACE){
-			(*this).cells[iter->owner].faces.push_back(faceNum);
-		}
-		++faceNum;
 	}
-	cout << "-> completed" << endl;
+	if(rank==0) cout << "-> completed" << endl;
+	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
+		
 	
 
 }
@@ -212,10 +390,13 @@ void SEMO_Mesh_Builder::connectCelltoFaces(){
 
 void SEMO_Mesh_Builder::connectCelltoPoints(){
 
+	int rank = MPI::COMM_WORLD.Get_rank(); 
+	int size = MPI::COMM_WORLD.Get_size(); 
 
 	// cell connection (cell's points)
 	// for(auto iter=mesh.faces.begin(); iter!=mesh.faces.end(); iter++){
-	cout << "| execute cell's points connecting ... ";
+	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	if(rank==0) cout << "| execute cell's points connecting ... ";
 	for(auto& iter : (*this).faces){
 		if(iter.getType() == SEMO_Types::INTERNAL_FACE){
 			for(int i=0; i<iter.points.size(); ++i){
@@ -264,12 +445,267 @@ void SEMO_Mesh_Builder::connectCelltoPoints(){
 			}
 		}
 	}
-	cout << "-> completed" << endl;
+	if(rank==0) cout << "-> completed" << endl;
+	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
 	
 }
 
 
-;
+void SEMO_Mesh_Builder::searchNeighbProcFaces(){
+	
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+	int rank = MPI::COMM_WORLD.Get_rank(); 
+	int size = MPI::COMM_WORLD.Get_size();
+	
+	SEMO_Utility_Math utility;
+	
+	
+	// vector<double> fsize;
+	vector<double> fx;
+	vector<double> fy;
+	vector<double> fz;
+	for(auto& face : mesh.faces){
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			double tmpx=0.0;
+			double tmpy=0.0;
+			double tmpz=0.0;
+			for(auto& point : face.points){
+				tmpx += mesh.points[point].x;
+				tmpy += mesh.points[point].y;
+				tmpz += mesh.points[point].z;
+			}
+			tmpx /= (double)face.points.size();
+			tmpy /= (double)face.points.size();
+			tmpz /= (double)face.points.size();
+			
+			fx.push_back(tmpx);
+			fy.push_back(tmpy);
+			fz.push_back(tmpz);
+		}
+	}
+	
+	int fsize = fx.size();
+	
+	vector<int> buffer(size,-1);
+	MPI_Allgather(&fsize, 1, MPI_INT, buffer.data(), 1, MPI_INT, MPI_COMM_WORLD);
+	
+	vector<int> counts(size,0);
+	vector<int> displacements(size,0);
+	for(int ip=0; ip<size; ++ip){
+		counts[ip] = buffer[ip];
+	}
+	for(int ip=1; ip<size; ++ip){
+		displacements[ip] = displacements[ip-1] + counts[ip-1];
+	}
+	vector<double> xBuffer(displacements[size-1]+counts[size-1],0.0);
+	vector<double> yBuffer(displacements[size-1]+counts[size-1],0.0);
+	vector<double> zBuffer(displacements[size-1]+counts[size-1],0.0);
+	
+    MPI_Allgatherv(fx.data(), fsize, MPI_DOUBLE, xBuffer.data(), counts.data(), displacements.data(), MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Allgatherv(fy.data(), fsize, MPI_DOUBLE, yBuffer.data(), counts.data(), displacements.data(), MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Allgatherv(fz.data(), fsize, MPI_DOUBLE, zBuffer.data(), counts.data(), displacements.data(), MPI_DOUBLE, MPI_COMM_WORLD);
+ 
+	// if(rank==0){
+		// for(int ip=0; ip<size; ++ip){
+			// int str = displacements[ip];
+			// int end = displacements[ip]+counts[ip];
+			// for(int i=str; i<end; ++i){
+				// cout << ip << " " << fx[i] << " " << fy[i] << " " << fz[i] << endl;
+			// }
+		// }
+	// }
+	// MPI_Barrier(MPI_COMM_WORLD);
+	
+	// vector<int> nProcFaces(size,0);
+	// vector<vector<int>> testMachI(size,vector<int>(0,0));
+	vector<vector<int>> test2(size,vector<int>(0,0));
+	
+	int strBase = displacements[rank];
+	int endBase = displacements[rank]+counts[rank];
+	int num2=0;
+	for(int base=strBase; base<endBase; ++base){
+		// int matchI = -1;
+		// int matchIp = -1;
+		double minX=100000.0;
+		double minY=100000.0;
+		double minZ=100000.0;
+		bool matching = false;
+		int saveNum=-1;
+		int saveIp=-1;
+		for(int ip=0; ip<size; ++ip){
+			if(rank==ip) continue;
+			int str = displacements[ip];
+			int end = displacements[ip]+counts[ip];
+			int num=0;
+			for(int i=str; i<end; ++i){
+				// int cx = utility.CompareDoubleAbsoulteAndUlps(fx[base], fx[i], 1.0e-2, 4);
+				// int cy = utility.CompareDoubleAbsoulteAndUlps(fy[base], fy[i], 1.0e-2, 4);
+				// int cz = utility.CompareDoubleAbsoulteAndUlps(fz[base], fz[i], 1.0e-2, 4);
+				bool cx = utility.approximatelyEqualAbsRel(xBuffer[base], xBuffer[i], 1.e-8, 1.e-6);
+				bool cy = utility.approximatelyEqualAbsRel(yBuffer[base], yBuffer[i], 1.e-8, 1.e-6);
+				bool cz = utility.approximatelyEqualAbsRel(zBuffer[base], zBuffer[i], 1.e-8, 1.e-6);
+				// bool cx = false;
+				// bool cy = false;
+				// bool cz = false;
+				// if(xBuffer[base]-xBuffer[i]>-0.1 && xBuffer[base]-xBuffer[i]<0.1) cx=true;
+				// if(yBuffer[base]-yBuffer[i]>-0.1 && yBuffer[base]-yBuffer[i]<0.1) cy=true;
+				// if(zBuffer[base]-zBuffer[i]>-0.1 && zBuffer[base]-zBuffer[i]<0.1) cz=true;
+				if(
+				abs(xBuffer[base]-xBuffer[i])<minX &&
+				abs(yBuffer[base]-yBuffer[i])<minY &&
+				abs(zBuffer[base]-zBuffer[i])<minZ ){
+					saveIp = ip;
+					saveNum = num2;
+					minX=abs(xBuffer[base]-xBuffer[i]);
+					minY=abs(yBuffer[base]-yBuffer[i]);
+					minZ=abs(zBuffer[base]-zBuffer[i]);
+				}
+				
+				if(cx && cy && cz){
+				// if(cx==0 && cy==0 && cz==0){
+					matching = true;
+					// matchI = i;
+					// matchIp = ip;
+					// ++nProcFaces[ip];
+					// testMachI[ip].push_back(num);
+					test2[ip].push_back(num2);
+					break;
+				}
+				++num;
+			}
+			if(matching) break;
+		}
+		if(!matching){
+			cout << endl;
+			cout << "#Warning : PROC face NOT matching" << endl;
+			// cout << endl;
+			// cout << "#ERROR : PROC face NOT matching" << endl;
+			cout << xBuffer[base] << " " << yBuffer[base] << " " << zBuffer[base] << endl;
+			cout << minX << " " << minY << " " << minZ << endl;
+			
+			test2[saveIp].push_back(saveNum);
+			// cout << endl;
+			// cout << endl;
+			// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		}
+		
+		
+		++num2;
+	}
+	
+
+	
+	
+	
+
+	vector<SEMO_Face> procFaces;
+	
+	// int startFace=0;
+	// bool boolStartFace=false;
+	for(auto& face : mesh.faces){
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			// boolStartFace = true;
+			
+			SEMO_Face tmpFace;
+			
+			for(auto& point : face.points){
+				tmpFace.points.push_back(point);
+			}
+			
+			tmpFace.owner = face.owner;
+			
+			procFaces.push_back(tmpFace);
+		}
+		// if(!boolStartFace) ++startFace;
+	}
+	
+	int num_proc=0;
+	vector<int> saveChangeNum;
+	vector<bool> boolExecuted;
+	vector<int> matOrder2;
+	
+	for(int ip=0; ip<size; ++ip){
+		for(auto& i : test2[ip]){
+			matOrder2.push_back(i);
+			boolExecuted.push_back(false);
+		}
+	}
+	
+	int num_face = 0;
+	for(auto& face : mesh.faces){
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			// if(boolExecuted[num_proc]==false){
+				int changeNum = matOrder2[num_proc];
+				
+				// boolExecuted[num_proc] = true;
+				// boolExecuted[changeNum] = true;
+				
+				mesh.faces[num_face].points.clear();
+				for(auto& point : procFaces[changeNum].points){
+					mesh.faces[num_face].points.push_back(point);
+				}
+				mesh.faces[num_face].owner = procFaces[changeNum].owner;
+				
+				// mesh.faces[num_face+changeNum].points.clear();
+				// for(auto& point : procFaces[num_proc].points){
+					// mesh.faces[num_face+changeNum].points.push_back(point);
+				// }
+				// mesh.faces[num_face+changeNum].owner = procFaces[num_face].owner;
+				
+			// }
+			
+			++num_proc;
+		}
+		++num_face;
+	}
+	
+	
+		
+	
+	int startFace=0;
+	for(auto& face : mesh.faces){
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			break;
+		}
+		++startFace;
+	}
+	
+	int nbcs=0;
+	for(int ibcs=0; ibcs<mesh.boundary.size(); ++ibcs){
+		if(mesh.boundary[ibcs].neighbProcNo == -1) ++nbcs;
+	}
+	
+	mesh.boundary.erase(mesh.boundary.begin() + nbcs, mesh.boundary.end());
+	
+	for(int ip=0; ip<size; ++ip){
+		if( test2[ip].size()>0){
+			mesh.addBoundary();
+			string bcnames = "procBoundary" + to_string(rank) + "to" + to_string(ip);
+			mesh.boundary.back().name = bcnames;
+			mesh.boundary.back().nFaces = test2[ip].size();
+			mesh.boundary.back().startFace = startFace;
+			mesh.boundary.back().myProcNo = rank;
+			mesh.boundary.back().neighbProcNo = ip;
+			
+			startFace += test2[ip].size();
+		}
+		// test2[ip].size();
+	}
+	
+	
+	MPI_Barrier(MPI_COMM_WORLD);
+	
+	
+}
+	
+	
+	
+	
+	
+	
+	
 void SEMO_Mesh_Builder::setCountsProcFaces(){
 	
 	// // SEMO_Mesh_Builder& mesh = *this;
@@ -292,6 +728,11 @@ void SEMO_Mesh_Builder::setCountsProcFaces(){
 		(*this).countsProcFaces[ip] = 0;
 		for(auto& bc : (*this).boundary){
 			if(ip == bc.neighbProcNo){
+				// if(rank==ip && bc.nFaces>0){
+					// cout << endl;
+					// cout << "| #Warning : rank(" << rank << ")==ip(" << ip << "), nFaces=" << bc.nFaces << endl;
+					// cout << endl;
+				// }
 				// cout << bc.nFaces << endl;
 				(*this).countsProcFaces[ip] = bc.nFaces;
 				break;
@@ -321,4 +762,203 @@ void SEMO_Mesh_Builder::setDisplsProcFaces(){
 	}
 	
 	
+}
+
+
+
+
+
+
+
+
+void SEMO_Mesh_Builder::informations(){
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+	int rank = MPI::COMM_WORLD.Get_rank(); 
+	int size = MPI::COMM_WORLD.Get_size(); 
+	
+	// cout << "AAAAAAAA" << endl;
+	
+	int nbcs=0;
+	int nFacesBC = 0;
+	int nFacesProc = 0;
+	for(auto& boundary : mesh.boundary){
+		
+		if(boundary.neighbProcNo == -1){
+			nFacesBC += boundary.nFaces;
+			++nbcs;
+		}
+		else{
+			nFacesProc += boundary.nFaces;
+		}
+	}
+	
+	
+	// faces type
+	int nFacesInt = 0;
+	int nTriangle = 0;
+	int nQuadrangle = 0;
+	int nPolygon = 0;
+	for(auto& face : mesh.faces){
+		
+		if(face.neighbour != -1){
+			++nFacesInt;
+		}
+		
+		if(face.points.size() == 3){
+			++nTriangle;
+		}
+		else if(face.points.size() == 4){
+			++nQuadrangle;
+		}
+		else{
+			++nPolygon;
+		}
+	}
+	
+	
+	
+	// cells type
+	int nTetrahedron = 0;
+	int nHexahedron = 0;
+	int nPrism = 0;
+	int nPyramid = 0;
+	int nPolyhedron = 0;
+	for(auto& cell : mesh.cells){
+		if( cell.points.size() == 4 && cell.faces.size() == 4 ){
+			++nTetrahedron;
+		}
+		else if( cell.points.size() == 5 && cell.faces.size() == 5 ){
+			++nPyramid;
+		}
+		else if( cell.points.size() == 6 && cell.faces.size() == 5 ){
+			++nPrism;
+		}
+		else if( cell.points.size() == 8 && cell.faces.size() == 6 ){
+			++nHexahedron;
+		}
+		else {
+			++nPolyhedron;
+		}
+	}
+	// cout << "BBBBBBBB" << endl;
+	
+    if(rank == 0){
+        vector<int> buffer(size,0);
+		int gatherValue = mesh.points.size();
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "┌────────────────────────────────────────────────────" << endl;
+		// cout << "| present MPI size : " << size;
+		cout << "| load data MPI size : " << size << endl;
+		cout << "| points size : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = mesh.faces.size();
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| faces size : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = mesh.cells.size();
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| cells size : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		cout << "└────────────────────────────────────────────────────" << endl;
+		cout << "┌────────────────────────────────────────────────────" << endl;
+		gatherValue = nFacesInt;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| internal faces size : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nFacesBC;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| boundary faces size : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nFacesProc;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| processor faces size : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		cout << "| boundary types : " << nbcs << endl;
+		cout << "└────────────────────────────────────────────────────" << endl;
+		cout << "┌────────────────────────────────────────────────────" << endl;
+		gatherValue = nTriangle;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Triangle faces : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nQuadrangle;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Quadrangle faces : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nPolygon;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Polygon faces : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		cout << "└────────────────────────────────────────────────────" << endl;
+		cout << "┌────────────────────────────────────────────────────" << endl;
+		gatherValue = nTetrahedron;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Tetrahedron cells : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nHexahedron;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Hexahedron cells : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nPrism;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Prism cells : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nPyramid;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Pyramid cells : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		gatherValue = nPolyhedron;
+        MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << "| Polyhedron cells : ";
+		for(auto& i : buffer) cout << i << " | ";
+		cout << endl;
+		cout << "└────────────────────────────────────────────────────" << endl;
+    }
+    else{
+		int gatherValue = mesh.points.size();
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = mesh.faces.size();
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = mesh.cells.size();
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nFacesInt;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nFacesBC;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nFacesProc;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		
+		gatherValue = nTriangle;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nQuadrangle;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nPolygon;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		
+		gatherValue = nTetrahedron;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nHexahedron;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nPrism;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nPyramid;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+		gatherValue = nPolyhedron;
+        MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+    }
+	MPI_Barrier(MPI_COMM_WORLD);
 }

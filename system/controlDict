@@ -1,0 +1,26 @@
+
+application = incomPBased
+ 
+startFrom = 0
+ 
+stopAt = 10.0
+ 
+timeStep = 1.e-5
+ 
+saveInterval = 1
+
+saveControl = timeStep
+
+saveFormat = ascii
+ 
+saveCompression = off
+ 
+timeFormat = general
+ 
+adjustTimeStep = no
+
+maxCo = 1
+
+maxVfCo = 1
+
+maxTimeStep = 1

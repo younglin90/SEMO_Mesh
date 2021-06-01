@@ -12,6 +12,7 @@
 #include "scotch.h" 
 
 #include "../mpi/build.h"
+#include "../math/math.h"
 
 void SEMO_Mesh_Builder::distributeOneToAll(string type){
 
@@ -22,6 +23,9 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		
 	SEMO_Mesh_Builder& mesh = *this;
 	
+	SEMO_MPI_Builder mpi;
+	
+	SEMO_Utility_Math utility;
 	
 	
 	int rank = MPI::COMM_WORLD.Get_rank();
@@ -50,8 +54,8 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	// create list
 	mesh.buildLists();
 	
-	// check list
-	mesh.checkLists();
+	// // check list
+	// mesh.checkLists();
 	
 	// cell's faces connection
 	mesh.connectCelltoFaces();
@@ -65,15 +69,16 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	// set processor face displacements
 	mesh.setDisplsProcFaces(); 
 	
-	// mesh.saveFile("vtu");
+	
+	// mesh.checkQualities();
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	
 	
 	int idBlockCell[mesh.cells.size()];
 	
 	
 	mesh.parMETIS(nBlocks, idBlockCell);
-	
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	//======================================================================
 	
@@ -544,6 +549,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 			int idBlockOwner = idBlockCell[face.owner];
 			int idBlockNeighbour = idBlockCell[face.neighbour];
 			
+			
 			++nFacesProcessorLocal[idBlockOwner];
 			++nFacesProcessorLocal[idBlockNeighbour];
 			++sendCounts_temp2[idBlockOwner][idBlockNeighbour];
@@ -837,28 +843,9 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	string test; 
 	for(auto& boundary : mesh.boundary){
 		if(boundary.neighbProcNo == -1) {
-			
-
-			// boundary.name.erase(std::find_if(boundary.name.rbegin(), boundary.name.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), boundary.name.end());
-			// boundary.name.erase(boundary.name.begin(), std::find_if(boundary.name.begin(), boundary.name.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-			
-			// boundary.name.erase(remove(boundary.name.begin(), boundary.name.end(), ' '), boundary.name.end());
 			boundaryNames.push_back(boundary.name);
-
-			// strrrr.erase(std::find_if(strrrr.rbegin(), strrrr.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), strrrr.end());
-			// strrrr.erase(strrrr.begin(), std::find_if(strrrr.begin(), strrrr.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-			
-			
-			// cout << boundary.name.length() << endl;
 		}
 	}
-	// for(int i=0; i<boundaryNames.size(); ++i){
-		// cout << boundaryNames[i] << boundaryNames[i].length() << endl;
-	// }
-	// for(auto& i : boundaryNames){
-		// cout << i.data() << endl;
-		
-	// } 
 	
 	for(int ip=0; ip<nBlocks; ++ip){
 		for(int ibcs=0; ibcs<bound_num; ++ibcs){
@@ -900,7 +887,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				myProcNoProcessorFaceLocal_Send[temp_proc] = i;
 				neighbProcNoProcessorFaceLocal_Send[temp_proc] = j;
 				
-				// cout << "========= " << sendCounts_temp[i][j] << " " << n << endl;
+				// cout << "========= " << i << " " << j << endl;
 				
 				n += sendCounts_temp[i][j];
 			}
@@ -977,7 +964,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				   MPI_COMM_WORLD);
 
 
-	vector<vector<int>> ibcProcessorFace(nBlocks,vector<int>(0,0));
+	vector<vector<int>> ibcProcessorFace(nBlocks,vector<int>(0,0)); 
 	
 	for(int ip=0; ip<nBlocks; ++ip){
 		for(int i=0; i<nBlocks; ++i){
@@ -993,6 +980,20 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				newMesh[ip].boundary.back().startFace = nStartProcessorFaceLocal_Recv[numm];
 				newMesh[ip].boundary.back().myProcNo = myProcNoProcessorFaceLocal_Recv[numm];
 				newMesh[ip].boundary.back().neighbProcNo = neighbProcNoProcessorFaceLocal_Recv[numm];
+				
+				
+				// if(rank==0){
+					// cout << newMesh[ip].boundary.back().startFace << " " << newMesh[ip].boundary.back().nFaces << " " << newMesh[ip].faces.size() << " " << newMesh[ip].boundary.back().neighbProcNo << endl;
+					// // for(int is=nStartProcessorFaceLocal_Recv[numm];
+					        // // is<nStartProcessorFaceLocal_Recv[numm]+nFaceProcessorFaceLocal_Recv[numm]; 
+							// // ++is){
+						// // for(auto& point : newMesh[ip].faces[is].points){
+							// // cout << newMesh[ip].points[point].x << " " <<  newMesh[ip].points[point].y << " " <<  newMesh[ip].points[point].z << " " << endl;
+						// // }
+					// // }
+				// }
+				
+				// if(rank==0) cout << ip << " " << neighbProcNoProcessorFaceLocal_Recv[numm] << endl;
 			}
 		}
 	}
@@ -1030,7 +1031,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				ibcToBeProcessorFace[ip].push_back( newMesh[ip].boundary.size() );
 				
 				newMesh[ip].addBoundary();
-				string bcnames = "procBoundary" + to_string(myProcNoProcessorFaceLocal_Recv[numm]) + "to" + to_string(neighbProcNoProcessorFaceLocal_Recv[numm]);
+				string bcnames = "toBeProcBoundary" + to_string(myProcNoProcessorFaceLocal_Recv[numm]) + "to" + to_string(neighbProcNoProcessorFaceLocal_Recv[numm]);
 				newMesh[ip].boundary.back().name = bcnames;
 				
 				// cout << newMesh[ip].boundary.back().name << endl;
@@ -1038,6 +1039,9 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				newMesh[ip].boundary.back().nFaces = nFaceToBeProcessorFaceLocal_Recv[numm];
 				newMesh[ip].boundary.back().startFace = nStartToBeProcessorFaceLocal_Recv[numm];
 				newMesh[ip].boundary.back().myProcNo = myProcNoToBeProcessorFaceLocal_Recv[numm];
+				
+				// if(rank==0) cout << neighbProcNoToBeProcessorFaceLocal_Recv[numm] << endl;
+				
 				newMesh[ip].boundary.back().neighbProcNo = neighbProcNoToBeProcessorFaceLocal_Recv[numm];
 			}
 		}
@@ -1067,6 +1071,16 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	}
 	
 	
+	// if(rank==1){
+		// for(int ip=0; ip<size; ++ip){
+			// for(int ibcs=nbcs; ibcs<newMesh[ip].boundary.size(); ++ibcs){
+				// cout << newMesh[ip].boundary[ibcs].neighbProcNo << " " << newMesh[ip].boundary[ibcs].nFaces << endl;
+			// }
+		// }
+	// }
+
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	
 	
@@ -1202,11 +1216,30 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	}
 	
 	
+	
+	// if(rank==0){
+	// for(int ip=0; ip<nBlocks; ++ip){
+		// for(int ibc=1; ibc<newMesh[ip].boundary.size(); ++ibc){
+			// int str = newMesh[ip].boundary[ibc].startFace;
+			// int end = str + newMesh[ip].boundary[ibc].nFaces;
+			// cout << newMesh[ip].boundary[ibc].neighbProcNo << endl;
+			// for(int i=str; i<end; ++i){
+				// for(auto& point : newMesh[ip].faces[i].points){
+					// cout << newMesh[ip].points[point].x << " " <<  newMesh[ip].points[point].y << " " <<  newMesh[ip].points[point].z << " " << endl;
+				// }
+				
+			// }
+		// }
+	// }
+	// }
+	
+	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
-	// if(rank==1){
-		// int ip=1;
+	// // if(rank==1){
+	// for(int ip=0; ip<size; ++ip){
+		// // int ip=1;
 		
 		// // for(auto& i : newMesh[ip].faces){
 			// // cout << endl;
@@ -1220,12 +1253,17 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		// // for(auto& i : newMesh[ip].faces){
 			// // cout << " face's neighbour : " << i.neighbour << endl;
 		// // }
-		// for(auto& i : newMesh[ip].boundary){
-			// cout << " boundary name : " << i.name << endl;
-			// cout << " boundary startFace : " << i.startFace << endl;
-			// cout << " boundary nFaces : " << i.nFaces << endl;
-			// cout << " boundary neighbProcNo : " << i.neighbProcNo << endl;
-		// }
+		// // if(rank==2){
+			// // int ibc = 0;
+			// // for(auto& i : newMesh[ip].boundary){
+				// // cout << ip << " " << ibc << endl;
+				// // cout << " boundary name : " << i.name << endl;
+				// // cout << " boundary startFace : " << i.startFace << endl;
+				// // cout << " boundary nFaces : " << i.nFaces << endl;
+				// // cout << " boundary neighbProcNo : " << i.neighbProcNo << endl;
+				// // ++ibc;
+			// // }
+		// // }
 		
 		// newMesh[ip].check();
 		
@@ -1237,7 +1275,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		// newMesh[ip].buildLists();
 		
 		// // check list
-		// newMesh[ip].checkLists();
+		// // newMesh[ip].checkLists();
 		
 		// // cell's faces connection
 		// newMesh[ip].connectCelltoFaces();
@@ -1251,25 +1289,42 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		// // set processor face displacements
 		// newMesh[ip].setDisplsProcFaces(); 
 
-		// newMesh[ip].saveFile("vtu");
+		// // newMesh[ip].saveFile("vtu");
+		
+		// // newMesh[ip].checkQualities(); 
 	
 	// }
 	
+	// if(rank==2) newMesh[3].saveFile("vtu");
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	//==========================================
 	
+	// if(rank==0) newMesh[0].checkQualities();
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	
 	
-	vector<int> nToBeInternalFace_Send(nBlocks,0);
+	
+	
+	
+	
+	
+
+	//==========================================
+	// connection new meshes
+	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	if(rank==0) cout << "| execute connection partitioned meshes ... ";
+	
 	vector<int> startToBeInternalFace_Send(nBlocks,0);
 	vector<vector<int>> idToBeInternalFace(nBlocks,vector<int>(0,0));
 	vector<vector<int>> neighbMeshNoToBeInternalFace(nBlocks,vector<int>(0,0));
+	// vector<vector<int>> neighbMeshOwnerToBeInternalFace(nBlocks,vector<int>(0,0));
 	for(auto& face : mesh.faces){
 		if( face.getType() == SEMO_Types::INTERNAL_FACE ){
 			int j = face.owner;
@@ -1290,63 +1345,56 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 			if(i == k){
 				idToBeInternalFace[i].push_back( startToBeInternalFace_Send[i] );
 				neighbMeshNoToBeInternalFace[i].push_back( rank_Recv[face.neighbour] );
+				// neighbMeshOwnerToBeInternalFace[i].push_back( face.owner );
 			}
 			++startToBeInternalFace_Send[i];
 		}
 	}
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	
 	std::fill(sendCounts.begin(),sendCounts.end(),1);
 	std::fill(recvCounts.begin(),recvCounts.end(),1);
-	for(int i=1; i<nBlocks; ++i) sendDisps[i] = sendDisps[i-1] + sendCounts[i-1];
-	for(int i=1; i<nBlocks; ++i) recvDisps[i] = recvDisps[i-1] + recvCounts[i-1];
-	
 	sendValues.clear();
 	sendValues.resize(nBlocks,0);
-	for(int i=0; i<nBlocks; ++i) sendValues[i] = idToBeInternalFace[i].size();
-	
 	recvValues.clear();
 	recvValues.resize(nBlocks,0);
+	for(int i=0; i<nBlocks; ++i) sendValues[i] = idToBeInternalFace[i].size();
 	
-	vector<int> nToBeInternalFace_Recv(nBlocks,0);
-	MPI_Alltoallv( sendValues.data(), sendCounts.data(), sendDisps.data(), MPI_INT, 
-				   recvValues.data(), recvCounts.data(), recvDisps.data(), MPI_INT, 
-				   MPI_COMM_WORLD);
 	
+	mpi.exchangeDatas(sendCounts, recvCounts, sendValues, recvValues);
 	
 	
 	for(int i=0; i<nBlocks; ++i) sendCounts[i] = sendValues[i];
-	for(int i=1; i<nBlocks; ++i) sendDisps[i] = sendDisps[i-1] + sendCounts[i-1];
 	for(int i=0; i<nBlocks; ++i) recvCounts[i] = recvValues[i];
-	for(int i=1; i<nBlocks; ++i) recvDisps[i] = recvDisps[i-1] + recvCounts[i-1];
 	
 	sendValues.clear();
-	// sendValues.resize(nBlocks,0);
 	recvValues.clear();
-	// recvValues.resize(nBlocks,0);
 	
 	vector<int> idToBeInternalFace_Send;
+	vector<int> idToBeInternalFace_Recv;
 	for(int ip=0; ip<nBlocks; ++ip) {for(auto& i : idToBeInternalFace[ip]) { idToBeInternalFace_Send.push_back(i); } } 
-	vector<int> idToBeInternalFace_Recv(recvDisps[nBlocks-1] + recvCounts[nBlocks-1],0);
 
-	MPI_Alltoallv( idToBeInternalFace_Send.data(), sendCounts.data(), sendDisps.data(), MPI_INT, 
-				   idToBeInternalFace_Recv.data(), recvCounts.data(), recvDisps.data(), MPI_INT, 
-				   MPI_COMM_WORLD);
+	mpi.exchangeDatas(sendCounts, recvCounts, idToBeInternalFace_Send, idToBeInternalFace_Recv);
 			
 			
 	vector<int> neighbMeshNoToBeInternalFace_Send;
-	for(int ip=0; ip<nBlocks; ++ip) {for(auto& i : neighbMeshNoToBeInternalFace[ip]) { neighbMeshNoToBeInternalFace_Send.push_back(i); } } 
-	vector<int> neighbMeshNoToBeInternalFace_Recv(recvDisps[nBlocks-1] + recvCounts[nBlocks-1],0);	  
+	vector<int> neighbMeshNoToBeInternalFace_Recv;	 
+	for(int ip=0; ip<nBlocks; ++ip) {for(auto& i : neighbMeshNoToBeInternalFace[ip]) { neighbMeshNoToBeInternalFace_Send.push_back(i); } }  
 	
-	MPI_Alltoallv( neighbMeshNoToBeInternalFace_Send.data(), sendCounts.data(), sendDisps.data(), MPI_INT, 
-				   neighbMeshNoToBeInternalFace_Recv.data(), recvCounts.data(), recvDisps.data(), MPI_INT, 
-				   MPI_COMM_WORLD);
+	mpi.exchangeDatas(sendCounts, recvCounts, neighbMeshNoToBeInternalFace_Send, neighbMeshNoToBeInternalFace_Recv);
+	
+	
+
+	
+	
 	
 	
 	vector<int> str_idToBeInternalFace_Recv(nBlocks+1,0);
-	str_idToBeInternalFace_Recv[0] = 0;
-	for(int i=0; i<nBlocks+1; ++i) str_idToBeInternalFace_Recv[i] = recvDisps[i-1] + recvCounts[i-1];
+	for(int i=1; i<nBlocks+1; ++i) 
+		str_idToBeInternalFace_Recv[i] = str_idToBeInternalFace_Recv[i-1] + recvCounts[i-1];
 	
 	
 	
@@ -1366,21 +1414,13 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		}
 	}
 	
-	startCells[0] = 0;
-	for(int ip=1; ip<nBlocks+1; ++ip){
-		startCells[ip] = startCells[ip-1] + nCellsEach[ip-1];
-	}
+	for(int ip=1; ip<nBlocks+1; ++ip) startCells[ip] = startCells[ip-1] + nCellsEach[ip-1];
 	
 	
-	vector<vector<int>> erasePoints(nBlocks,vector<int>(0,0));
-	vector<vector<int>> eraseFaces(nBlocks,vector<int>(0,0));
-	vector<vector<int>> replacePoints(nBlocks,vector<int>(0,0));
-	vector<vector<int>> replacePointsRank(nBlocks,vector<int>(0,0));
-	
+	// # of physical boundary  
 	int nnbcs = 0;
 	for(int ibcs=0; ibcs<newMesh[0].boundary.size(); ++ibcs){
 		if(newMesh[0].boundary[ibcs].myProcNo == -1){
-			// mesh.addBoundary();
 			++nnbcs;
 		}
 	}
@@ -1393,8 +1433,7 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	vector<vector<int>> temp_ToprocfacepointOwner(nBlocks,vector<int>(0,0));
 	
 	
-	
-
+	// delete original mesh
 	mesh.points.clear();
 	mesh.faces.clear();
 	mesh.cells.clear();
@@ -1403,147 +1442,200 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	
 	
 	// point id reset
-	vector<int> startpointsize(nBlocks,0);
-	vector<int> iii_temp(nBlocks,0);
+	
+	
+	// if(rank==2){
+	// for(int ip=0; ip<nBlocks; ++ip){
+		// for(int i=0; i<nBlocks; ++i){
+			// int numm = ip*nBlocks + i;
+			// if(nFaceToBeProcessorFaceLocal_Recv[numm] > 0){
+				// cout << nFaceToBeProcessorFaceLocal_Recv[numm] << " " << ip << " " << i << endl;
+			// }
+		// }
+	// }
+	// }
+
+
+
+	// vector<int> faceId_Send;
+	// for(auto& face : mesh.faces){
+		// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			// faceId_Send.push_back(rank);
+		// }
+	// }
+	// vector<int> faceId_Recv(faceId_Send.size(),0);
+	// MPI_Alltoallv( faceId_Send.data(), mesh.countsProcFaces.data(), mesh.displsProcFaces.data(), MPI_INT, 
+				   // faceId_Recv.data(), mesh.countsProcFaces.data(), mesh.displsProcFaces.data(), MPI_INT, 
+				   // MPI_COMM_WORLD);
+
+
+
+	// vector<vector<int>> localIdFaces; 
+	// vector<vector<int>> localProcFaces; 
+	// for(int ip=0; ip<nBlocks; ++ip){
+		// for(auto& boundary : newMesh[ip].boundary){
+			// if(boundary.neighbProcNo != -1){
+				
+			// }
+		// }
+	// }
+
+
+
+	vector<int> localIdPoints;
+	vector<int> localProcPoints;
+	vector<int> strGlobalPoints(nBlocks,0);
+	vector<vector<int>> globalIdPoints(nBlocks,vector<int>(0,-100));
+	vector<vector<bool>> globalErasePoints(nBlocks,vector<bool>(0,false));
+	vector<vector<int>> eachLocalIdPoints(nBlocks,vector<int>(0,-100));
+	vector<vector<int>> eachLocalProcPoints(nBlocks,vector<int>(0,-100));
+	int idGlobalPoints=0;
 	for(int ip=0; ip<nBlocks; ++ip){
-		if(ip>0){
-			startpointsize[ip] = startpointsize[ip-1] 
-				+ newMesh[ip-1].points.size() 
-				- erasePoints[ip-1].size() ;
+	// if(rank==2){
+		// cout << "AAAAAAAAAAA" << endl;
+		// cout << newMesh[ip].boundary[1].startFace << " " << newMesh[ip].boundary[1].nFaces << endl;
+		// cout << newMesh[ip].boundary[2].startFace << " " << newMesh[ip].boundary[2].nFaces << endl;
+		// cout << newMesh[ip].boundary[3].startFace << " " << newMesh[ip].boundary[3].nFaces << endl;
+		// cout << newMesh[ip].boundary[4].startFace << " " << newMesh[ip].boundary[4].nFaces << endl;
+	// }
+		vector<int> replaceIdPoints(newMesh[ip].points.size(),-1);
+		vector<int> replaceProcPoints(newMesh[ip].points.size(),-1);
+		
+		vector<bool> executePoints(newMesh[ip].points.size(),true);
+		for(int i=str_idToBeInternalFace_Recv[ip]; i<str_idToBeInternalFace_Recv[ip+1]; ++i){
+			int j = idToBeInternalFace_Recv[i]; // id
+			int ipNgb = neighbMeshNoToBeInternalFace_Recv[i]; // neighbour face's Processor
+			if(ip>ipNgb){
+				for(auto& point : newMesh[ip].faces[j].points){
+					executePoints[point] = false;
+				}
+			}
+		}
+
+		int nip=0;
+		for(auto& ipoint : newMesh[ip].points){
+			bool boolBreak=false;
+			for(int jp=0; jp<ip; ++jp){
+				int njp=0;
+				for(auto& jpoint : newMesh[jp].points){
+					// int cx = utility.CompareDoubleAbsoulteAndUlps(ipoint.x, jpoint.x, 1.0e-8, 4);
+					// int cy = utility.CompareDoubleAbsoulteAndUlps(ipoint.y, jpoint.y, 1.0e-8, 4);
+					// int cz = utility.CompareDoubleAbsoulteAndUlps(ipoint.z, jpoint.z, 1.0e-8, 4); 
+					bool cx = utility.approximatelyEqualAbsRel(ipoint.x, jpoint.x, 1.e-12, 1.e-8);
+					bool cy = utility.approximatelyEqualAbsRel(ipoint.y, jpoint.y, 1.e-12, 1.e-8);
+					bool cz = utility.approximatelyEqualAbsRel(ipoint.z, jpoint.z, 1.e-12, 1.e-8);
+					// if(cx==0 && cy==0 && cz==0){
+					if(cx && cy && cz) {
+						// cout << "AAA" << ipoint.x-jpoint.x << ipoint.y-jpoint.y << ipoint.z-jpoint.z << endl;
+						replaceIdPoints[nip] = njp;
+						replaceProcPoints[nip] = jp;
+						executePoints[nip] = false; 
+						boolBreak = true;
+					}
+					if(boolBreak) break;
+					++njp;
+				}
+				if(boolBreak) break;
+			}
+			++nip;
 		}
 		
-
-		// points
-		vector<int> replacePointsId(newMesh[ip].points.size(),0);
-		int iipoint = 0;
+		
+		
 		for(int i=0; i<newMesh[ip].points.size(); ++i){
-			
-			int l=0;
-			bool eraseOn = true;
-			for(auto& j : erasePoints[ip]){
-				if( i == j ) {
-					eraseOn = false;
-					break;
-				}
-				++l;
+			if(executePoints[i]==true){
+				localIdPoints.push_back(i);
+				localProcPoints.push_back(ip);
+				
+				int id = i;
+				int proc = ip;
+				
+				globalErasePoints[ip].push_back(false);
+				// globalIdPoints[ip].push_back(localIdPoints.size()-1);
+				globalIdPoints[ip].push_back(strGlobalPoints[proc] + id);
+				
+				eachLocalIdPoints[ip].push_back(id);
+				eachLocalProcPoints[ip].push_back(proc);
+
 			}
-			if(eraseOn) {
+			else{
+				int id = replaceIdPoints[i];
+				int proc = replaceProcPoints[i];
+				
+				globalErasePoints[ip].push_back(true);
+				globalIdPoints[ip].push_back(strGlobalPoints[proc] + id);
+				
+				eachLocalIdPoints[ip].push_back(id);
+				eachLocalProcPoints[ip].push_back(proc);
+				
+
+				
+			}
+		}
+		
+		
+
+		
+		strGlobalPoints[ip] = idGlobalPoints;
+		idGlobalPoints = localIdPoints.size();
+	}
+	
+	
+
+	// points
+	int globalNumPoints=0;
+	for(int ip=0; ip<nBlocks; ++ip){
+		for(int i=0; i<newMesh[ip].points.size(); ++i){
+			int id = eachLocalIdPoints[ip][i];
+			int proc = eachLocalProcPoints[ip][i];
+			if(i==id && ip==proc) {
 				mesh.addPoint();
 				mesh.points.back().x = newMesh[ip].points[i].x;
 				mesh.points.back().y = newMesh[ip].points[i].y;
 				mesh.points.back().z = newMesh[ip].points[i].z;
-				replacePointsId[i] = startpointsize[ip] + iipoint;
-				++iipoint;
+				globalIdPoints[ip][i] = globalNumPoints;
+				++globalNumPoints;
 			}
 			else{
-				int repP = replacePoints[ip][l];
-				int repR = replacePointsRank[ip][l];
-				if(repR >= ip){
-					cout << " ERROR " << endl;
-					MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-				}
-				// replacePointsId[i] = startpointsize[repR] + repP;
-				replacePointsId[i] = repP;
-				
-			// if(rank==1) cout << "aaaa====== " << ip << " " << repR << " " << replacePointsId[i] << endl;
-				// if(ip==1 && i==0) {
-				// }
+				globalIdPoints[ip][i] = globalIdPoints[proc][id];
 			}
 		}
-		
-		
+	}
+
+// if(rank==2){
+	// for(int ip=0; ip<size; ++ip){
+		// for(int i=0; i<newMesh[ip].points.size(); ++i){
+			// cout << ip << " " << globalErasePoints[ip][i] << "   "<< newMesh[ip].points[i].x-mesh.points[globalIdPoints[ip][i]].x+newMesh[ip].points[i].y-mesh.points[globalIdPoints[ip][i]].y+newMesh[ip].points[i].z-mesh.points[globalIdPoints[ip][i]].z << endl;
+		// }
+	// }
+// }
+
+	vector<int> iii_temp(nBlocks,0);
+	for(int ip=0; ip<nBlocks; ++ip){
 		for(int i=str_idToBeInternalFace_Recv[ip]; i<str_idToBeInternalFace_Recv[ip+1]; ++i){
-			int j = idToBeInternalFace_Recv[i]; // id
+			int id = idToBeInternalFace_Recv[i]; // id
 			int ipNgb = neighbMeshNoToBeInternalFace_Recv[i]; // neighbour face's Processor
 			if( ip < ipNgb ) {
-				int ii = str_idToBeInternalFace_Recv[ipNgb] + iii_temp[ipNgb];
-				int jj = idToBeInternalFace_Recv[ii];
+				int j = str_idToBeInternalFace_Recv[ipNgb] + iii_temp[ipNgb];
+				int jd = idToBeInternalFace_Recv[j];
+				int ownerNgb = newMesh[ipNgb].faces[jd].owner;
+				newMesh[ip].faces[id].neighbour = startCells[ipNgb] - startCells[ip] + ownerNgb;
 				
-				int owner = newMesh[ip].faces[j].owner;
-				int ownerNgb = newMesh[ipNgb].faces[jj].owner;
+				newMesh[ip].faces[id].setType(SEMO_Types::INTERNAL_FACE);
 				
-				newMesh[ip].faces[j].neighbour = startCells[ipNgb] - startCells[ip] + ownerNgb;
-				
-				int opoint = 0;
-				
-				// if( jj >= newMesh[ipNgb].faces.size() ) {
-					// cout << endl;
-					// cout << "#ERROR : " << ipNgb << " " << jj << " " << 
-					// newMesh[ipNgb].faces.size() << " " << newMesh[ipNgb].faces[jj].points.size() << endl;
-					// cout << ii << " " <<  iii[ipNgb] << " " << idToBeInternalFace_Recv.size() << endl;
-					// cout << str_idToBeInternalFace_Recv[ipNgb+1] << endl;
-					// cout << endl;
-					// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-				// }
-				for(auto& point : newMesh[ipNgb].faces[jj].points){
-					bool eraseOn = true;
-					for(auto& jjj : erasePoints[ipNgb]){
-						if(jjj == point) {
-							eraseOn = false;
-							break;
-						}
-					}
-					if(eraseOn){
-						erasePoints[ipNgb].push_back(point);
-						// reverse connection for each other
-						int reverse_opoint = newMesh[ip].faces[j].points.size() - opoint -1;
-						int addIPoint = newMesh[ip].faces[j].points[ reverse_opoint ];
-						int addIPointReplace = replacePointsId[ addIPoint ];
-						// replacePoints[ipNgb].push_back( addIPoint );
-						replacePoints[ipNgb].push_back( addIPointReplace );
-						replacePointsRank[ipNgb].push_back(ip);
-						
-						// if(rank==1) cout << addIPoint << " " << replacePointsId[ addIPoint ] << endl;
-						// if(rank==1){
-							// cout << endl;
-							// cout << newMesh[ip].points[ addIPoint ].x << " " << newMesh[ip].points[ addIPoint ].y << " " << newMesh[ip].points[ addIPoint ].z << endl;
-							
-							// cout << newMesh[ipNgb].points[point].x << " " << newMesh[ipNgb].points[point].y << " " << newMesh[ipNgb].points[point].z << endl;
-						// }
-						// cout << newMesh[ip].faces[j].points[ reverse_opoint ] << endl;
-					}
-					++opoint;
-				}
-				eraseFaces[ipNgb].push_back(jj);
-				
-				newMesh[ip].faces[j].setType(SEMO_Types::INTERNAL_FACE);
-				newMesh[ipNgb].faces[jj].setType(SEMO_Types::TO_BE_DELETE_FACE);
 				++iii_temp[ipNgb];
 			}
-		}
-		
-			
-		
-		// for(auto& i : replacePointsId){
-			// if(rank==1) cout << i << endl;
-		// }
-
-		// faces , faces points
-		for(auto& face : newMesh[ip].faces){
-			if(face.getType() == SEMO_Types::INTERNAL_FACE){
-				mesh.addFace();
-				for(auto& point : face.points){
-					mesh.faces.back().points.push_back( replacePointsId[point] );
-				}
-				
-				// owner
-				mesh.faces.back().owner = startCells[ip] + face.owner;
-				
-				// neighbour
-				mesh.faces.back().neighbour = startCells[ip] + face.neighbour;
+			else{
+				newMesh[ip].faces[id].setType(SEMO_Types::TO_BE_DELETE_FACE);
 			}
 		}
 		
-		
+
 		//boundary
 		int nbcs = 0;
-		for(int ibcs=0; ibcs<newMesh[ip].boundary.size(); ++ibcs){
-			if(newMesh[ip].boundary[ibcs].myProcNo == -1){
-				// mesh.addBoundary();
-				++nbcs;
-			}
-		}
-		// cout << "aaaa" << nbcs << endl;
+		for(int ibcs=0; ibcs<newMesh[ip].boundary.size(); ++ibcs)
+			if(newMesh[ip].boundary[ibcs].myProcNo == -1) ++nbcs;
+			
 		for(int ibcs=0; ibcs<nbcs; ++ibcs){
 			int strF = newMesh[ip].boundary[ibcs].startFace;
 			int endF = strF + newMesh[ip].boundary[ibcs].nFaces;
@@ -1551,40 +1643,44 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 				if(newMesh[ip].faces[i].getType() == SEMO_Types::INTERNAL_FACE) continue;
 				if(newMesh[ip].faces[i].getType() == SEMO_Types::TO_BE_DELETE_FACE) continue;
 				
-					temp_bcfacepointOwner[ibcs].push_back( startCells[ip] + newMesh[ip].faces[i].owner );
+				temp_bcfacepointOwner[ibcs].push_back( startCells[ip] + newMesh[ip].faces[i].owner );
 				
 				temp_bcfacepoint[ibcs].push_back( newMesh[ip].faces[i].points.size() );
-				// if(rank==1) cout << endl;
 				for(auto& point : newMesh[ip].faces[i].points){
-					temp_bcfacepoint[ibcs].push_back( replacePointsId[point] );
-					
-					// if(rank==1) cout << " " << point << " " << replacePointsId[point] << endl;
+					temp_bcfacepoint[ibcs].push_back( globalIdPoints[ip][point] );
 				}
 				
-				// // owner
-				// mesh.faces.back().owner = startCells[ip] + face.owner;
 			}
 		}
-		
-	
 
 		//procs
 		for(auto& ibcs : ibcProcessorFace[ip]){
-			
 			int strf = newMesh[ip].boundary[ibcs].startFace;
 			int endf = strf + newMesh[ip].boundary[ibcs].nFaces;
 			int negh = newMesh[ip].boundary[ibcs].neighbProcNo;
+			
+			
+				// if(rank==0) cout << negh << " " <<newMesh[ip].boundary[ibcs].nFaces<<endl;
+				
+			
 			for(int i=strf; i<endf; ++i){
 				if(newMesh[ip].faces[i].getType() == SEMO_Types::INTERNAL_FACE) continue;
 				if(newMesh[ip].faces[i].getType() == SEMO_Types::TO_BE_DELETE_FACE) continue;
 				
+				// if(rank==0) cout << ip << " " << negh << " " <<newMesh[ip].boundary[ibcs].nFaces<<endl;
+				// if(rank==0) {
+					// for(auto& point : newMesh[ip].faces[i].points){
+						// cout << newMesh[ip].points[point].x << " " << newMesh[ip].points[point].y << " " << newMesh[ip].points[point].z << endl;
+					// }
+				// }
+					
+				
+				
 				temp_procfacepointOwner[negh].push_back( startCells[ip] + newMesh[ip].faces[i].owner );
 				
 				temp_procfacepoint[negh].push_back( newMesh[ip].faces[i].points.size() );
-				// if(rank==1) cout << endl;
 				for(auto& point : newMesh[ip].faces[i].points){
-					temp_procfacepoint[negh].push_back( replacePointsId[point] );
-					// if(rank==1) cout << replacePointsId[point] << endl;
+					temp_procfacepoint[negh].push_back( globalIdPoints[ip][point] );
 				}
 			}
 		}
@@ -1593,27 +1689,24 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 			int strf = newMesh[ip].boundary[ibcs].startFace;
 			int endf = strf + newMesh[ip].boundary[ibcs].nFaces;
 			int negh = newMesh[ip].boundary[ibcs].neighbProcNo;
-	// if(rank==0) cout << "aaa " << strf << " " << endf <<  endl;
+			
+			
+				// if(rank==0) cout << negh << " " <<newMesh[ip].boundary[ibcs].nFaces<<endl;
+				
+			
 			for(int i=strf; i<endf; ++i){
 				if(newMesh[ip].faces[i].getType() == SEMO_Types::INTERNAL_FACE) continue;
 				if(newMesh[ip].faces[i].getType() == SEMO_Types::TO_BE_DELETE_FACE) continue;
 				
 				temp_ToprocfacepointOwner[negh].push_back( startCells[ip] + newMesh[ip].faces[i].owner );
 				
-				// if(rank==0) cout << startCells[ip] << endl;
-				
 				temp_Toprocfacepoint[negh].push_back( newMesh[ip].faces[i].points.size() );
-				// if(rank==1) cout << endl;
 				for(auto& point : newMesh[ip].faces[i].points){
-					temp_Toprocfacepoint[negh].push_back( replacePointsId[point] );
-					// if(rank==1) cout << replacePointsId[point] << endl;
+					temp_Toprocfacepoint[negh].push_back( globalIdPoints[ip][point] );
 				}
 			}
 		}
-		
 	}
-	
-	
 	
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
@@ -1621,92 +1714,53 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	
 	
 	
-
-	// boundary
-	// for(auto& i : boundaryNames){
-		// cout << i << endl;
-		
-	// } 
-	// for(auto& i : boundaryNames){
-	for(int i=0; i<boundaryNames.size(); ++i){
-		mesh.addBoundary();
-		
-		// char tmp_ptr[50];
-		// memmove(tmp_ptr, boundaryNames[i].c_str(), boundaryNames[i].length());
-		// string strrrr(tmp_ptr);
-		
-		// boundaryNames[i].erase(std::find_if(boundaryNames[i].rbegin(), boundaryNames[i].rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), boundaryNames[i].end());
-		// boundaryNames[i].erase(boundaryNames[i].begin(), std::find_if(boundaryNames[i].begin(), boundaryNames[i].end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-		
-		mesh.boundary.back().name = boundaryNames[i];
-		// for(int j=0; j<10; ++j){
-			// cout << boundaryNames[i][j];
-		// }
-		// cout << boundaryNames[i].length() << endl;
-		// cout <<  boundaryNames[i][0] << boundaryNames[i][1] << boundaryNames[i][2] << boundaryNames[i][3] << boundaryNames[i][4] << boundaryNames[i][5] << boundaryNames[i][6] << endl;
+	// Internal faces
+	for(int ip=0; ip<nBlocks; ++ip){
+		// faces , faces points
+		for(auto& face : newMesh[ip].faces){
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				mesh.addFace();
+				for(auto& point : face.points){
+					mesh.faces.back().points.push_back( globalIdPoints[ip][point] );
+				}
+				// if(rank == 2) cout << startCells[ip] + face.owner << " " << startCells[ip] + face.neighbour << endl;
+				mesh.faces.back().owner = startCells[ip] + face.owner; // owner
+				mesh.faces.back().neighbour = startCells[ip] + face.neighbour; // neighbour
+			}
+		}
 	}
+	
+	// Boundary faces
 	int nbcs = boundaryNames.size();
-	
-	
-	// if(rank==0){
-		
-		// for(int ip=0; ip<nbcs; ++ip){
-			// for(auto& i : temp_bcfacepoint[ip]){
-				
-				// // cout << i << endl;
-				
-			// }
-		// }
-	// }
-	
-	
-		
 	for(int ibcs=0; ibcs<nbcs; ++ibcs){
-		
-		mesh.boundary[ibcs].startFace = mesh.faces.size();
+		mesh.addBoundary();
+		mesh.boundary.back().name = boundaryNames[ibcs];
+		mesh.boundary.back().startFace = mesh.faces.size();
 		int nFaces = 0;
 		for(int i=0; i<temp_bcfacepoint[ibcs].size(); ++i){
 			mesh.addFace();
-			
-			
 			int nnn = temp_bcfacepoint[ibcs][i];
 			for(int j=0; j<nnn; ++j){
 				++i;
 				mesh.faces.back().points.push_back( temp_bcfacepoint[ibcs][i] );
 			}
 			++nFaces;
-			
-			
 		}
-		mesh.boundary[ibcs].nFaces = nFaces;
-		mesh.boundary[ibcs].myProcNo = -1;
-		mesh.boundary[ibcs].neighbProcNo = -1;
-		
+		mesh.boundary.back().nFaces = nFaces;
+		mesh.boundary.back().myProcNo = -1;
+		mesh.boundary.back().neighbProcNo = -1;
 		
 		// owner
-		int iii=0;
+		int n=0;
 		for(int i=mesh.faces.size()-temp_bcfacepointOwner[ibcs].size(); 
-		i<mesh.faces.size(); ++i){
-			mesh.faces[i].owner = temp_bcfacepointOwner[ibcs][iii];
-			++iii;
+		        i<mesh.faces.size(); ++i){
+			mesh.faces[i].owner = temp_bcfacepointOwner[ibcs][n];
+			++n;
 		}
 		
 	}
 	
-
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// if(rank==1){
-		// for(int ip=0; ip<nBlocks; ++ip){
-			// cout << "ip = " << ip << endl;
-			// for(auto& i : temp_Toprocfacepoint[ip]){
-				// cout << i << endl;
-			// }
-		// }
-	// }
-	// MPI_Barrier(MPI_COMM_WORLD);
-	
-	// processor face
-	
+	// Processor faces
 	for(int ip=0; ip<nBlocks; ++ip){
 		for(auto& i : temp_Toprocfacepoint[ip]){
 			temp_procfacepoint[ip].push_back( i );
@@ -1718,27 +1772,10 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		}
 		temp_ToprocfacepointOwner[ip].clear();
 	}
-	
-	
-	// if(rank==1){
-		// cout << endl;
-		// for(auto& i : temp_procfacepoint[0]){
-			// cout << i << endl;
-		// }
-	// }
-	
-	
-	
-	int iii_proc=0;
 	for(int ip=0; ip<nBlocks; ++ip){
-		
-		// if(ip==rank) continue;
-		
 		if(temp_procfacepoint[ip].size()>0){
-			
 			mesh.addBoundary();
-		
-			mesh.boundary[nbcs+iii_proc].startFace = mesh.faces.size();
+			mesh.boundary.back().startFace = mesh.faces.size();
 			int nFaces = 0;
 			for(int i=0; i<temp_procfacepoint[ip].size(); ++i){
 				mesh.addFace();
@@ -1752,15 +1789,10 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 			
 			string bcnames = "procBoundary" + to_string(rank) + "to" + to_string(ip);
 			
-			mesh.boundary[nbcs+iii_proc].name = bcnames;
-			mesh.boundary[nbcs+iii_proc].nFaces = nFaces;
-			mesh.boundary[nbcs+iii_proc].myProcNo = rank;
-			mesh.boundary[nbcs+iii_proc].neighbProcNo = ip;
-			
-			// // owner
-			// mesh.faces.back().owner = 
-			
-			++iii_proc;
+			mesh.boundary.back().name = bcnames;
+			mesh.boundary.back().nFaces = nFaces;
+			mesh.boundary.back().myProcNo = rank;
+			mesh.boundary.back().neighbProcNo = ip;
 			
 			// owner
 			int iii=0;
@@ -1774,61 +1806,43 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 	}
 	
 	//==========================================
-	
-
-	
-	// startFace re calc.
-	
-	for(int ip=0; ip<nBlocks; ++ip){
-		int nbc=0;
-		for(auto& ibc : mesh.boundary){
-			if(ibc.neighbProcNo == -1) ++nbc;
-		}
-		
-		for(int ibc=nbc; ibc<mesh.boundary.size(); ++ibc){
-			int ostart = mesh.boundary[ibc-1].startFace;
-			int onface = mesh.boundary[ibc-1].nFaces;
-			int nstart = ostart + onface;
-			mesh.boundary[ibc].startFace = nstart;
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
 
 	// if(rank==1){
-		// int ip=0;
-		
-		// for(auto& i : temp_procfacepoint[ip]){
-			// cout << i << endl;
-		// }
-		
-		
-		// int face = 0;
-		// for(auto& i : mesh.faces){
-			// cout << " face : " << face << endl;
-			// for(auto& j : i.points){
-				// cout << " face's points : " << j << endl;
+		// for(int ip=0; ip<size; ++ip){
+			// for(int ibcs=nbcs; ibcs<newMesh[ip].boundary.size(); ++ibcs){
+				// cout << newMesh[ip].boundary[ibcs].neighbProcNo << " " << newMesh[ip].boundary[ibcs].nFaces << endl;
 			// }
-			// ++face;
-		// }
-		// for(auto& i : mesh.faces){
-			// cout << " face's owner : " << i.owner << endl;
-		// }
-		// for(auto& i : mesh.faces){
-			// cout << " face's neighbour : " << i.neighbour << endl;
-		// }
-		// for(auto& i : mesh.boundary){
-			// cout << " boundary name : " << i.name << endl;
-			// cout << " boundary startFace : " << i.startFace << endl;
-			// cout << " boundary nFaces : " << i.nFaces << endl;
-			// cout << " boundary neighbProcNo : " << i.neighbProcNo << endl;
 		// }
 	// }
+
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	
+	
+	
+	
+	
+	// startFace re calc.
+	int nbc=0;
+	for(auto& ibc : mesh.boundary){
+		if(ibc.neighbProcNo == -1) ++nbc;
+	}
+	
+	for(int ibc=nbc; ibc<mesh.boundary.size(); ++ibc){
+		int ostart = mesh.boundary[ibc-1].startFace;
+		int onface = mesh.boundary[ibc-1].nFaces;
+		int nstart = ostart + onface;
+		mesh.boundary[ibc].startFace = nstart;
+	}
+	
+
+
+
+	if(rank==0) cout << "-> completed" << endl;
+	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
+	
+	
+	
 	
 		newMesh.clear();
 
@@ -1838,11 +1852,17 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		
 		mesh.setFaceTypes();
 		
+		
+		mesh.searchNeighbProcFaces();
+		
+		// mesh.remappingInformationProcFaces();
+		
+		
 		// create list
 		mesh.buildLists();
 		
 		// check list
-		mesh.checkLists();
+		// mesh.checkLists();
 		
 		// cell's faces connection
 		mesh.connectCelltoFaces();
@@ -1850,76 +1870,28 @@ void SEMO_Mesh_Builder::distributeOneToAll(string type){
 		// cell's points connection
 		mesh.connectCelltoPoints();
 		
+		
+		
+		
+		
 		// set processor face counts
 		mesh.setCountsProcFaces();
 		
 		// set processor face displacements
 		mesh.setDisplsProcFaces(); 
 
-		mesh.saveFile("vtu");
+		// mesh.saveFile("vtu");
 	
+		mesh.informations();
 	
-	
-	
-	
-	// if(rank==3){
-		// for(auto& i : newMesh[3].points){
-			// cout << i.x << " " << i.y << " " << i.z << endl;
-		// }
-	// }
+
+	// mesh.checkQualities();
+
+	// if(rank==2) mesh.checkQualities();
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
-	// if(rank==0){
-	// // for(int ip=3; ip<4; ++ip){
-		// int ip = 1;
-		
-		// newMesh[ip].check();
-		
-		// newMesh[ip].buildCells();
-		
-		// newMesh[ip].setFaceTypes();
-		
-		// // create list
-		// newMesh[ip].buildLists();
-		
-		// // check list
-		// newMesh[ip].checkLists();
-		
-		// // cell's faces connection
-		// newMesh[ip].connectCelltoFaces();
-		
-		// // cell's points connection
-		// newMesh[ip].connectCelltoPoints();
-		
-		// // set processor face counts
-		// newMesh[ip].setCountsProcFaces();
-		
-		// // set processor face displacements
-		// newMesh[ip].setDisplsProcFaces(); 
-
-		// newMesh[ip].saveFile("vtu");
 	
-	// // }
-	// }
-		
-
-		
-		
-		
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-	
-	// //======================================================================
-	
-	
-	// // mesh.saveFile("vtu");
-	
-	
-	
-	
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 }
 
@@ -1947,8 +1919,10 @@ void SEMO_Mesh_Builder::partitionInit(string type){
 	int ncells = (*this).cells.size();
 	int idBlockCell[ncells];
 	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
 	
-	int nBlocks = (*this).mpi.getSize();
+	int nBlocks = size;
 	
 	// if(type=="METIS"){
 		SEMO_Mesh_Builder::parMETIS(nBlocks, idBlockCell);
@@ -1986,6 +1960,10 @@ void SEMO_Mesh_Builder::parMETIS(int nBlocks, int idBlockCell[]){
 		
 		
 	SEMO_Mesh_Builder& mesh = *this;
+
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
+	
 		
 	int ncells = mesh.cells.size();
 	int npoints = mesh.points.size();
@@ -2096,8 +2074,6 @@ void SEMO_Mesh_Builder::parMETIS(int nBlocks, int idBlockCell[]){
 				   MPI_COMM_WORLD);
 				   
 				   
-				   
-	int rank = mesh.mpi.getRank();
 	
 	vector<int> iRank_Send;
 	for(auto& face : mesh.faces){

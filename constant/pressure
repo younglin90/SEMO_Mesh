@@ -1,0 +1,36 @@
+//============================================
+// Pressure conditions
+//============================================
+initialField
+{
+	type	fixedValue;
+	value	101325.0;
+}
+
+
+
+boundaryField
+{
+	invwall
+	{
+		type	zeroGradient;
+	}
+
+	viswall
+	{
+		type	zeroGradient;
+	}
+
+	subinlet
+	{
+		type	zeroGradient;
+	}
+
+	suboutlet
+	{
+		type	fixedValue;
+		value	101325.0;
+	}
+	
+	
+}
