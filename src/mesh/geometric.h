@@ -14,6 +14,10 @@ class SEMO_Mesh_Geometric{
 			int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
 			vector<double>& unitNormals, double& area );
 		
+		void calcUnitNormals_ArbitraryPolyhedral(
+			int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
+			vector<double>& unitNormals, double& area,
+			double& x, double& y, double& z );
 		
 		void calcUnitNormals(
 			vector<double>& unitNormals,
@@ -26,6 +30,7 @@ class SEMO_Mesh_Geometric{
 			int n, 
 			vector<double> Vx, vector<double> Vy, vector<double> Vz,
 			double Nx, double Ny, double Nz );
+		
 		
 		double calcVolumePolyhedron(){
 			

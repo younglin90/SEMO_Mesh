@@ -1,9 +1,7 @@
 #include "build.h"
 #include <cmath>
 #include <array>
-
-
-
+#include <time.h>
 
 
 void SEMO_Solvers_Builder::compressibleDensityBasedSingleTime(
@@ -12,6 +10,9 @@ void SEMO_Solvers_Builder::compressibleDensityBasedSingleTime(
 	vector<SEMO_Species>& species){
 	
 	int rank = MPI::COMM_WORLD.Get_rank();
+	
+
+	
 	
 	for(auto& cell : mesh.cells){
 		cell.var[controls.oldP] = cell.var[controls.P];
@@ -25,19 +26,19 @@ void SEMO_Solvers_Builder::compressibleDensityBasedSingleTime(
 		}
 	}
 	
-	
-	
-	
-	if(rank==0) cout << "|  └ residuals" << " | ";
 
 	this->calcRealTimeStep(mesh, controls);
 	
-	this->setCompValuesLeftRightFace(mesh, controls, species);
+	if(rank==0) cout << " | timeStep = " << controls.timeStep << endl;
+	if(rank==0) cout << "|  └ residuals" << " | ";
+	
+	// this->setCompValuesLeftRightFace(mesh, controls, species);
+	this->setCompValuesLeftRightFaceWithRecon(mesh, controls, species);
 	
 	vector<vector<double>> residuals(
 		mesh.cells.size(),vector<double>(controls.nEq,0.0));
 
-	this->calcSingleRHS(mesh, controls, residuals);
+	this->calcSingleRHS(mesh, controls, species, residuals);
 
 	this->calcSingleLinearSolver(mesh, controls, residuals);
 
@@ -45,11 +46,15 @@ void SEMO_Solvers_Builder::compressibleDensityBasedSingleTime(
 	this->calcNormResiduals(mesh, controls, residuals, norm);
 	
 	if(rank==0) {
+		double dClock = clock() - controls.startClock;
+		dClock /= CLOCKS_PER_SEC;
+		
 		cout.precision(3);
 		for(int i=0; i<controls.nEq; ++i){
 			cout << scientific << norm[i] << " | ";
 		}
 		cout.unsetf(ios::scientific);
+		cout << dClock << " s | ";
 		cout << endl;
 	}
 	
@@ -63,6 +68,7 @@ void SEMO_Solvers_Builder::compressibleDensityBasedSingleTime(
 	++controls.iterPseudo;
 	
 	
+	++controls.iterTotal;
 	
 	
 	
@@ -79,61 +85,116 @@ void SEMO_Solvers_Builder::compressibleDensityBasedDualTime(
 	
 	int rank = MPI::COMM_WORLD.Get_rank();
 	
-	for(auto& cell : mesh.cells){
-		cell.var[controls.oldP] = cell.var[controls.P];
-		cell.var[controls.oldU] = cell.var[controls.U];
-		cell.var[controls.oldV] = cell.var[controls.V];
-		cell.var[controls.oldW] = cell.var[controls.W];
-		cell.var[controls.oldT] = cell.var[controls.T];
-		for(int i=0; i<controls.nSp-1; ++i){
-			cell.var[controls.oldVF[i]] = cell.var[controls.VF[i]];
-			cell.var[controls.oldMF[i]] = cell.var[controls.MF[i]];
-		}
-		
-		
-		for(int i=0; i<controls.nEq; ++i){
-			cell.var[controls.Qm[i]] = cell.var[controls.Qn[i]];
-		}
-		
-		cell.var[controls.Qn[0]] = cell.var[controls.Rho];
-		cell.var[controls.Qn[1]] = cell.var[controls.Rho] * cell.var[controls.U];
-		cell.var[controls.Qn[2]] = cell.var[controls.Rho] * cell.var[controls.V];
-		cell.var[controls.Qn[3]] = cell.var[controls.Rho] * cell.var[controls.W];
-		cell.var[controls.Qn[4]] = cell.var[controls.Rho] * cell.var[controls.Ht] - cell.var[controls.P];
-		for(int ns=0; ns<controls.nSp-1; ++ns){
-			cell.var[controls.Qn[5+ns]] = cell.var[controls.Rho] * cell.var[controls.MF[ns]];
-		}
-		
+	
+
+	if( controls.iterReal == 0 ){
+		// this->calcIncomCellEOSVF(mesh, controls, species);
+		this->calcCellEOSVF(mesh, controls, species);
+		this->calcCellTransport(mesh, controls, species);
 	}
+	
+	
+	
+	// if( controls.iterReal == 0 ){
+		// for(auto& cell : mesh.cells){
+			// cell.var[controls.oldP] = cell.var[controls.P];
+			// cell.var[controls.oldU] = cell.var[controls.U];
+			// cell.var[controls.oldV] = cell.var[controls.V];
+			// cell.var[controls.oldW] = cell.var[controls.W];
+			// cell.var[controls.oldT] = cell.var[controls.T];
+			// for(int i=0; i<controls.nSp-1; ++i){
+				// cell.var[controls.oldVF[i]] = cell.var[controls.VF[i]];
+				// cell.var[controls.oldMF[i]] = cell.var[controls.MF[i]];
+			// }
+			
+			// cell.var[controls.Qn[0]] = cell.var[controls.Rho];
+			// cell.var[controls.Qn[1]] = cell.var[controls.Rho] * cell.var[controls.U];
+			// cell.var[controls.Qn[2]] = cell.var[controls.Rho] * cell.var[controls.V];
+			// cell.var[controls.Qn[3]] = cell.var[controls.Rho] * cell.var[controls.W];
+			// cell.var[controls.Qn[4]] = cell.var[controls.Rho] * cell.var[controls.Ht] - cell.var[controls.P];
+			// for(int ns=0; ns<controls.nSp-1; ++ns){
+				// cell.var[controls.Qn[5+ns]] = cell.var[controls.Rho] * cell.var[controls.MF[ns]];
+			// }
+			
+			// for(int i=0; i<controls.nEq; ++i){
+				// cell.var[controls.Qm[i]] = cell.var[controls.Qn[i]];
+			// }
+			
+			
+		// }
+	// }
+	// else{
+		for(auto& cell : mesh.cells){
+			cell.var[controls.oldP] = cell.var[controls.P];
+			cell.var[controls.oldU] = cell.var[controls.U];
+			cell.var[controls.oldV] = cell.var[controls.V];
+			cell.var[controls.oldW] = cell.var[controls.W];
+			cell.var[controls.oldT] = cell.var[controls.T];
+			for(int i=0; i<controls.nSp-1; ++i){
+				cell.var[controls.oldVF[i]] = cell.var[controls.VF[i]];
+				cell.var[controls.oldMF[i]] = cell.var[controls.MF[i]];
+			}
+			
+			
+			for(int i=0; i<controls.nEq; ++i){
+				cell.var[controls.Qm[i]] = cell.var[controls.Qn[i]];
+			}
+			
+			cell.var[controls.Qn[0]] = cell.var[controls.Rho];
+			cell.var[controls.Qn[1]] = cell.var[controls.Rho] * cell.var[controls.U];
+			cell.var[controls.Qn[2]] = cell.var[controls.Rho] * cell.var[controls.V];
+			cell.var[controls.Qn[3]] = cell.var[controls.Rho] * cell.var[controls.W];
+			cell.var[controls.Qn[4]] = cell.var[controls.Rho] * cell.var[controls.Ht] - cell.var[controls.P];
+			for(int ns=0; ns<controls.nSp-1; ++ns){
+				cell.var[controls.Qn[5+ns]] = cell.var[controls.Rho] * cell.var[controls.MF[ns]];
+			}
+			
+		}
+	// }
+	
+	
 	
 	
 	controls.iterPseudo = 0;
 	while(controls.iterPseudo<controls.iterPseudoMax){
 		
+		// if(rank==0) cout << " | timeStep = " << controls.timeStep << endl;
 		if(rank==0) cout << "|  └ pseudo step = " << controls.iterPseudo << " | ";
 		
 		this->calcUnderRelaxationFactorsDualTime(controls);
 	
 		this->calcPseudoTimeStep(mesh, controls);
 		
-		this->setCompValuesLeftRightFace(mesh, controls, species);
+		// this->setCompValuesLeftRightFace(mesh, controls, species);
+		this->setCompValuesLeftRightFaceWithRecon(mesh, controls, species);
 		
 		vector<vector<double>> residuals(
 			mesh.cells.size(),vector<double>(controls.nEq,0.0));
 	
-		this->calcRHS(mesh, controls, residuals);
+		this->calcRHS(mesh, controls, species, residuals);
 
-		this->calcLinearSolver(mesh, controls, residuals);
+
+
+
+		// this->calcLinearSolver(mesh, controls, residuals);
+		this->calcLinearSolverLUSGS(mesh, controls, residuals);
+		
+		
+		
+		
 
 		vector<double> norm;
 		this->calcNormResiduals(mesh, controls, residuals, norm);
 		
 		if(rank==0) {
+			double dClock = clock() - controls.startClock;
+			dClock /= CLOCKS_PER_SEC;
 			cout.precision(3);
 			for(int i=0; i<controls.nEq; ++i){
 				cout << scientific << norm[i] << " | ";
 			}
 			cout.unsetf(ios::scientific);
+			cout << dClock << " s | ";
 			cout << endl;
 		}
 		
@@ -161,6 +222,7 @@ void SEMO_Solvers_Builder::compressibleDensityBasedDualTime(
 		}
 		
 		
+		++controls.iterTotal;
 		
 	}
 	
@@ -216,6 +278,8 @@ void SEMO_Solvers_Builder::updateValues(
 	SEMO_Controls_Builder& controls,
 	vector<vector<double>>& residuals){
 	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
 	
 	for(int i=0; i<mesh.cells.size(); ++i){
 		SEMO_Cell& cell = mesh.cells[i];
@@ -268,6 +332,81 @@ void SEMO_Solvers_Builder::updateValues(
 		}
 		cell.var[controls.MF[controls.nSp-1]] = 1.0 - tmp;
 		
+	}
+	
+	
+	
+	
+	
+	
+
+	vector<double> residualsx_recv;
+	vector<double> residualsy_recv;
+	vector<double> residualsz_recv;
+	if(size>1){
+		// processor faces
+		// gradP , 
+		vector<double> residualsx_send;
+		vector<double> residualsy_send;
+		vector<double> residualsz_send;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				residualsx_send.push_back(residuals[face.owner][1]);
+				residualsy_send.push_back(residuals[face.owner][2]);
+				residualsz_send.push_back(residuals[face.owner][3]);
+			}
+		}
+		SEMO_MPI_Builder mpi;
+		
+		mpi.setProcsFaceDatasDouble(
+					residualsx_send, residualsx_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					residualsy_send, residualsy_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					residualsz_send, residualsz_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+					
+	}
+	
+	
+	int proc_num = 0;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		
+		auto& face = mesh.faces[i];
+
+		double wCL = face.wC;
+		double wCR = 1.0-face.wC;
+		
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				
+				
+			face.var[controls.Un] += controls.dualTimeURF_U * (
+				(wCL*residuals[face.owner][1]+wCR*residuals[face.neighbour][1])*face.unitNormals[0] +
+				(wCL*residuals[face.owner][2]+wCR*residuals[face.neighbour][2])*face.unitNormals[1] +
+				(wCL*residuals[face.owner][3]+wCR*residuals[face.neighbour][3])*face.unitNormals[2] );
+				
+			
+		}
+		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				
+			face.var[controls.Un] += controls.dualTimeURF_U * (
+				(wCL*residuals[face.owner][1]+wCR*residualsx_recv[proc_num])*face.unitNormals[0] +
+				(wCL*residuals[face.owner][2]+wCR*residualsy_recv[proc_num])*face.unitNormals[1] +
+				(wCL*residuals[face.owner][3]+wCR*residualsz_recv[proc_num])*face.unitNormals[2] );
+				
+			++proc_num;
+			
+		}
+		
+
 	}
 	
 	

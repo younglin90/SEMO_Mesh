@@ -354,7 +354,8 @@ void SEMO_Mesh_Save::vtu(string folder, int myRank, SEMO_Mesh_Builder &mesh){
 	// }
 	outputFile << "     <DataArray type=\"Float64\" Name=\"NodeCoordinates\" NumberOfComponents=\"3\" format=\"ascii\">" << endl;
 
-	stringstream streamXYZ;
+	stringstream streamXYZ;  
+	outputFile.precision(20);  
 	// for(auto iter=mesh.points.begin(); iter!=mesh.points.end(); iter++){
 	for(auto& point : mesh.points){
 		outputFile << scientific << point.x << " " << point.y << " " << point.z << endl;
@@ -529,6 +530,9 @@ void SEMO_Mesh_Save::vtu(
 	}
 	
 	outputFile.open(filenamePlot);
+	
+	outputFile.precision( controls.writePrecision );
+	
 	if(outputFile.fail()){
 		cerr << "Unable to write file for writing." << endl;
 		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);

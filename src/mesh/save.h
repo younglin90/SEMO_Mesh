@@ -28,7 +28,7 @@ public:
 		
 	void vtu(string folder, int rank, SEMO_Mesh_Builder &in);
 	void vtuZlib(SEMO_Mesh_Builder &in, SEMO_Controls_Builder &controls);
-	void gnuplot(int iter, vector<double>& norm);
+	void gnuplot(int iter, double dtime, vector<double>& norm);
 
 };
 

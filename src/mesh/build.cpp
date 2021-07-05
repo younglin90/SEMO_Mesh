@@ -40,19 +40,30 @@ void SEMO_Mesh_Builder::check(){
 			vector<int> buffer(size,0);
 			int gatherValue = checkOwnerNeighbourReverse;
 			MPI_Gather(&gatherValue, 1, MPI_INT, buffer.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
-			cout << "| #check face owner < neighbour, executed reverse : ";
-			for(auto& i : buffer) cout << i << " | ";
-			cout << endl;
+			int sumBuffer = 0;
+			for(auto& i : buffer) {
+				sumBuffer += i;
+				// cout << i << " | ";
+			}
+			if(sumBuffer>0){
+				cout << "| #check face owner < neighbour, executed reverse : ";
+				for(auto& i : buffer) {
+					cout << i << " | ";
+				}
+				cout << endl;
+			}
 		}
 		else{
 			int gatherValue = checkOwnerNeighbourReverse;
 			MPI_Gather(&gatherValue, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
 		}
 	}
-	else{			
-		cout << "| #check face owner < neighbour, executed reverse : ";
-		cout << checkOwnerNeighbourReverse << " | ";
-		cout << endl;
+	else{		
+		if(checkOwnerNeighbourReverse>0){	
+			cout << "| #check face owner < neighbour, executed reverse : ";
+			cout << checkOwnerNeighbourReverse << " | ";
+			cout << endl;
+		}
 	}
 	
 	for(int i=0; i<(*this).faces.size(); ++i){

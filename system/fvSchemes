@@ -7,19 +7,16 @@ fluxScheme
 ddtSchemes
 {
     default = Euler
-	ddt(VF) = CrankNicholson
 }
 
 gradSchemes
 {
     default = Gauss linear
-    grad(P) = Gauss linear
 }
  
 divSchemes
 {
-    div(phi,U) = Gauss upwind
-    div(phi,VF) = Gauss upwind
+	default = Gauss linear
 }
  
 laplacianSchemes

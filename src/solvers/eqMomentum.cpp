@@ -16,64 +16,85 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 	vector<double>& linAFR,
 	vector<double>& residuals){
 		
+		
+	
+	double coeffPf = 0.05;
+	// double coeffPf = 0.0;
+	double coeffDiss = 0.9;
+	
+		
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 		
+	SEMO_MPI_Builder mpi;
 
 
 	SEMO_Utility_Math math;
 	
 	// gradient P
-	vector<vector<double>> gradP;
-	math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
+	vector<vector<double>> gradP(mesh.cells.size(),vector<double>(3,0.0));
+	// math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
 	// math.calcGGLSQ(mesh, controls.P, controls.fP, gradP);
 	// math.calcMGG(mesh, controls.P, controls.fP, 50, 1.e-8, gradP);
 	// math.calcLeastSquare(mesh, controls.P, controls.fP, gradP);
 	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
 	
-	math.gradientGGBoundaryTreatment(mesh, controls, gradP);
-	// math.gradientGGBoundaryTreatment(mesh, controls, gradP);
-	// math.gradientGGBoundaryTreatment(mesh, controls, gradP);
-	// math.gradientGGBoundaryTreatment(mesh, controls, gradP);
-	// math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	
+	// vector<double> limGradP;
+	// math.calcLimiterGradient(mesh, controls.P, controls.fP, gradP, limGradP);
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// for(int j=0; j<3; ++j){
+			// gradP[i][j] *= limGradP[i]; 
+		// }
+	// }
 	
 	
-	vector<double> gradPx_recv;
-	vector<double> gradPy_recv;
-	vector<double> gradPz_recv;
-	if(size>1){
-		// processor faces
-		// gradP , 
-		vector<double> gradPx_send;
-		vector<double> gradPy_send;
-		vector<double> gradPz_send;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
+	
+	// // math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	// // math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	// // math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	// // math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	// // math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	
+	
+	// vector<double> gradPx_recv;
+	// vector<double> gradPy_recv;
+	// vector<double> gradPz_recv;
+	// if(size>1){
+		// // processor faces
+		// // gradP , 
+		// vector<double> gradPx_send;
+		// vector<double> gradPy_send;
+		// vector<double> gradPz_send;
+		// for(int i=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
 			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				gradPx_send.push_back(gradP[face.owner][0]);
-				gradPy_send.push_back(gradP[face.owner][1]);
-				gradPz_send.push_back(gradP[face.owner][2]);
-			}
-		}
-		SEMO_MPI_Builder mpi;
+			// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				// gradPx_send.push_back(gradP[face.owner][0]);
+				// gradPy_send.push_back(gradP[face.owner][1]);
+				// gradPz_send.push_back(gradP[face.owner][2]);
+			// }
+		// }
+		// // SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
-					gradPx_send, gradPx_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
-					gradPy_send, gradPy_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
-					gradPz_send, gradPz_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		gradPx_send.clear();
-		gradPy_send.clear();
-		gradPz_send.clear();
-	}
+		// mpi.setProcsFaceDatasDouble(
+					// gradPx_send, gradPx_recv,
+					// mesh.countsProcFaces, mesh.countsProcFaces, 
+					// mesh.displsProcFaces, mesh.displsProcFaces);
+		// mpi.setProcsFaceDatasDouble(
+					// gradPy_send, gradPy_recv,
+					// mesh.countsProcFaces, mesh.countsProcFaces, 
+					// mesh.displsProcFaces, mesh.displsProcFaces);
+		// mpi.setProcsFaceDatasDouble(
+					// gradPz_send, gradPz_recv,
+					// mesh.countsProcFaces, mesh.countsProcFaces, 
+					// mesh.displsProcFaces, mesh.displsProcFaces);
+		// gradPx_send.clear();
+		// gradPy_send.clear();
+		// gradPz_send.clear();
+	// }
+	
+
 	
 	// gradient U, V, W
 	vector<vector<double>> gradU;
@@ -117,7 +138,7 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 				gradWz_send.push_back(gradW[face.owner][2]);
 			}
 		}
-		SEMO_MPI_Builder mpi;
+		// SEMO_MPI_Builder mpi;
 		
 		mpi.setProcsFaceDatasDouble(
 					gradUx_send, gradUx_recv,
@@ -188,43 +209,82 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 	
 	
 	
+	
+	
+	
+	
+	//=========================
+	// Un initialization
+	if( controls.iterPBs == 0 && controls.iterMom == 0){
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+
+			vector<double> nvec;
+			nvec.push_back(face.unitNormals[0]);
+			nvec.push_back(face.unitNormals[1]);
+			nvec.push_back(face.unitNormals[2]);
+			
+			double wCL = face.wC;
+			double wCR = 1.0-face.wC;
+		
+			double UL = face.varL[controls.fU];
+			double VL = face.varL[controls.fV];
+			double WL = face.varL[controls.fW];
+			
+			double UR = face.varR[controls.fU];
+			double VR = face.varR[controls.fV];
+			double WR = face.varR[controls.fW];
+			
+			double UnL = UL*nvec[0] + VL*nvec[1] + WL*nvec[2];
+			double UnR = UR*nvec[0] + VR*nvec[1] + WR*nvec[2];
+			
+			face.var[controls.Un] = wCL*UnL+wCR*UnR;
+			
+		}
+	}
+	//=========================
+	
+	
+	
+	
 	for(int i=0; i<mesh.cells.size(); ++i){
 		auto& cell = mesh.cells[i];
 		
-		// A matrix
-		linA.push_back(cell.var[controls.Rho]*cell.volume/controls.timeStep);
-		
 		// time marching -> first order euler
-		linB0.push_back(-
-			cell.var[controls.Rho]*(
-			1.0*cell.var[controls.U] - 1.0*cell.var[controls.oldU]
-			)*cell.volume/controls.timeStep);
-			
-		linB1.push_back(-
-			cell.var[controls.Rho]*(
-			1.0*cell.var[controls.V] - 1.0*cell.var[controls.oldV]
-			)*cell.volume/controls.timeStep);
-			
-		linB2.push_back(-
-			cell.var[controls.Rho]*(
-			1.0*cell.var[controls.W] - 1.0*cell.var[controls.oldW]
-			)*cell.volume/controls.timeStep);
+		// linA.push_back(cell.var[controls.Rho]*cell.volume/controls.timeStep);
 		
-		// time marching -> second order upwind euler
 		// linB0.push_back(-
 			// cell.var[controls.Rho]*(
-			// 1.5*cell.var[controls.U] - 2.0*cell.var[controls.oldU] + 0.5*cell.var[controls.Qm[0]]
+			// 1.0*cell.var[controls.U] - 1.0*cell.var[controls.oldU]
 			// )*cell.volume/controls.timeStep);
 			
 		// linB1.push_back(-
 			// cell.var[controls.Rho]*(
-			// 1.5*cell.var[controls.V] - 2.0*cell.var[controls.oldV] + 0.5*cell.var[controls.Qm[1]]
+			// 1.0*cell.var[controls.V] - 1.0*cell.var[controls.oldV]
 			// )*cell.volume/controls.timeStep);
 			
 		// linB2.push_back(-
 			// cell.var[controls.Rho]*(
-			// 1.5*cell.var[controls.W] - 2.0*cell.var[controls.oldW] + 0.5*cell.var[controls.Qm[2]]
+			// 1.0*cell.var[controls.W] - 1.0*cell.var[controls.oldW]
 			// )*cell.volume/controls.timeStep);
+		
+		// time marching -> second order upwind euler
+		linA.push_back(1.5*cell.var[controls.Rho]*cell.volume/controls.timeStep);
+		
+		linB0.push_back(-
+			cell.var[controls.Rho]*(
+			1.5*cell.var[controls.U] - 2.0*cell.var[controls.oldU] + 0.5*cell.var[controls.Qm[0]]
+			)*cell.volume/controls.timeStep);
+			
+		linB1.push_back(-
+			cell.var[controls.Rho]*(
+			1.5*cell.var[controls.V] - 2.0*cell.var[controls.oldV] + 0.5*cell.var[controls.Qm[1]]
+			)*cell.volume/controls.timeStep);
+			
+		linB2.push_back(-
+			cell.var[controls.Rho]*(
+			1.5*cell.var[controls.W] - 2.0*cell.var[controls.oldW] + 0.5*cell.var[controls.Qm[2]]
+			)*cell.volume/controls.timeStep);
 			
 		// gravity force terms
 		linB0.back() += cell.var[controls.Rho]*cell.volume*controls.gravityAcceleration[0];
@@ -278,7 +338,14 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 		
 		double UnL = UL*nvec[0] + VL*nvec[1] + WL*nvec[2];
 		double UnR = UR*nvec[0] + VR*nvec[1] + WR*nvec[2];
+		
+		
 		double UnF = wCL*UnL+wCR*UnR;
+		// double UnF = 0.5*UnL+0.5*UnR;
+		// double UnF = face.var[controls.Un];
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			UnF = face.var[controls.Un];
+		}
 		
 
 		double dPN_e = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
@@ -290,6 +357,20 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 			// /( (nvec[0]*distanceCells[0] + 
 			    // nvec[1]*distanceCells[1] + 
 				// nvec[2]*distanceCells[2])/dPN );
+
+		double nonOrtholimiter = 1.0;
+		double cosAlpha = dPN_e/dPN;
+		if( cosAlpha < 0.766 && cosAlpha >= 0.5 ){
+			nonOrtholimiter = 0.5;
+		}
+		else if( cosAlpha < 0.5 && cosAlpha >= 0.342 ){
+			nonOrtholimiter = 0.333;
+		}
+		else if( cosAlpha < 0.342 ){
+			nonOrtholimiter = 0.0;
+		}
+		// nonOrtholimiter = 0.0;
+				
 				
 		double Ef[3];
 		Ef[0] = distanceCells[0]/dPN;
@@ -297,7 +378,7 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 		Ef[2] = distanceCells[2]/dPN;
 				
 		// over-relaxed approach
-		double overRelaxCoeff = 1.0;
+		// double overRelaxCoeff = 1.0;
 		// double overRelaxCoeff = Ef[0]*nvec[0]+Ef[1]*nvec[1]+Ef[2]*nvec[2];
 		// double overRelaxCoeff = 1.0 / (Ef[0]*nvec[0]+Ef[1]*nvec[1]+Ef[2]*nvec[2]);
 		
@@ -322,46 +403,35 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 		double VF = VL*weightL + VR*weightR;
 		double WF = WL*weightL + WR*weightR;
 		
-		// double PF = (RhoL*PL + RhoR*PR)/(RhoL+RhoR);
 		double PF = wCL*PL + wCR*PR;
-		// // PF -= 1.0*0.5*(RhoL+RhoR)/4.0*abs(UnL+UnR)*(UnR-UnL);
-		// // PF -= 1.0*0.5*(RhoL*abs(UnL)+RhoR*abs(UnR))/2.0*(UnR-UnL);
-		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			// double coeffL = 
-				// RhoL*mesh.cells[face.owner].volume/controls.timeStep;
-			// double coeffR = 
-				// RhoR*mesh.cells[face.neighbour].volume/controls.timeStep;
-			
-			// // double reconPL = PL
-				// // +( (gradP[face.owner][0])*(face.x-mesh.cells[face.owner].x)
-				  // // +(gradP[face.owner][1])*(face.y-mesh.cells[face.owner].y)
-				  // // +(gradP[face.owner][2])*(face.z-mesh.cells[face.owner].z) );
-			// // double reconPR = PR
-				// // +( (gradP[face.neighbour][0])*(face.x-mesh.cells[face.neighbour].x)
-				  // // +(gradP[face.neighbour][1])*(face.y-mesh.cells[face.neighbour].y)
-				  // // +(gradP[face.neighbour][2])*(face.z-mesh.cells[face.neighbour].z) );
-				  
-			// PF = (coeffL*PL+coeffR*PR)/(coeffL+coeffR);
-			// PF += 2.0*coeffL*coeffR/(coeffL+coeffR)*(UnL-UnR)/4.0;
-			// // PF = wCL*reconPL+wCR*reconPR;
-		// }
-		// // else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-			
-		// // }
-		// // else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
-			// // double coeffL = 
-				// // RhoL*mesh.cells[face.owner].volume/controls.timeStep;
-				
-			// // double reconPL = PL
-				// // +( (gradP[face.owner][0])*(face.x-mesh.cells[face.owner].x)
-				  // // +(gradP[face.owner][1])*(face.y-mesh.cells[face.owner].y)
-				  // // +(gradP[face.owner][2])*(face.z-mesh.cells[face.owner].z) );
-				  
-			// // PF = reconPL;
-			
-		// // }
 		
-		// // double RhoF = weightL*RhoL + weightR*RhoR;
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			
+			double barA0 = RhoL*mesh.cells[face.owner].volume/controls.timeStep;
+			double barA1 = RhoR*mesh.cells[face.neighbour].volume/controls.timeStep;
+			
+			// PF = (barA0*PL + barA1*PR)/(barA0 + barA1);
+			
+			PF += coeffPf * 0.5*barA0*barA1/(barA0+barA1)*(UnL-UnR)/area;
+		}
+		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			
+			double barA0 = RhoL*mesh.cells[face.owner].volume/controls.timeStep;
+			double barA1 = RhoR*mesh.cells[face.owner].volume/controls.timeStep;
+			
+			// PF = (barA0*PL + barA1*PR)/(barA0 + barA1);
+			
+			PF += coeffPf * 0.5*barA0*barA1/(barA0+barA1)*(UnL-UnR)/area;
+		}
+		// else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
+			
+			// double barA0 = RhoL*mesh.cells[face.owner].volume/controls.timeStep;
+			
+			// PF += coeffPf * 0.5*barA0*(UnL-UnR)/area;
+		// }
+		
+		
+		
 		
 		
 		linAL.push_back(-weightL*RhoL*UnF*area);
@@ -374,6 +444,17 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 		
 		linAL.back() -= muF/dPN_e*area;
 		linAR.back() -= muF/dPN_e*area;
+		
+			
+		// pressure term
+		linB0.at(face.owner) -= PF*nvec[0]*area;
+		linB1.at(face.owner) -= PF*nvec[1]*area;
+		linB2.at(face.owner) -= PF*nvec[2]*area;
+		
+		
+		gradP[face.owner][0] += PF*nvec[0]*area;
+		gradP[face.owner][1] += PF*nvec[1]*area;
+		gradP[face.owner][2] += PF*nvec[2]*area;
 		
 		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
@@ -390,18 +471,16 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 			linB1.at(face.neighbour) += VF*RhoR*UnF*area;
 			linB2.at(face.neighbour) += WF*RhoR*UnF*area;
 			
-			// // pressure term
-			// linB0.at(face.owner) -= PF*nvec[0]*area;
-			// linB1.at(face.owner) -= PF*nvec[1]*area;
-			// linB2.at(face.owner) -= PF*nvec[2]*area;
-		
-			// linB0.at(face.neighbour) += PF*nvec[0]*area;
-			// linB1.at(face.neighbour) += PF*nvec[1]*area;
-			// linB2.at(face.neighbour) += PF*nvec[2]*area;
+			// pressure term
+			linB0.at(face.neighbour) += PF*nvec[0]*area;
+			linB1.at(face.neighbour) += PF*nvec[1]*area;
+			linB2.at(face.neighbour) += PF*nvec[2]*area;
 			
 			
 			
-			
+			gradP[face.neighbour][0] -= PF*nvec[0]*area;
+			gradP[face.neighbour][1] -= PF*nvec[1]*area;
+			gradP[face.neighbour][2] -= PF*nvec[2]*area;
 			
 			
 			// viscous term
@@ -456,11 +535,11 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 			
 			// viscous term, non-orthogonal
 			double vNonOrthFlux0 = 
-				muF*(gradUf[0]*Tf[0]+gradUf[1]*Tf[1]+gradUf[2]*Tf[2])*area;
+				nonOrtholimiter * muF*(gradUf[0]*Tf[0]+gradUf[1]*Tf[1]+gradUf[2]*Tf[2])*area;
 			double vNonOrthFlux1 = 
-				muF*(gradVf[0]*Tf[0]+gradVf[1]*Tf[1]+gradVf[2]*Tf[2])*area;
+				nonOrtholimiter * muF*(gradVf[0]*Tf[0]+gradVf[1]*Tf[1]+gradVf[2]*Tf[2])*area;
 			double vNonOrthFlux2 = 
-				muF*(gradWf[0]*Tf[0]+gradWf[1]*Tf[1]+gradWf[2]*Tf[2])*area;
+				nonOrtholimiter * muF*(gradWf[0]*Tf[0]+gradWf[1]*Tf[1]+gradWf[2]*Tf[2])*area;
 				
 			linB0[face.owner] += vNonOrthFlux0;
 			linB1[face.owner] += vNonOrthFlux1;
@@ -488,12 +567,6 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 			linB0.at(face.owner) -= UF*RhoL*UnF*area;
 			linB1.at(face.owner) -= VF*RhoL*UnF*area;
 			linB2.at(face.owner) -= WF*RhoL*UnF*area;
-			
-			// // pressure term
-			// linB0.at(face.owner) -= PF*nvec[0]*area;
-			// linB1.at(face.owner) -= PF*nvec[1]*area;
-			// linB2.at(face.owner) -= PF*nvec[2]*area;
-			
 			
 
 			// viscous term
@@ -543,11 +616,11 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 			
 			// viscous term, non-orthogonal
 			double vNonOrthFlux0 = 
-				muF*(gradUf[0]*Tf[0]+gradUf[1]*Tf[1]+gradUf[2]*Tf[2])*area;
+				nonOrtholimiter * muF*(gradUf[0]*Tf[0]+gradUf[1]*Tf[1]+gradUf[2]*Tf[2])*area;
 			double vNonOrthFlux1 = 
-				muF*(gradVf[0]*Tf[0]+gradVf[1]*Tf[1]+gradVf[2]*Tf[2])*area;
+				nonOrtholimiter * muF*(gradVf[0]*Tf[0]+gradVf[1]*Tf[1]+gradVf[2]*Tf[2])*area;
 			double vNonOrthFlux2 = 
-				muF*(gradWf[0]*Tf[0]+gradWf[1]*Tf[1]+gradWf[2]*Tf[2])*area;
+				nonOrtholimiter * muF*(gradWf[0]*Tf[0]+gradWf[1]*Tf[1]+gradWf[2]*Tf[2])*area;
 				
 			linB0[face.owner] += vNonOrthFlux0;
 			linB1[face.owner] += vNonOrthFlux1;
@@ -565,20 +638,19 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 			++proc_num;
 			
 		}
-		
 	}
 	
 	
-	// pressure term
-	for(int i=0; i<mesh.cells.size(); ++i){
-		SEMO_Cell& cell = mesh.cells[i];
+	// // pressure term
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// SEMO_Cell& cell = mesh.cells[i];
 		
-		linB0[i] -= cell.volume*gradP[i][0];
-		linB1[i] -= cell.volume*gradP[i][1];
-		linB2[i] -= cell.volume*gradP[i][2];
+		// linB0[i] -= cell.volume*gradP[i][0];
+		// linB1[i] -= cell.volume*gradP[i][1];
+		// linB2[i] -= cell.volume*gradP[i][2];
 		
-		// cout << cell.volume*gradP[i][1] << endl;
-	}
+		// // cout << cell.volume*gradP[i][1] << endl;
+	// }
 	
 	
 	
@@ -662,9 +734,17 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 					double VL = face.varL[controls.fV];
 					double WL = face.varL[controls.fW];
 					
+					double orgUL = mesh.cells[face.owner].var[controls.U];
+					double orgVL = mesh.cells[face.owner].var[controls.V];
+					double orgWL = mesh.cells[face.owner].var[controls.W];
+					
 					double UR = face.varR[controls.fU];
 					double VR = face.varR[controls.fV];
 					double WR = face.varR[controls.fW];
+					
+					double orgUnL = orgUL*face.unitNormals[0]+
+					             orgVL*face.unitNormals[1]+
+								 orgWL*face.unitNormals[2];
 		
 					double UnL = UL*face.unitNormals[0]+
 					             VL*face.unitNormals[1]+
@@ -683,9 +763,15 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 					// convective term
 					// linA.at(face.owner) += 0.5*RhoL*UnL*area;
 					
-					linB0[face.owner] -= 0.5*(UL+UR)*RhoL*UnF*area;
-					linB1[face.owner] -= 0.5*(VL+VR)*RhoL*UnF*area;
-					linB2[face.owner] -= 0.5*(WL+WR)*RhoL*UnF*area;
+					// linB0[face.owner] -= 0.5*(UL+UR)*RhoL*UnF*area;
+					// linB1[face.owner] -= 0.5*(VL+VR)*RhoL*UnF*area;
+					// linB2[face.owner] -= 0.5*(WL+WR)*RhoL*UnF*area;
+					linB0[face.owner] -= UR*RhoR*UnF*area;
+					linB1[face.owner] -= VR*RhoR*UnF*area;
+					linB2[face.owner] -= WR*RhoR*UnF*area;
+					// linB0[face.owner] -= 0.5*(orgUL+UR)*RhoL*0.5*(orgUnL+UnR)*area;
+					// linB1[face.owner] -= 0.5*(orgVL+VR)*RhoL*0.5*(orgUnL+UnR)*area;
+					// linB2[face.owner] -= 0.5*(orgWL+WR)*RhoL*0.5*(orgUnL+UnR)*area;
 					
 				}
 			}
@@ -739,6 +825,82 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 					
 				}
 			}
+			else if(boundary.type[1] == "inletOutlet"){
+				
+				for(int i=str; i<end; ++i){
+					SEMO_Face& face = mesh.faces[i];
+					
+					double area = face.area;
+					vector<double> nvec;
+					nvec.push_back(face.unitNormals[0]);
+					nvec.push_back(face.unitNormals[1]);
+					nvec.push_back(face.unitNormals[2]);
+					
+					vector<double> distanceCells;
+					distanceCells.push_back(face.distCells[0]);
+					distanceCells.push_back(face.distCells[1]);
+					distanceCells.push_back(face.distCells[2]);
+					
+					double UL = face.varL[controls.fU];
+					double VL = face.varL[controls.fV];
+					double WL = face.varL[controls.fW];
+					
+					double orgUL = mesh.cells[face.owner].var[controls.U];
+					double orgVL = mesh.cells[face.owner].var[controls.V];
+					double orgWL = mesh.cells[face.owner].var[controls.W];
+					
+					double UR = face.varR[controls.fU];
+					double VR = face.varR[controls.fV];
+					double WR = face.varR[controls.fW];
+					
+					double orgUnL = orgUL*face.unitNormals[0]+
+					             orgVL*face.unitNormals[1]+
+								 orgWL*face.unitNormals[2];
+		
+					double UnL = UL*face.unitNormals[0]+
+					             VL*face.unitNormals[1]+
+								 WL*face.unitNormals[2];
+					double UnR = UR*face.unitNormals[0]+
+					             VR*face.unitNormals[1]+
+								 WR*face.unitNormals[2];
+					
+					double UnF = 0.5*(UnL+UnR);
+					double weightL = (UnF > 0.0) ? 1.0 : 0.0;
+					double weightR = (UnF < 0.0) ? 1.0 : 0.0;
+					
+					double RhoL = face.varL[controls.fRho];
+					double RhoR = face.varR[controls.fRho];
+					
+					// linB0[face.owner] -= UR*RhoR*UnF*area;
+					// linB1[face.owner] -= VR*RhoR*UnF*area;
+					// linB2[face.owner] -= WR*RhoR*UnF*area;
+					
+					//=========
+					if( UnF > 0.0 ){
+						// outflow
+						// zeroGradient
+						linA[face.owner] += RhoL*UnF*area;
+							
+						linB0[face.owner] -= 0.5*(UL+UR)*RhoL*UnF*area;
+						linB1[face.owner] -= 0.5*(VL+VR)*RhoL*UnF*area;
+						linB2[face.owner] -= 0.5*(WL+WR)*RhoL*UnF*area;
+					}
+					else{
+						// inflow
+						// fixedValue
+						
+						linB0[face.owner] -= UR*RhoR*UnF*area;
+						linB1[face.owner] -= VR*RhoR*UnF*area;
+						linB2[face.owner] -= WR*RhoR*UnF*area;
+					}
+					
+					
+						
+					
+					
+				}
+					
+			}
 			else{
 				
 				if(rank==0) cerr << "| #Error : not defined velocity B.C. name" << endl;
@@ -774,31 +936,32 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 	
 				// diffusion term
 				double muF = face.varL[controls.fmu];
+				double dPN_e = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
 				double dPN = sqrt(pow(distanceCells[0],2.0) + 
 								  pow(distanceCells[1],2.0) + 
 								  pow(distanceCells[2],2.0));
-				double Ef[3];
-				Ef[0] = distanceCells[0]/dPN;
-				Ef[1] = distanceCells[1]/dPN;
-				Ef[2] = distanceCells[2]/dPN;
+				// double Ef[3];
+				// Ef[0] = distanceCells[0]/dPN;
+				// Ef[1] = distanceCells[1]/dPN;
+				// Ef[2] = distanceCells[2]/dPN;
 				 
-				// over-relaxed approach
-				double overRelaxCoeff = 1.0;
-				// double overRelaxCoeff = Ef[0]*nvec[0]+Ef[1]*nvec[1]+Ef[2]*nvec[2];
-				// double overRelaxCoeff = 1.0 / (Ef[0]*nvec[0]+Ef[1]*nvec[1]+Ef[2]*nvec[2]);
+				// // over-relaxed approach
+				// double overRelaxCoeff = 1.0;
+				// // double overRelaxCoeff = Ef[0]*nvec[0]+Ef[1]*nvec[1]+Ef[2]*nvec[2];
+				// // double overRelaxCoeff = 1.0 / (Ef[0]*nvec[0]+Ef[1]*nvec[1]+Ef[2]*nvec[2]);
 				
-				// double dPNEff = dPN * overRelaxCoeff;
+				// // double dPNEff = dPN * overRelaxCoeff;
 				
-				double Tf[3];
-				Tf[0] = nvec[0] - Ef[0];
-				Tf[1] = nvec[1] - Ef[1];
-				Tf[2] = nvec[2] - Ef[2];
+				// // double Tf[3];
+				// // Tf[0] = nvec[0] - Ef[0];
+				// // Tf[1] = nvec[1] - Ef[1];
+				// // Tf[2] = nvec[2] - Ef[2];
 					
 				double orgUL = mesh.cells[face.owner].var[controls.U];
 				double orgVL = mesh.cells[face.owner].var[controls.V];
 				double orgWL = mesh.cells[face.owner].var[controls.W];
 				
-				linA[face.owner] += muF/dPN*area;
+				linA[face.owner] += muF/dPN_e*area;
 				
 				
 
@@ -826,9 +989,9 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 				// corrWL += gradP[face.owner][2]*tmpVec[2];
 				
 				
-				linB0[face.owner] += muF*(UR-corrUL)/dPN*area;
-				linB1[face.owner] += muF*(VR-corrVL)/dPN*area;
-				linB2[face.owner] += muF*(WR-corrWL)/dPN*area;
+				linB0[face.owner] += muF*(UR-corrUL)/dPN_e*area;
+				linB1[face.owner] += muF*(VR-corrVL)/dPN_e*area;
+				linB2[face.owner] += muF*(WR-corrWL)/dPN_e*area;
 
 				// // viscous term, properties
 				// double delPhiECF;
@@ -897,60 +1060,60 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 	
 	if(controls.iterPBs != controls.iterPBsMax-1){
 	
-		// solvePETSc(mesh, resiVar0, linA, linAL, linAR, linB0,
-			// controls.solverU, controls.toleranceU, 
-			// controls.relTolU, controls.preconditionerU,
-			// controls.maxIterU);
-		// solvePETSc(mesh, resiVar1, linA, linAL, linAR, linB1,
-			// controls.solverU, controls.toleranceU, 
-			// controls.relTolU, controls.preconditionerU,
-			// controls.maxIterU);
-		// solvePETSc(mesh, resiVar2, linA, linAL, linAR, linB2,
-			// controls.solverU, controls.toleranceU, 
-			// controls.relTolU, controls.preconditionerU,
-			// controls.maxIterU);
+		solvePETSc(mesh, resiVar0, linA, linAL, linAR, linB0,
+			controls.solverU, controls.toleranceU, 
+			controls.relTolU, controls.preconditionerU,
+			controls.maxIterU);
+		solvePETSc(mesh, resiVar1, linA, linAL, linAR, linB1,
+			controls.solverU, controls.toleranceU, 
+			controls.relTolU, controls.preconditionerU,
+			controls.maxIterU);
+		solvePETSc(mesh, resiVar2, linA, linAL, linAR, linB2,
+			controls.solverU, controls.toleranceU, 
+			controls.relTolU, controls.preconditionerU,
+			controls.maxIterU);
 	
-		solveHYPRE(mesh, resiVar0, linA, linAL, linAR, linB0,
-			controls.solverU, controls.toleranceU, 
-			controls.relTolU, controls.preconditionerU,
-			controls.maxIterU);
-		solveHYPRE(mesh, resiVar1, linA, linAL, linAR, linB1,
-			controls.solverU, controls.toleranceU, 
-			controls.relTolU, controls.preconditionerU,
-			controls.maxIterU);
-		solveHYPRE(mesh, resiVar2, linA, linAL, linAR, linB2,
-			controls.solverU, controls.toleranceU, 
-			controls.relTolU, controls.preconditionerU,
-			controls.maxIterU);
+		// solveHYPRE(mesh, resiVar0, linA, linAL, linAR, linB0,
+			// controls.solverU, controls.toleranceU, 
+			// controls.relTolU, controls.preconditionerU,
+			// controls.maxIterU);
+		// solveHYPRE(mesh, resiVar1, linA, linAL, linAR, linB1,
+			// controls.solverU, controls.toleranceU, 
+			// controls.relTolU, controls.preconditionerU,
+			// controls.maxIterU);
+		// solveHYPRE(mesh, resiVar2, linA, linAL, linAR, linB2,
+			// controls.solverU, controls.toleranceU, 
+			// controls.relTolU, controls.preconditionerU,
+			// controls.maxIterU);
 		
 	}
 	else{
 	
-		// solvePETSc(mesh, resiVar0, linA, linAL, linAR, linB0,
-			// controls.solverFinalU, controls.toleranceFinalU, 
-			// controls.relTolFinalU, controls.preconditionerFinalU,
-			// controls.maxIterFinalU);
-		// solvePETSc(mesh, resiVar1, linA, linAL, linAR, linB1,
-			// controls.solverFinalU, controls.toleranceFinalU, 
-			// controls.relTolFinalU, controls.preconditionerFinalU,
-			// controls.maxIterFinalU);
-		// solvePETSc(mesh, resiVar2, linA, linAL, linAR, linB2,
-			// controls.solverFinalU, controls.toleranceFinalU, 
-			// controls.relTolFinalU, controls.preconditionerFinalU,
-			// controls.maxIterFinalU);
+		solvePETSc(mesh, resiVar0, linA, linAL, linAR, linB0,
+			controls.solverFinalU, controls.toleranceFinalU, 
+			controls.relTolFinalU, controls.preconditionerFinalU,
+			controls.maxIterFinalU);
+		solvePETSc(mesh, resiVar1, linA, linAL, linAR, linB1,
+			controls.solverFinalU, controls.toleranceFinalU, 
+			controls.relTolFinalU, controls.preconditionerFinalU,
+			controls.maxIterFinalU);
+		solvePETSc(mesh, resiVar2, linA, linAL, linAR, linB2,
+			controls.solverFinalU, controls.toleranceFinalU, 
+			controls.relTolFinalU, controls.preconditionerFinalU,
+			controls.maxIterFinalU);
 	
-		solveHYPRE(mesh, resiVar0, linA, linAL, linAR, linB0,
-			controls.solverFinalU, controls.toleranceFinalU, 
-			controls.relTolFinalU, controls.preconditionerFinalU,
-			controls.maxIterFinalU);
-		solveHYPRE(mesh, resiVar1, linA, linAL, linAR, linB1,
-			controls.solverFinalU, controls.toleranceFinalU, 
-			controls.relTolFinalU, controls.preconditionerFinalU,
-			controls.maxIterFinalU);
-		solveHYPRE(mesh, resiVar2, linA, linAL, linAR, linB2,
-			controls.solverFinalU, controls.toleranceFinalU, 
-			controls.relTolFinalU, controls.preconditionerFinalU,
-			controls.maxIterFinalU);
+		// solveHYPRE(mesh, resiVar0, linA, linAL, linAR, linB0,
+			// controls.solverFinalU, controls.toleranceFinalU, 
+			// controls.relTolFinalU, controls.preconditionerFinalU,
+			// controls.maxIterFinalU);
+		// solveHYPRE(mesh, resiVar1, linA, linAL, linAR, linB1,
+			// controls.solverFinalU, controls.toleranceFinalU, 
+			// controls.relTolFinalU, controls.preconditionerFinalU,
+			// controls.maxIterFinalU);
+		// solveHYPRE(mesh, resiVar2, linA, linAL, linAR, linB2,
+			// controls.solverFinalU, controls.toleranceFinalU, 
+			// controls.relTolFinalU, controls.preconditionerFinalU,
+			// controls.maxIterFinalU);
 	}
 	
 	// cout << "BBBBBBB" << endl;
@@ -964,9 +1127,31 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 		// resiVar1[i] = linB1[i]/linA[i];
 		// resiVar2[i] = linB2[i]/linA[i];
 		
-		cell.var.at(controls.U) += controls.momVelURF * resiVar0.at(i);
-		cell.var.at(controls.V) += controls.momVelURF * resiVar1.at(i);
-		cell.var.at(controls.W) += controls.momVelURF * resiVar2.at(i);
+		cell.var[controls.U] += controls.momVelURF * resiVar0[i];
+		cell.var[controls.V] += controls.momVelURF * resiVar1[i];
+		cell.var[controls.W] += controls.momVelURF * resiVar2[i];
+		
+		
+		
+		// if( cell.var[controls.P] <= controls.minP ) 
+			// cell.var[controls.P] = controls.minP;
+		// if( cell.var[controls.P] >= controls.maxP ) 
+			// cell.var[controls.P] = controls.maxP;
+		
+		if( cell.var[controls.U] <= controls.minU ) 
+			cell.var[controls.U] = controls.minU;
+		if( cell.var[controls.U] >= controls.maxU ) 
+			cell.var[controls.U] = controls.maxU;
+		
+		if( cell.var[controls.V] <= controls.minV ) 
+			cell.var[controls.V] = controls.minV;
+		if( cell.var[controls.V] >= controls.maxV ) 
+			cell.var[controls.V] = controls.maxV;
+		
+		if( cell.var[controls.W] <= controls.minW ) 
+			cell.var[controls.W] = controls.minW;
+		if( cell.var[controls.W] >= controls.maxW ) 
+			cell.var[controls.W] = controls.maxW;
 		
 		
 		// cell.var.at(controls.UDV[0]) += gradP[i][0];
@@ -986,13 +1171,260 @@ void SEMO_Solvers_Builder::calcMomentumEqs(
 		}
 		
 		
+		
+		gradP[i][0] /= cell.volume;
+		gradP[i][1] /= cell.volume;
+		gradP[i][2] /= cell.volume;
+		
+		
 	}
 	
 	
+	//========================
+	// calc Un 
+	// gradient P
+	// vector<vector<double>> gradP;
+	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	
+	// vector<double> limGradP;
+	// math.calcLimiterGradient(mesh, controls.P, controls.fP, gradP, limGradP);
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// for(int j=0; j<3; ++j){
+			// gradP[i][j] *= limGradP[i]; 
+		// }
+	// }
+	// math.gradientGGBoundaryTreatment(mesh, controls, gradP);
+	
+
+	vector<double> gradPx_recv;
+	vector<double> gradPy_recv;
+	vector<double> gradPz_recv;
+	vector<double> resiVar0_recv;
+	vector<double> resiVar1_recv;
+	vector<double> resiVar2_recv;
+	vector<double> linAD_recv;
+	if(size>1){
+		// processor faces
+		// gradP , 
+		vector<double> gradPx_send;
+		vector<double> gradPy_send;
+		vector<double> gradPz_send;
+		vector<double> resiVar0_send;
+		vector<double> resiVar1_send;
+		vector<double> resiVar2_send;
+		vector<double> linAD_send;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				gradPx_send.push_back(gradP[face.owner][0]);
+				gradPy_send.push_back(gradP[face.owner][1]);
+				gradPz_send.push_back(gradP[face.owner][2]);
+				resiVar0_send.push_back(resiVar0[face.owner]);
+				resiVar1_send.push_back(resiVar1[face.owner]);
+				resiVar2_send.push_back(resiVar2[face.owner]);
+				linAD_recv.push_back(linAD[face.owner]);
+			}
+		}
+		// SEMO_MPI_Builder mpi;
+		
+		mpi.setProcsFaceDatasDouble(
+					gradPx_send, gradPx_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					gradPy_send, gradPy_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					gradPz_send, gradPz_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		
+		mpi.setProcsFaceDatasDouble(
+					resiVar0_send, resiVar0_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					resiVar1_send, resiVar1_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					resiVar2_send, resiVar2_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+					
+		mpi.setProcsFaceDatasDouble(
+					linAD_send, linAD_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+					
+		// gradPx_send.clear();
+		// gradPy_send.clear();
+		// gradPz_send.clear();
+	}
+	
+	
+	
+	proc_num = 0;
 	for(int i=0; i<mesh.faces.size(); ++i){
+		
+		auto& face = mesh.faces[i];
 
 		linAFL[i] = linAL[i];
 		linAFR[i] = linAR[i];
+		
+		
+		
+		double area = face.area;
+		vector<double> nvec(3,0.0);
+		nvec[0] = face.unitNormals[0];
+		nvec[1] = face.unitNormals[1];
+		nvec[2] = face.unitNormals[2];
+		
+		vector<double> distanceCells(3,0.0);
+		distanceCells[0] = face.distCells[0];
+		distanceCells[1] = face.distCells[1];
+		distanceCells[2] = face.distCells[2];
+		
+		double wCL = face.wC;
+		double wCR = 1.0-face.wC;
+		
+		double RhoL = face.varL[controls.fRho];
+		
+		double RhoR = face.varR[controls.fRho];
+		
+		double dPN_e = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
+		
+		double dPN = sqrt(pow(distanceCells[0],2.0) + 
+						  pow(distanceCells[1],2.0) + 
+						  pow(distanceCells[2],2.0));
+				
+		double nonOrtholimiter = 1.0;
+		double cosAlpha = dPN_e/dPN;
+		if( cosAlpha < 0.766 && cosAlpha >= 0.5 ){
+			nonOrtholimiter = 0.5;
+		}
+		else if( cosAlpha < 0.5 && cosAlpha >= 0.342 ){
+			nonOrtholimiter = 0.333;
+		}
+		else if( cosAlpha < 0.342 ){
+			nonOrtholimiter = 0.0;
+		}
+				
+		double Ef[3];
+		Ef[0] = distanceCells[0]/dPN;
+		Ef[1] = distanceCells[1]/dPN;
+		Ef[2] = distanceCells[2]/dPN;
+				
+		double Tf[3];
+		Tf[0] = nvec[0] - distanceCells[0]/dPN_e;
+		Tf[1] = nvec[1] - distanceCells[1]/dPN_e;
+		Tf[2] = nvec[2] - distanceCells[2]/dPN_e;
+		
+		double tmp1 = (wCL/RhoL + wCR/RhoR)*controls.timeStep;
+		
+
+		
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				
+				
+			face.var[controls.Un] += controls.momVelURF * (
+				(wCL*resiVar0[face.owner]+wCR*resiVar0[face.neighbour])*nvec[0] +
+				(wCL*resiVar1[face.owner]+wCR*resiVar1[face.neighbour])*nvec[1] +
+				(wCL*resiVar2[face.owner]+wCR*resiVar2[face.neighbour])*nvec[2] );
+				
+				
+			// pressure correction
+			
+			
+			double orgPL = mesh.cells[face.owner].var[controls.P];
+			double orgPR = mesh.cells[face.neighbour].var[controls.P];
+				
+			tmp1 = wCL/linAD[face.owner] + wCR/linAD[face.neighbour];
+			face.var[controls.Un] += coeffDiss * controls.momVelURF * (
+				wCL*1.0/linAD[face.owner]*( 
+					gradP[face.owner][0]*nvec[0] +
+					gradP[face.owner][1]*nvec[1] +
+					gradP[face.owner][2]*nvec[2] ) +
+				wCR*1.0/linAD[face.neighbour]*( 
+					gradP[face.neighbour][0]*nvec[0] +
+					gradP[face.neighbour][1]*nvec[1] +
+					gradP[face.neighbour][2]*nvec[2] ) );
+			// face.var[controls.Un] += coeffDiss * controls.momVelURF * (
+				// wCL*controls.timeStep/RhoL*( 
+					// gradP[face.owner][0]*nvec[0] +
+					// gradP[face.owner][1]*nvec[1] +
+					// gradP[face.owner][2]*nvec[2] ) +
+				// wCR*controls.timeStep/RhoR*( 
+					// gradP[face.neighbour][0]*nvec[0] +
+					// gradP[face.neighbour][1]*nvec[1] +
+					// gradP[face.neighbour][2]*nvec[2] ) );
+				
+			face.var[controls.Un] -= coeffDiss * controls.momVelURF * tmp1*(orgPR-orgPL)/dPN_e;
+			
+			// non-orthogonal, over-relaxed approach
+			double gradPf[3];
+			gradPf[0] = (wCL*gradP[face.owner][0]+wCR*gradP[face.neighbour][0]);
+			gradPf[1] = (wCL*gradP[face.owner][1]+wCR*gradP[face.neighbour][1]);
+			gradPf[2] = (wCL*gradP[face.owner][2]+wCR*gradP[face.neighbour][2]);
+			
+			face.var[controls.Un] -= coeffDiss * controls.momVelURF 
+				* nonOrtholimiter * tmp1*
+				(gradPf[0]*Tf[0] + gradPf[1]*Tf[1] + gradPf[2]*Tf[2]);
+			
+		}
+		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				
+			face.var[controls.Un] += controls.momVelURF * (
+				(wCL*resiVar0[face.owner]+wCR*resiVar0_recv[proc_num])*nvec[0] +
+				(wCL*resiVar1[face.owner]+wCR*resiVar1_recv[proc_num])*nvec[1] +
+				(wCL*resiVar2[face.owner]+wCR*resiVar2_recv[proc_num])*nvec[2] );
+				
+				
+			// pressure correction
+			double orgPL = mesh.cells[face.owner].var[controls.P];
+			double orgPR = face.varR[controls.fP];
+				
+			tmp1 = wCL/linAD[face.owner] + wCR/linAD_recv[proc_num];
+			face.var[controls.Un] += coeffDiss * controls.momVelURF * (
+				wCL*1.0/linAD[face.owner]*( 
+					gradP[face.owner][0]*nvec[0] +
+					gradP[face.owner][1]*nvec[1] +
+					gradP[face.owner][2]*nvec[2] ) +
+				wCR*1.0/linAD_recv[proc_num]*( 
+					gradPx_recv[proc_num]*nvec[0] +
+					gradPy_recv[proc_num]*nvec[1] +
+					gradPz_recv[proc_num]*nvec[2] ) );
+			// face.var[controls.Un] += coeffDiss * controls.momVelURF * (
+				// wCL*controls.timeStep/RhoL*( 
+					// gradP[face.owner][0]*nvec[0] +
+					// gradP[face.owner][1]*nvec[1] +
+					// gradP[face.owner][2]*nvec[2] ) +
+				// wCR*controls.timeStep/RhoR*( 
+					// gradPx_recv[proc_num]*nvec[0] +
+					// gradPy_recv[proc_num]*nvec[1] +
+					// gradPz_recv[proc_num]*nvec[2] ) );
+				
+				
+			face.var[controls.Un] -= coeffDiss * controls.momVelURF * tmp1*(orgPR-orgPL)/dPN_e;
+			
+			// non-orthogonal, over-relaxed approach
+			double gradPf[3];
+			gradPf[0] = (wCL*gradP[face.owner][0]+wCR*gradPx_recv[proc_num]);
+			gradPf[1] = (wCL*gradP[face.owner][1]+wCR*gradPy_recv[proc_num]);
+			gradPf[2] = (wCL*gradP[face.owner][2]+wCR*gradPz_recv[proc_num]);
+			
+			face.var[controls.Un] -= coeffDiss * controls.momVelURF 
+				* nonOrtholimiter * tmp1*
+				(gradPf[0]*Tf[0] + gradPf[1]*Tf[1] + gradPf[2]*Tf[2]);
+			
+				
+			++proc_num;
+			
+		}
+		
 
 	}
 	

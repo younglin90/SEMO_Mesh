@@ -30,9 +30,14 @@ class SEMO_Controls_Builder{
 		double maxVfCo;
 		double maxTimeStep;
 		double orgTimeStep;
+		int writePrecision;
 		
 		
 		string fluxScheme;
+		string gradScheme;
+		string divScheme;
+	
+	
 		
 		vector<double> gravityAcceleration;
 		
@@ -50,7 +55,6 @@ class SEMO_Controls_Builder{
 		int C;
 		int Ht;
 		
-		int mu;
 
 		// vector<int> Q;
 		vector<int> Qn;
@@ -81,6 +85,13 @@ class SEMO_Controls_Builder{
 		
 		int Un;
 		// int wC;
+		
+		
+		// int RCM;
+		// int invRCM;
+		
+		double Uco;
+		double Lch;
 		
 		// // bc
 		// double subinletU;
@@ -129,6 +140,8 @@ class SEMO_Controls_Builder{
 		
 		// turbulence
 		string turbType;
+		string turbLESModel;
+		string turbRANSModel;
 		
 		
 		// solvers
@@ -245,5 +258,23 @@ class SEMO_Controls_Builder{
 		
 		int iterPseudo;
 		int iterPseudoMax;
+		
+		int iterTotal;
+		double startClock;
+		
+		// transport & turbulence
+		int mu;
+		int muT;
+		int muEffective;
+		int kappa;
+		int kappaEffective;
+		int D;
+		int DEffective;
+		int cv;
+		int cp;
+		int kSGS;
+
+		double PrT;
+		double ScT;
 };
 

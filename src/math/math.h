@@ -58,6 +58,13 @@ class SEMO_Utility_Math{
 			int cn, int fn,
 			vector<vector<double>>& gradient);
 			
+		void calcGaussGreen(
+			SEMO_Mesh_Builder& mesh,
+			int cn,
+			vector<double> phi,
+			vector<vector<double>>& gradient
+			);
+			
 		void calcGGLSQ(
 			SEMO_Mesh_Builder& mesh,
 			int cn, int fn,
@@ -91,6 +98,8 @@ class SEMO_Utility_Math{
 			vector<vector<double>>& gradient,
 			int cn, int fn,
 			int inX, int inY, int inZ);
+		
+		void lib_RCM(SEMO_Mesh_Builder& mesh);
 	
 };
 

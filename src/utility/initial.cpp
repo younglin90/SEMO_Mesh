@@ -21,6 +21,7 @@
 using namespace std;
 #include "../mesh/build.h" 
 #include "../mesh/load.h" 
+#include "../mesh/geometric.h" 
 
 #include "../controls/build.h" 
  
@@ -43,12 +44,14 @@ SEMO_Mesh_Save save;
 
 int main(int argc, char* argv[]) {
 	
+	// cout << "AAA" << endl;
 
 	MPI::Init(); 
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 	
 
+	// cout << "BBB" << endl;
 	
 		
 	controls.readSpecies(species);
@@ -60,6 +63,7 @@ int main(int argc, char* argv[]) {
 	SEMO_MPI_Builder mpi;
 	
 
+	// cout << "BBB" << endl; 
 	
 	// load.vtu("./grid/0/", mesh, controls, species);
 
@@ -111,6 +115,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	
+	// cout << "AAA" << endl;
 	
 	
 	initialConditionSettingVel("./constant/velocities", type, values);
@@ -166,11 +171,12 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	
-	
+	// cout << "AAA" << endl;
 	
 	string speciesFileName = "./constant/" + species[0].name;
 	initialConditionSetting(speciesFileName, type, values);
 	
+	// cout << "BBB" << endl;
 	if(type.back() == "fixedValue"){
 		for(auto& cell : mesh.cells){
 			cell.var[5] = values[0];
@@ -190,8 +196,14 @@ int main(int argc, char* argv[]) {
 			(cellXYZ[i][2] >= values[3] && cellXYZ[i][2] <= values[6]) ){
 				// cout << values[7] << endl;
 				cell.var[5] = values[7];
+					// cout.precision(20);
+				// cout << "YES " << cellXYZ[i][1] << endl;
 			}
 			else{
+				// if( cellXYZ[i][1] < 0.31 && cellXYZ[i][1] > 0.29 ){
+					// cout.precision(20);
+					// cout << "NO " << cellXYZ[i][1] << endl;
+				// }
 				cell.var[5] = values[0];
 			}
 		}
@@ -254,7 +266,10 @@ int main(int argc, char* argv[]) {
 	}
 	
 	
-	
+
+	// SEMO_Utility_Math math;
+	// SEMO_Mesh_Geometric geometric;
+	// geometric.init(mesh);
 	
 	saveInitialField("./save/0/");
 	// save.vtu("./save/0/", mesh, controls, species);
@@ -591,6 +606,9 @@ void saveInitialField(string folder){
 	}
 	
 	outputFile.open(filenamePlot);
+	
+	outputFile.precision(20);
+	
 	if(outputFile.fail()){
 		cerr << "Unable to write file for writing." << endl;
 		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);

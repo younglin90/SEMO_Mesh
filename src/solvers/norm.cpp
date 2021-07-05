@@ -1,6 +1,7 @@
 #include "build.h"
 #include <cmath>
 #include <array>
+#include <time.h>
 
 void SEMO_Solvers_Builder::calcNormResiduals(
 	SEMO_Mesh_Builder& mesh,
@@ -17,8 +18,10 @@ void SEMO_Solvers_Builder::calcNormResiduals(
 		
 		for(int j=0; j<controls.nEq; ++j){
 			norm[j] += pow(residuals[i][j],2.0)*mesh.cells[i].volume;
+			// norm[j] += pow(residuals[i][j],2.0);
 		}
 		totalVol += mesh.cells[i].volume;
+		// ++totalVol;
 	}
 	
 	vector<double> normReduced(controls.nEq,0.0);
@@ -33,10 +36,12 @@ void SEMO_Solvers_Builder::calcNormResiduals(
 		norm[j] = sqrt(normReduced[j]);
 	}
 	
- 
+	double dClock = clock() - controls.startClock;
+	// dClock /= 1000.0;
+	dClock /= CLOCKS_PER_SEC;
  
 	SEMO_Mesh_Save save;
-	save.gnuplot(controls.iterPseudo, norm);
+	save.gnuplot(controls.iterTotal, dClock, norm);
  
 	
 }
@@ -78,9 +83,12 @@ void SEMO_Solvers_Builder::calcNormResiduals(
 	}
 	
 	
+	double dClock = clock() - controls.startClock;
+	// dClock /= 1000.0;
+	dClock /= CLOCKS_PER_SEC;
 	
 	SEMO_Mesh_Save save;
-	save.gnuplot(controls.iterReal, norm);
+	save.gnuplot(controls.iterTotal, dClock, norm);
  
 	
 }

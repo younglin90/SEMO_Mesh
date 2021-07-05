@@ -73,8 +73,8 @@ void SEMO_Solvers_Builder::solvePETSc(
 	MatSetSizes(A,ncells,ncells,ncellTot,ncellTot);
 	MatSetFromOptions(A);
 	
-    MatSeqAIJSetPreallocation(A, 24, NULL);
-    MatMPIAIJSetPreallocation(A, 24, NULL, 23, NULL);
+    MatSeqAIJSetPreallocation(A, 60, NULL);
+    MatMPIAIJSetPreallocation(A, 60, NULL, 59, NULL);
 
     MatGetOwnershipRange(A, &myStart, &myEnd);
 	
@@ -205,7 +205,7 @@ void SEMO_Solvers_Builder::solvePETSc(
 	
 	
 	// reordering (ex, the reverse cuthill-mckee)
-	bool permute = true;
+	bool permute = false;
 	if(permute) {
 		char ordering[256] = MATORDERINGRCM;
 		Mat Aperm;

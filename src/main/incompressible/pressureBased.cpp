@@ -161,6 +161,29 @@ int main(int argc, char* argv[]) {
 		
 		SEMO_Mesh_Save save;
 		
+		
+		
+
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		
+		// auto& cell = mesh.cells[i];
+		
+		// if(cell.y < -0.157){
+			// cell.var[controls.VF[0]] = 0.0;
+		// }
+		
+	// }
+		
+				// string foldername2;
+				// // if( controls.time < 1.e-6 ){
+					// std::ostringstream streamObj2;
+					// streamObj2 << controls.time;
+					// foldername2 = "./save/" + streamObj2.str() + "/";
+	// save.vtu(foldername2, mesh, controls, species);
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		
+		
 		while(
 		controls.iterReal<controls.iterRealMax ||
 		controls.time<stod(controls.stopAt) ){

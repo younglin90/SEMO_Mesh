@@ -64,6 +64,7 @@ class SEMO_Face{
 		vector<double> unitNormals;
 		double area;
 		double wC;
+		double wVC;
 		int owner, neighbour;
 		vector<int> points;
 		double x, y, z;
@@ -101,6 +102,9 @@ class SEMO_Cell{
 		vector<double> coeffLeastSquare;
 		
 		vector<int> stencil;
+		
+		int RCM;
+		int invRCM;
 		
 	private:
 		

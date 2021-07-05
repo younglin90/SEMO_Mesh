@@ -12,9 +12,10 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	int rank = MPI::COMM_WORLD.Get_rank();
 	
 	
-	
-	this->calcIncomCellEOSVF(mesh, controls, species);
-	this->calcCellTransport(mesh, controls, species);
+	if( controls.iterReal == 0 ){
+		this->calcIncomCellEOSVF(mesh, controls, species);
+		this->calcCellTransport(mesh, controls, species);
+	}
 	
 	if( controls.iterReal == 0 ){
 		for(auto& cell : mesh.cells){
@@ -58,7 +59,12 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	
 	this->calcIncomRealTimeStep(mesh, controls);
 	if(rank==0) {
-		cout << " | timeStep = " << controls.timeStep << endl;
+		cout << " | timeStep = " << controls.timeStep;
+	}
+	double corantNum = -10.0;
+	this->calcCorantNumberForPrint(mesh, controls, corantNum);
+	if(rank==0) {
+		cout << " | corantNumber = " << corantNum << endl;
 	}
 	
 	
@@ -68,6 +74,8 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	
 	controls.iterPBs = 0;
 	while(controls.iterPBs<controls.iterPBsMax){
+		
+		
 		
 		this->calcUnderRelaxationFactors(controls);
 		
@@ -90,8 +98,8 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 				controls.momVelURF = 1.0;
 			}
 			
-			this->setIncomValuesLeftRightFace(mesh, controls, species);
-			// this->setIncomValuesLeftRightFaceWithVelQUICK(mesh, controls, species);
+			// this->setIncomValuesLeftRightFace(mesh, controls, species);
+			this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
 			// this->setCompValuesLeftRightFace(mesh, controls, species);
 			
 			this->calcMomentumEqs(mesh, controls, species, linAD, linAOD, linAFL, linAFR, residualsM);
@@ -117,7 +125,7 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 			}
 			
 			this->setIncomValuesLeftRightFace(mesh, controls, species);
-			// this->setIncomValuesLeftRightFaceWithVelQUICK(mesh, controls, species);
+			// this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
 			// this->setCompValuesLeftRightFace(mesh, controls, species);
 			
 			residualsP.clear();
@@ -148,6 +156,7 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 		while(controls.iterVof<controls.iterVofMax){
 			
 			// this->setIncomValuesLeftRightFace(mesh, controls, species);
+			// this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
 			this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
 			// this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
 			
@@ -173,6 +182,8 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 		this->calcNormResiduals(mesh, controls, residuals, norm);
 		
 		if(rank==0) {
+			double dClock = clock() - controls.startClock;
+			dClock /= CLOCKS_PER_SEC;
 			cout << "|  └ PIMPLE step = " << controls.iterPBs << " | ";
 			cout.precision(3);
 			for(int i=0; i<controls.nEq; ++i){
@@ -190,6 +201,7 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 				}
 			}
 			cout.unsetf(ios::scientific);
+			cout << dClock << " s | ";
 			cout << endl;
 			
 		}
@@ -197,7 +209,78 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 		
 		++controls.iterPBs;
 		
+
+		if(controls.saveControl == "pseudoTimeStep"){
+			if(controls.iterPseudo % controls.saveInterval == 0){
+				SEMO_Mesh_Save save;
+				
+				string foldername;
+				std::ostringstream streamObj;
+				streamObj << controls.iterPseudo;
+				foldername = "./save/" + streamObj.str() + "/";
+				save.vtu(foldername, mesh, controls, species);
+			}
+		}
+		
+		
+		++controls.iterTotal;
+		
 	}
+	
+	// double maxPressure = 0.0;
+	// // int iiiiisave = 0;
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// if(maxPressure<mesh.cells[i].var[controls.P]){
+			// maxPressure = mesh.cells[i].var[controls.P];
+			// // iiiiisave = i;
+		// }
+	// }
+	// double maxPressureReduced;
+    // MPI_Allreduce(&maxPressure, &maxPressureReduced, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	// if(rank==0) cout << maxPressureReduced << endl;
+	
+	
+
+	// if(rank==0) {
+
+		SEMO_Utility_Math math;
+		vector<vector<double>> gradP;
+		math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	
+		ofstream outputFile;
+ 
+		string filenamePlot = "pressure_point" + to_string(rank);
+		outputFile.open(filenamePlot, ios::app);
+		if(outputFile.fail()){
+			cerr << "Unable to write file for writing." << endl;
+			MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		}
+	
+		outputFile << controls.time << " ";
+		outputFile.precision(4);
+		for(int i=0; i<mesh.cells.size(); ++i){
+			auto& cell = mesh.cells[i];
+			if(cell.x<0.008 && cell.y<0.008){
+				
+				double PF = 
+					cell.var[controls.P] +
+					 ( (gradP[i][0])*(0.0-cell.x)
+					  +(gradP[i][1])*(0.003-cell.y));
+				// double PF = cell.var[controls.P];
+				
+				
+				outputFile << scientific << PF << " ";
+				cout << endl;
+				cout << PF << endl;
+			}
+		}
+		outputFile.unsetf(ios::scientific);
+		outputFile << endl;
+		
+		outputFile.close();
+	// }
+		
+	
 	
 }
 

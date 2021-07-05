@@ -97,6 +97,8 @@ int main(int argc, char* argv[]) {
 	}
 	
 	
+	
+	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 
@@ -129,7 +131,8 @@ int main(int argc, char* argv[]) {
 		
 		geometric.init(mesh);
 		
-		math.initLeastSquare(mesh);
+		// math.initLeastSquare(mesh);
+		math.initLeastSquare2nd(mesh);
 	
 	}
 	
@@ -145,6 +148,13 @@ int main(int argc, char* argv[]) {
 		mesh.saveFile("vtu", "./save/0/", controls);
 		
 		MPI_Barrier(MPI_COMM_WORLD);
+	}
+	
+	
+	bool boolRCM = true;
+	if(boolRCM){
+		SEMO_Utility_Math math;
+		math.lib_RCM(mesh);
 	}
 	
 	
@@ -168,27 +178,8 @@ int main(int argc, char* argv[]) {
 				<< " | time = " << controls.time << endl;
 			}
 		
-			// if(controls.application=="incomPBased"){
-				
-				// solvers.incompressiblePressureBased(mesh, controls, species);
-				
-			// }
-			// else if(controls.application=="comRhoBasedSingle"){
-				
-				// solvers.compressibleDensityBasedSingleTime(mesh, controls, species);
-				
-			// }
-			// else if(controls.application=="comRhoBasedDual"){
-				
 				solvers.compressibleDensityBasedDualTime(mesh, controls, species);
 				
-			// }
-			// else if(controls.application=="incomPBased+comRhoBasedDual"){
-				
-				// solvers.hybridBased(mesh, controls, species);
-				
-			// }
-			
 			controls.time += controls.timeStep;
 			
 			++controls.iterReal;

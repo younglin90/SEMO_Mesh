@@ -14,7 +14,7 @@ using namespace std;
 #include "build.h" 
 #include "../controls/build.h" 
 
-void SEMO_Mesh_Save::gnuplot(int iter, vector<double>& norm){
+void SEMO_Mesh_Save::gnuplot(int iter, double dtime, vector<double>& norm){
 	
 	int rank = MPI::COMM_WORLD.Get_rank();
 	
@@ -52,10 +52,11 @@ void SEMO_Mesh_Save::gnuplot(int iter, vector<double>& norm){
 		}
 	
 		outputFile << iter << " ";
-		outputFile.precision(3);
+		outputFile.precision(4);
 		for(int i=0; i<norm.size(); ++i){
 			outputFile << scientific << norm[i] << " ";
 		}
+		outputFile << scientific << dtime;
 		outputFile.unsetf(ios::scientific);
 		outputFile << endl;
 		

@@ -17,6 +17,7 @@ using namespace std;
 // #include "scotchf.h" 
 
 #include "../mesh/build.h" 
+#include "../mesh/geometric.h" 
 
 void parMETIS_Graph_Partition(int nBlocks, vector<int>& idBlockCell);
 void parMETIS_Mesh_Partition(int nBlocks, vector<int>& idBlockCell);
@@ -35,7 +36,9 @@ int main(int argc, char* argv[]) {
 		// cout << argv[i] << endl;
 	// }
 	
-	
+
+	// SEMO_Controls_Builder controls;
+	// controls.readConfigures();
 	
 	
 	map<string,string> mapArgv;
@@ -82,6 +85,14 @@ int main(int argc, char* argv[]) {
 	SEMO_Mesh_Load load;
 	load.OpenFoam(mesh, "./grid/");
 	
+	// bool boolGeo = true;
+	// if(boolGeo){
+		// SEMO_Utility_Math math;
+		// SEMO_Mesh_Geometric geometric;
+		// geometric.init(mesh);
+	// }
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	
 	
 	SEMO_Mesh_Save save;
 
@@ -121,8 +132,14 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	
+	cout.precision(20);
 	for(int ip=0; ip<nBlocks; ++ip){
+
+		SEMO_Utility_Math math;
+		SEMO_Mesh_Geometric geometric;
+		geometric.init(newMesh[ip]);
+		
+		
 		save.vtu("./grid/0/", ip, newMesh[ip]);
 	}
 

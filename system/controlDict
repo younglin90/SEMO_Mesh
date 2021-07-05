@@ -16,7 +16,9 @@ saveFormat = ascii
 saveCompression = off
  
 timeFormat = general
- 
+
+writePrecision = 5
+
 adjustTimeStep = no
 
 maxCo = 1

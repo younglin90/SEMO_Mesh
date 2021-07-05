@@ -3,7 +3,7 @@
 #include <array>
 
 
-
+#include "../turbulenceModels/LES.h"
 
 
 void SEMO_Solvers_Builder::calcCellTransport(
@@ -34,7 +34,64 @@ void SEMO_Solvers_Builder::calcCellTransport(
 		
 	}
 	
+	//========================
+	// turbulence models
+	if(controls.turbType == "LES"){
+			
+		SEMO_TurbModel_LES LES;
+		if(controls.turbLESModel == "WALE"){
+			LES.calcWALE(mesh, controls, species);
+		}
+		else if(controls.turbLESModel == "smagorinsky"){
+			LES.calcSmagorinsky(mesh, controls, species);
+		}
+		else if(controls.turbLESModel == "dynamicSmagorinsky"){
+			LES.calcDynamicSmagorinsky(mesh, controls, species);
+		}
+		else{
+			cerr << "| #Error : not defined LES model" << endl;
+			MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+			
+		}
+		
+	}
+	else if(controls.turbType == "RANS"){
+			
+		cerr << "| #Error : not yet defined RANS model" << endl;
+		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		
+	}
+	else if(
+	controls.turbType == "laminar" ||
+	controls.turbType == "none"
+	){
 	
+		for(int i=0; i<mesh.cells.size(); ++i){
+			auto& cell = mesh.cells[i];
+			cell.var[controls.muT] = 0.0;
+			cell.var[controls.kSGS] = 0.0;
+		}
+	}
+	else{
+		cerr << "| #Error : not defined turb type" << endl;
+		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		
+	}
+	//========================
+		
+	
+	for(int i=0; i<mesh.cells.size(); ++i){
+		auto& cell = mesh.cells[i];
+		
+		cell.var[controls.mu] += cell.var[controls.muT];
+		// cell.var[controls.muEffective] = cell.var[controls.mu] + cell.var[controls.muT];
+		
+		// cell.var[controls.kappaEffective] = 
+			// cell.var[controls.kappa] + cell.var[controls.cp] * cell.var[controls.muT] / controls.PrT;
+		
+		// cell.var[controls.DEffective] = 
+			// cell.var[controls.D] + cell.var[controls.muT] / (cell.var[controls.Rho] * controls.ScT);
+	}
 	
 	
 }

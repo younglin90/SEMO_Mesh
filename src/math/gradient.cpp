@@ -401,6 +401,15 @@ void SEMO_Utility_Math::calcLeastSquare(
 void SEMO_Utility_Math::initLeastSquare2nd(
 	SEMO_Mesh_Builder& mesh) {
 		
+		
+	
+	// double weight = 0.5;
+	// double weight = 3.0;
+	double weight = 1.5;
+	// double weight = 0.1;
+	
+	
+		
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 	
@@ -420,10 +429,9 @@ void SEMO_Utility_Math::initLeastSquare2nd(
 			double distZ = cellSten.z - cell.z;
 			
 			// double wk = 1.0;
-			double wk = 1.0 / sqrt(
-				pow(distX,2.0)+
-				pow(distY,2.0)+
-				pow(distZ,2.0));
+			double wk = 1.0 / (
+				pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+			wk = pow(wk,weight);
 			
 			vsum[i][0] += wk * distX*distX;
 			vsum[i][1] += wk * distX*distY;
@@ -453,10 +461,9 @@ void SEMO_Utility_Math::initLeastSquare2nd(
 				double distZ = face.z - cell.z;
 				
 				// double wk = 1.0;
-				double wk = 1.0 / sqrt(
-					pow(distX,2.0)+
-					pow(distY,2.0)+
-					pow(distZ,2.0));
+				double wk = 1.0 / (
+					pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+				wk = pow(wk,weight);
 				
 				vsum[face.owner][0] += wk * distX*distX;
 				vsum[face.owner][1] += wk * distX*distY;
@@ -485,11 +492,12 @@ void SEMO_Utility_Math::initLeastSquare2nd(
 					
 					// auto& point = mesh.points[j]; 
 					
-					// double wk = 1.0;
-					// // double wk = 1.0 / sqrt(
-						// // pow(face.distCells[0],2.0)+
-						// // pow(face.distCells[1],2.0)+
-						// // pow(face.distCells[2],2.0));
+					// // double wk = 1.0;
+					// double wk = 1.0 / (
+						// pow(face.distCells[0],2.0)+
+						// pow(face.distCells[1],2.0)+
+						// pow(face.distCells[2],2.0));
+					// wk = pow(wk,weight);
 						
 					// double distX = point.x - cell.x;
 					// double distY = point.y - cell.y;
@@ -516,11 +524,13 @@ void SEMO_Utility_Math::initLeastSquare2nd(
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
 				// double wk = 1.0;
-				double wk = 1.0 / sqrt(
+				double wk = 1.0 / (
 					pow(face.distCells[0],2.0)+
 					pow(face.distCells[1],2.0)+
 					pow(face.distCells[2],2.0));
+				wk = pow(wk,weight);
 				
 				vsum[face.owner][0] += wk * face.distCells[0]*face.distCells[0];
 				vsum[face.owner][1] += wk * face.distCells[0]*face.distCells[1];
@@ -578,6 +588,13 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 	vector<vector<double>>& gradient
 	) {
 	
+	
+	// double weight = 0.5;
+	// double weight = 3.0;
+	double weight = 1.5;
+	// double weight = 0.1;
+	
+	
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 	
@@ -596,10 +613,9 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 			double distZ = cellSten.z - cell.z;
 			
 			// double wk = 1.0;
-			double wk = 1.0 / sqrt(
-				pow(distX,2.0)+
-				pow(distY,2.0)+
-				pow(distZ,2.0));
+			double wk = 1.0 / (
+				pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+			wk = pow(wk,weight);
 				
 			double DVar = cellSten.var[cn] - cell.var[cn];
 			
@@ -630,10 +646,11 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 				double distZ = face.z - cell.z;
 				
 				// double wk = 1.0;
-				double wk = 1.0 / sqrt(
+				double wk = 1.0 / (
 					pow(distX,2.0)+
 					pow(distY,2.0)+
 					pow(distZ,2.0));
+				wk = pow(wk,weight);
 					
 				gradient[face.owner][0] += wk * distX * DVar;
 				gradient[face.owner][1] += wk * distY * DVar;
@@ -660,16 +677,17 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 				// for(auto j : face.points){
 					
 					// auto& point = mesh.points[j]; 
-					
-					// double wk = 1.0;
-					// // double wk = 1.0 / sqrt(
-						// // pow(face.distCells[0],2.0)+
-						// // pow(face.distCells[1],2.0)+
-						// // pow(face.distCells[2],2.0));
 						
 					// double distX = point.x - cell.x;
 					// double distY = point.y - cell.y;
 					// double distZ = point.z - cell.z;
+					
+					// // double wk = 1.0;
+					// double wk = 1.0 / (
+						// pow(distX,2.0)+
+						// pow(distY,2.0)+
+						// pow(distZ,2.0));
+					// wk = pow(wk,weight);
 					
 					
 					// gradient[face.owner][0] += wk * distX * DVar;
@@ -689,11 +707,13 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
 				// double wk = 1.0;
-				double wk = 1.0 / sqrt(
+				double wk = 1.0 / (
 					pow(face.distCells[0],2.0)+
 					pow(face.distCells[1],2.0)+
 					pow(face.distCells[2],2.0));
+				wk = pow(wk,weight);
 				
 				double DVar = face.varR[fn] - mesh.cells[face.owner].var[cn];
 				
@@ -741,6 +761,15 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 	vector<vector<double>>& gradient
 	) {
 	
+	
+	// double weight = 0.5;
+	// double weight = 3.0;
+	double weight = 1.5;
+	// double weight = 0.1;
+	
+	
+	
+	
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 	
@@ -759,10 +788,11 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 			double distZ = cellSten.z - cell.z;
 			
 			// double wk = 1.0;
-			double wk = 1.0 / sqrt(
+			double wk = 1.0 / (
 				pow(distX,2.0)+
 				pow(distY,2.0)+
 				pow(distZ,2.0));
+			wk = pow(wk,weight);
 				
 			double DVar = phi[j] - phi[i];
 			
@@ -797,10 +827,11 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 				
 				
 				// double wk = 1.0;
-				double wk = 1.0 / sqrt(
+				double wk = 1.0 / (
 					pow(distX,2.0)+
 					pow(distY,2.0)+
 					pow(distZ,2.0));
+				wk = pow(wk,weight);
 				
 				gradient[face.owner][0] += wk * distX * DVar;
 				gradient[face.owner][1] += wk * distY * DVar;
@@ -819,64 +850,36 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 			// int str = boundary.startFace;
 			// int end = str + boundary.nFaces;
 			
-			// if(boundary.type[cn] == "fixedValue"){
-				// for(int i=str; i<end; ++i){
-					// auto& face = mesh.faces[i];
-					// auto& cell = mesh.cells[face.owner];
-					
-					// double DVar = 0.0 - phi[face.owner];
-					
-					// for(auto j : face.points){
-						
-						// auto& point = mesh.points[j]; 
-						
-						// double wk = 1.0;
-						// // double wk = 1.0 / sqrt(
-							// // pow(face.distCells[0],2.0)+
-							// // pow(face.distCells[1],2.0)+
-							// // pow(face.distCells[2],2.0));
-							
-						// double distX = point.x - cell.x;
-						// double distY = point.y - cell.y;
-						// double distZ = point.z - cell.z;
-						
-						
-						// gradient[face.owner][0] += wk * distX * DVar;
-						// gradient[face.owner][1] += wk * distY * DVar;
-						// gradient[face.owner][2] += wk * distZ * DVar;
-						
-					// }
+			// for(int i=str; i<end; ++i){
+				// auto& face = mesh.faces[i];
+				// auto& cell = mesh.cells[face.owner];
+				
+				// double DVar = 0.0;
+				// if(boundary.type[cn] == "fixedValue"){
+					// DVar = 0.0 - phi[face.owner];
 				// }
-			// }
-			// else{
-				// for(int i=str; i<end; ++i){
-					// auto& face = mesh.faces[i];
-					// auto& cell = mesh.cells[face.owner];
+				
+				// for(auto j : face.points){
 					
-					// double DVar = 0.0;
+					// auto& point = mesh.points[j]; 
+						
+					// double distX = point.x - cell.x;
+					// double distY = point.y - cell.y;
+					// double distZ = point.z - cell.z;
 					
-					// for(auto j : face.points){
-						
-						// auto& point = mesh.points[j]; 
-						
-						// double wk = 1.0;
-						// // double wk = 1.0 / sqrt(
-							// // pow(face.distCells[0],2.0)+
-							// // pow(face.distCells[1],2.0)+
-							// // pow(face.distCells[2],2.0));
-							
-						// double distX = point.x - cell.x;
-						// double distY = point.y - cell.y;
-						// double distZ = point.z - cell.z;
-						
-						
-						// gradient[face.owner][0] += wk * distX * DVar;
-						// gradient[face.owner][1] += wk * distY * DVar;
-						// gradient[face.owner][2] += wk * distZ * DVar;
-						
-					// }
+					// // double wk = 1.0;
+					// double wk = 1.0 / (
+						// pow(distX,2.0)+
+						// pow(distY,2.0)+
+						// pow(distZ,2.0));
+					// wk = pow(wk,weight);
+					
+					
+					// gradient[face.owner][0] += wk * distX * DVar;
+					// gradient[face.owner][1] += wk * distY * DVar;
+					// gradient[face.owner][2] += wk * distZ * DVar;
+					
 				// }
-	
 			// }
 			
 		// }
@@ -906,11 +909,13 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
 				// double wk = 1.0;
-				double wk = 1.0 / sqrt(
+				double wk = 1.0 / (
 					pow(face.distCells[0],2.0)+
 					pow(face.distCells[1],2.0)+
 					pow(face.distCells[2],2.0));
+				wk = pow(wk,weight);
 				
 				double DVar = phi_recv[proc_num] - phi[face.owner];
 				
@@ -988,11 +993,112 @@ void SEMO_Utility_Math::calcGaussGreen(
 			
 		}
 	}
+	
+}
 
 
 
-
-
+void SEMO_Utility_Math::calcGaussGreen(
+	SEMO_Mesh_Builder& mesh,
+	int cn,
+	vector<double> phi,
+	vector<vector<double>>& gradient
+	) {
+	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
+	
+	gradient.clear();
+	gradient.resize(mesh.cells.size(),vector<double>(3,0.0));
+	
+	// internal faces
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			
+			double varF = 
+				face.wC*phi[face.owner]+(1.0-face.wC)*phi[face.neighbour];
+			
+			for(int j=0; j<3; ++j){
+				gradient[face.owner][j] += 
+					varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
+				gradient[face.neighbour][j] -= 
+					varF*face.unitNormals[j]*face.area/mesh.cells[face.neighbour].volume;
+			}
+		}
+	}
+	
+	
+	
+	// boundary face's nodes
+	for(auto& boundary : mesh.boundary){
+		
+		if(boundary.neighbProcNo == -1){
+			
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			
+			for(int i=str; i<end; ++i){
+				auto& face = mesh.faces[i];
+				auto& cell = mesh.cells[face.owner];
+				
+				double varF = phi[face.owner];
+				if(boundary.type[cn] == "fixedValue"){
+					varF = 0.5*varF;
+				}
+				
+				for(int j=0; j<3; ++j){
+					gradient[face.owner][j] += 
+						varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
+				}
+					
+			}
+			
+		}
+	}
+	
+	
+	// processor faces
+	if(size>1){
+		vector<double> phi_send, phi_recv;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				phi_send.push_back(phi[face.owner]);
+			}
+		}
+		
+		SEMO_MPI_Builder mpi;
+		
+		mpi.setProcsFaceDatasDouble(
+					phi_send, phi_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+					
+		int proc_num=0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				double varF = 
+					face.wC*phi[face.owner]+(1.0-face.wC)*phi_recv[proc_num];
+				
+				for(int j=0; j<3; ++j){
+					gradient[face.owner][j] += 
+						varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
+				}
+				
+				
+				++proc_num;
+			}
+		}
+	}
+	
+	
+	
+	
 	
 }
 
@@ -1509,25 +1615,49 @@ void SEMO_Utility_Math::calcLimiterGradient(
 	vector<double>& limGrad
 	) {
 	
-	vector<double> maxPhi(mesh.cells.size(),-1.e100);
-	vector<double> minPhi(mesh.cells.size(),+1.e100);
+	// vector<double> maxPhi(mesh.cells.size(),-1.e100);
+	// vector<double> minPhi(mesh.cells.size(),+1.e100);
 	
 	
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// auto& face = mesh.faces[i];
+		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			// double ownngbMax = max(mesh.cells[face.owner].var[cn],
+                                   // mesh.cells[face.neighbour].var[cn]);
+			// double ownngbMin = min(mesh.cells[face.owner].var[cn],
+                                   // mesh.cells[face.neighbour].var[cn]);
+			
+			// maxPhi[face.owner] = max(maxPhi[face.owner],ownngbMax);
+			// minPhi[face.owner] = min(minPhi[face.owner],ownngbMin);
+			
+			// maxPhi[face.neighbour] = max(maxPhi[face.neighbour],ownngbMax);
+			// minPhi[face.neighbour] = min(minPhi[face.neighbour],ownngbMin);
+			
+		// }
+		// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			// maxPhi[face.owner] = max(maxPhi[face.owner],face.varR[fn]);
+			// minPhi[face.owner] = min(minPhi[face.owner],face.varR[fn]);
+		// }
+	// }
+	
+	vector<double> maxPhi;
+	vector<double> minPhi;
+	for(auto& cell : mesh.cells){
+		maxPhi.push_back(cell.var[cn]);
+		minPhi.push_back(cell.var[cn]);
+	}
+	// internal cells
+	for(int i=0; i<mesh.cells.size(); ++i){
+		auto& cell = mesh.cells[i];
+		for(auto j : cell.stencil){
+			auto& cellSten = mesh.cells[j];
+			maxPhi[i] = max(maxPhi[i],cellSten.var[cn]);
+			minPhi[i] = min(minPhi[i],cellSten.var[cn]);
+		}
+	}
+	// PROCESSOR FACE
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
-		if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			double ownngbMax = max(mesh.cells[face.owner].var[cn],
-                                   mesh.cells[face.neighbour].var[cn]);
-			double ownngbMin = min(mesh.cells[face.owner].var[cn],
-                                   mesh.cells[face.neighbour].var[cn]);
-			
-			maxPhi[face.owner] = max(maxPhi[face.owner],ownngbMax);
-			minPhi[face.owner] = min(minPhi[face.owner],ownngbMin);
-			
-			maxPhi[face.neighbour] = max(maxPhi[face.neighbour],ownngbMax);
-			minPhi[face.neighbour] = min(minPhi[face.neighbour],ownngbMin);
-			
-		}
 		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 			maxPhi[face.owner] = max(maxPhi[face.owner],face.varR[fn]);
 			minPhi[face.owner] = min(minPhi[face.owner],face.varR[fn]);
@@ -1538,36 +1668,37 @@ void SEMO_Utility_Math::calcLimiterGradient(
 	limGrad.resize(mesh.cells.size(),1.0);
 	for(auto& face : mesh.faces){
 		
+		int own = face.owner;
+		int ngb = face.neighbour;
+		
+		double delPF = 
+			(face.x - mesh.cells[own].x)*gradient[own][0]+
+			(face.y - mesh.cells[own].y)*gradient[own][1]+
+			(face.z - mesh.cells[own].z)*gradient[own][2];
+		
+		double rPF;
+		if( delPF > 0.0 ){
+			double maxDelP = maxPhi[own] - mesh.cells[own].var[cn];
+			rPF = delPF/(maxDelP+1.e-200);
+		}
+		else{
+			double minDelP = minPhi[own] - mesh.cells[own].var[cn];
+			rPF = delPF/(minDelP+1.e-200);
+		}
+		
+		// // venka
+		// double alphaPF = (2.0*rPF+1.0)/(rPF*(2.0*rPF+1.0)+1.0);
+		
+		// min-mod
+		// double alphaPF = min(1.0,1.0/(abs(rPF)+1.e-200));
+		
+		// m-venka
+		double alphaPF = (rPF*(2.0*rPF+1.0)+1.0)/(rPF*(rPF*(2.0*rPF+1.0)+1.0)+1.0);
+		
+		limGrad[own] = min(limGrad[own],alphaPF);
+			
+		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			int own = face.owner;
-			int ngb = face.neighbour;
-			
-			double delPF = 
-				(face.x - mesh.cells[own].x)*gradient[own][0]+
-				(face.y - mesh.cells[own].y)*gradient[own][1]+
-				(face.z - mesh.cells[own].z)*gradient[own][2];
-			
-			double rPF;
-			if( delPF > 0.0 ){
-				double maxDelP = maxPhi[own] - mesh.cells[own].var[cn];
-				rPF = delPF/(maxDelP+1.e-200);
-			}
-			else{
-				double minDelP = minPhi[own] - mesh.cells[own].var[cn];
-				rPF = delPF/(minDelP+1.e-200);
-			}
-			
-			// // venka
-			// double alphaPF = (2.0*rPF+1.0)/(rPF*(2.0*rPF+1.0)+1.0);
-			
-			// min-mod
-			double alphaPF = min(1.0,1.0/(abs(rPF)+1.e-200));
-			
-			// m-venka
-			// double alphaPF = (rPF*(2.0*rPF+1.0)+1.0)/(rPF*(rPF*(2.0*rPF+1.0)+1.0)+1.0);
-			
-			limGrad[own] = min(limGrad[own],alphaPF);
-			
 			
 			double delNF = 
 				(face.x - mesh.cells[ngb].x)*gradient[ngb][0]+
@@ -1588,42 +1719,12 @@ void SEMO_Utility_Math::calcLimiterGradient(
 			// double alphaNF = (2.0*rNF+1.0)/(rNF*(2.0*rNF+1.0)+1.0);
 			
 			// min-mod
-			double alphaNF = min(1.0,1.0/(abs(rNF)+1.e-200));
+			// double alphaNF = min(1.0,1.0/(abs(rNF)+1.e-200));
 			
 			// m-venka
-			// double alphaNF = (rNF*(2.0*rNF+1.0)+1.0)/(rNF*(rNF*(2.0*rNF+1.0)+1.0)+1.0);
+			double alphaNF = (rNF*(2.0*rNF+1.0)+1.0)/(rNF*(rNF*(2.0*rNF+1.0)+1.0)+1.0);
 			
 			limGrad[ngb] = min(limGrad[ngb],alphaNF);
-			
-		}
-		else{
-			int own = face.owner;
-			
-			double delPF = 
-				(face.x - mesh.cells[own].x)*gradient[own][0]+
-				(face.y - mesh.cells[own].y)*gradient[own][1]+
-				(face.z - mesh.cells[own].z)*gradient[own][2];
-			
-			double rPF;
-			if( delPF > 0.0 ){
-				double maxDelP = maxPhi[own] - mesh.cells[own].var[cn];
-				rPF = delPF/(maxDelP+1.e-200);
-			}
-			else{
-				double minDelP = minPhi[own] - mesh.cells[own].var[cn];
-				rPF = delPF/(minDelP+1.e-200);
-			}
-			
-			// // venka
-			// double alphaPF = (2.0*rPF+1.0)/(rPF*(2.0*rPF+1.0)+1.0);
-			
-			// min-mod
-			double alphaPF = min(1.0,1.0/(abs(rPF)+1.e-200));
-			
-			// m-venka
-			// double alphaPF = (rPF*(2.0*rPF+1.0)+1.0)/(rPF*(rPF*(2.0*rPF+1.0)+1.0)+1.0);
-			
-			limGrad[own] = min(limGrad[own],alphaPF);
 			
 		}
 		
@@ -1651,6 +1752,8 @@ void SEMO_Utility_Math::calcGradientFace(
 	int inX, int inY, int inZ
 	) {
 	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
 
 	// processor faces
 	vector<double> gradientX_send;
@@ -1666,26 +1769,28 @@ void SEMO_Utility_Math::calcGradientFace(
 		}
 	}
 	
-	SEMO_MPI_Builder mpi;
-	
 	vector<double> gradientX_recv;
 	vector<double> gradientY_recv;
 	vector<double> gradientZ_recv;
-	mpi.setProcsFaceDatasDouble(
-				gradientX_send, gradientX_recv,
-				mesh.countsProcFaces, mesh.countsProcFaces, 
-				mesh.displsProcFaces, mesh.displsProcFaces);
-	mpi.setProcsFaceDatasDouble(
-				gradientY_send, gradientY_recv,
-				mesh.countsProcFaces, mesh.countsProcFaces, 
-				mesh.displsProcFaces, mesh.displsProcFaces);
-	mpi.setProcsFaceDatasDouble(
-				gradientZ_send, gradientZ_recv,
-				mesh.countsProcFaces, mesh.countsProcFaces, 
-				mesh.displsProcFaces, mesh.displsProcFaces);
-	gradientX_send.clear();
-	gradientY_send.clear();
-	gradientZ_send.clear();
+	if(size>1){
+		SEMO_MPI_Builder mpi;
+		
+		mpi.setProcsFaceDatasDouble(
+					gradientX_send, gradientX_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					gradientY_send, gradientY_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatasDouble(
+					gradientZ_send, gradientZ_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		gradientX_send.clear();
+		gradientY_send.clear();
+		gradientZ_send.clear();
+	}
 	
 	
 	
@@ -1697,50 +1802,96 @@ void SEMO_Utility_Math::calcGradientFace(
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
 		
+		vector<double> nvec;
+		nvec.push_back(face.unitNormals[0]);
+		nvec.push_back(face.unitNormals[1]);
+		nvec.push_back(face.unitNormals[2]);
+		
+		vector<double> distanceCells;
+		distanceCells.push_back(face.distCells[0]);
+		distanceCells.push_back(face.distCells[1]);
+		distanceCells.push_back(face.distCells[2]);
+		
+		double dPN_e = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
+
+		double dampCoeff = 4.0/3.0;
 		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
-			face.var[inX] = 0.5*(gradient[face.owner][0]+gradient[face.owner][0]);
-			face.var[inY] = 0.5*(gradient[face.owner][1]+gradient[face.owner][1]);
-			face.var[inZ] = 0.5*(gradient[face.owner][2]+gradient[face.owner][2]);
+			// face.var[inX] = 0.5*(gradient[face.owner][0]+gradient[face.neighbour][0]);
+			// face.var[inY] = 0.5*(gradient[face.owner][1]+gradient[face.neighbour][1]);
+			// face.var[inZ] = 0.5*(gradient[face.owner][2]+gradient[face.neighbour][2]);
 			
-			// phiL = phi_c + dot_product( Phidx_c(:), riF(i,:) )
-			// phiR = phi_f + dot_product( Phidx_f(:), rjF(i,:) )
-			// dampCoeff = 4.d0/3.d0
-			// ag_phif(:) = ( Phidx_c(:) + Phidx_f(:) ) * 0.5d0 + dampCoeff*(phiR-phiL)/df*nvec(:)
+			double phiL = mesh.cells[face.owner].var[cn];
+			phiL += gradient[face.owner][0]*(face.x-mesh.cells[face.owner].x);
+			phiL += gradient[face.owner][1]*(face.y-mesh.cells[face.owner].y);
+			phiL += gradient[face.owner][2]*(face.z-mesh.cells[face.owner].z);
+			
+			double phiR = mesh.cells[face.neighbour].var[cn];
+			phiR += gradient[face.neighbour][0]*(face.x-mesh.cells[face.neighbour].x);
+			phiR += gradient[face.neighbour][1]*(face.y-mesh.cells[face.neighbour].y);
+			phiR += gradient[face.neighbour][2]*(face.z-mesh.cells[face.neighbour].z);
+			
+			face.var[inX] = 0.5*( gradient[face.owner][0] + gradient[face.neighbour][0] );
+			face.var[inX] += dampCoeff*(phiR-phiL)/dPN_e*nvec[0];
+			
+			face.var[inY] = 0.5*( gradient[face.owner][1] + gradient[face.neighbour][1] );
+			face.var[inY] += dampCoeff*(phiR-phiL)/dPN_e*nvec[1];
+			
+			face.var[inZ] = 0.5*( gradient[face.owner][2] + gradient[face.neighbour][2] );
+			face.var[inZ] += dampCoeff*(phiR-phiL)/dPN_e*nvec[1];
 			
 		}
 		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 			
-			face.var[inX] = 0.5*(gradient[face.owner][0]+gradientX_recv[proc_num]);
-			face.var[inY] = 0.5*(gradient[face.owner][1]+gradientY_recv[proc_num]);
-			face.var[inZ] = 0.5*(gradient[face.owner][2]+gradientZ_recv[proc_num]);
+			// face.var[inX] = 0.5*(gradient[face.owner][0]+gradientX_recv[proc_num]);
+			// face.var[inY] = 0.5*(gradient[face.owner][1]+gradientY_recv[proc_num]);
+			// face.var[inZ] = 0.5*(gradient[face.owner][2]+gradientZ_recv[proc_num]);
+			
+			double phiL = mesh.cells[face.owner].var[cn];
+			phiL += gradient[face.owner][0]*(face.x-mesh.cells[face.owner].x);
+			phiL += gradient[face.owner][1]*(face.y-mesh.cells[face.owner].y);
+			phiL += gradient[face.owner][2]*(face.z-mesh.cells[face.owner].z);
+			
+			double phiR = face.varR[fn];
+			phiR += gradientX_recv[proc_num]*(face.x-mesh.cells[face.owner].x)*face.wC/(1.0-face.wC);
+			phiR += gradientY_recv[proc_num]*(face.y-mesh.cells[face.owner].y)*face.wC/(1.0-face.wC);
+			phiR += gradientZ_recv[proc_num]*(face.z-mesh.cells[face.owner].z)*face.wC/(1.0-face.wC);
+			
+			face.var[inX] = 0.5*( gradient[face.owner][0] + gradientX_recv[proc_num] );
+			face.var[inX] += dampCoeff*(phiR-phiL)/dPN_e*nvec[0];
+			
+			face.var[inY] = 0.5*( gradient[face.owner][1] + gradientY_recv[proc_num] );
+			face.var[inY] += dampCoeff*(phiR-phiL)/dPN_e*nvec[1];
+			
+			face.var[inZ] = 0.5*( gradient[face.owner][2] + gradientZ_recv[proc_num] );
+			face.var[inZ] += dampCoeff*(phiR-phiL)/dPN_e*nvec[1];
 			
 			++proc_num;
 			
 		}
 		else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
 			
-			// face.var[inX] = gradient[face.owner][0];
-			// face.var[inY] = gradient[face.owner][1];
-			// face.var[inZ] = gradient[face.owner][2];
+			face.var[inX] = gradient[face.owner][0];
+			face.var[inY] = gradient[face.owner][1];
+			face.var[inZ] = gradient[face.owner][2];
 			
-			vector<double> nvec(3,0.0);
-			nvec[0] = face.unitNormals[0];
-			nvec[1] = face.unitNormals[1];
-			nvec[2] = face.unitNormals[2];
+			// vector<double> nvec(3,0.0);
+			// nvec[0] = face.unitNormals[0];
+			// nvec[1] = face.unitNormals[1];
+			// nvec[2] = face.unitNormals[2];
 		
-			vector<double> distanceCells(3,0.0);
-			distanceCells[0] = face.distCells[0];
-			distanceCells[1] = face.distCells[1];
-			distanceCells[2] = face.distCells[2];
-			double dPN = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
+			// vector<double> distanceCells(3,0.0);
+			// distanceCells[0] = face.distCells[0];
+			// distanceCells[1] = face.distCells[1];
+			// distanceCells[2] = face.distCells[2];
+			// double dPN = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
 			
-			double varL = face.varL[fn];
-			double varR = face.varR[fn];
-			face.var[inX] = (varR-varL)/dPN*nvec[0];
-			face.var[inY] = (varR-varL)/dPN*nvec[1];
-			face.var[inZ] = (varR-varL)/dPN*nvec[2];
+			// double varL = face.varL[fn];
+			// double varR = face.varR[fn];
+			// face.var[inX] = (varR-varL)/dPN_e*nvec[0];
+			// face.var[inY] = (varR-varL)/dPN_e*nvec[1];
+			// face.var[inZ] = (varR-varL)/dPN_e*nvec[2];
 			
 			
 		}

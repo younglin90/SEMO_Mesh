@@ -1,20 +1,13 @@
 
-simulationType = none
+simulationType = LES
 
 LES
 {
-	LESModel = kEqn
-	turbulence = on
-	printCoeffs = on
-	delta = smooth
-
+	LESModel = smagorinsky
 }
 
 
 RANS
 {
 	RANSModel = kEpsilon
-	turbulence = on
-	printCoeffs = on
-
 }

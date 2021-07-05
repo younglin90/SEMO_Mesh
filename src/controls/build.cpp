@@ -1,6 +1,7 @@
 #include "build.h"
 #include <cmath>
 #include <array>
+#include <time.h>
 
 
 void SEMO_Controls_Builder::readSpecies(vector<SEMO_Species>& species){
@@ -96,6 +97,26 @@ void SEMO_Controls_Builder::readConfigures(){
 	
 	this->turbType = turbulenceProperties["simulationType"];
 	
+	if(this->turbType == "LES"){
+		map<string,string> turbulenceProperties_LES;
+		read.file("./constant/turbulenceProperties", "LES", turbulenceProperties_LES);
+		this->turbLESModel = turbulenceProperties_LES["LESModel"];
+	}
+	else if(this->turbType == "RANS"){
+		map<string,string> turbulenceProperties_RANS;
+		read.file("./constant/turbulenceProperties", "RANS", turbulenceProperties_RANS);
+		this->turbRANSModel = turbulenceProperties_RANS["RANSModel"];
+	}
+	else if(this->turbType == "DES"){
+		map<string,string> turbulenceProperties_LES;
+		read.file("./constant/turbulenceProperties", "LES", turbulenceProperties_LES);
+		map<string,string> turbulenceProperties_RANS;
+		read.file("./constant/turbulenceProperties", "RANS", turbulenceProperties_RANS);
+		this->turbLESModel = turbulenceProperties_LES["LESModel"];
+		this->turbRANSModel = turbulenceProperties_RANS["RANSModel"];
+	}
+	
+	
 	
 	// controlDict
 	map<string,string> controlDict;
@@ -115,6 +136,7 @@ void SEMO_Controls_Builder::readConfigures(){
 	this->maxCo = stod(controlDict["maxCo"]);
 	this->maxVfCo = stod(controlDict["maxVfCo"]);
 	this->maxTimeStep = stod(controlDict["maxTimeStep"]);
+	this->writePrecision = stoi(controlDict["writePrecision"]);
 
 
 	// gravity acceleration
@@ -155,7 +177,11 @@ void SEMO_Controls_Builder::readConfigures(){
 
 	this->fluxScheme = fvSchemes_fluxScheme["default"];
 	
+	this->gradScheme = fvSchemes_gradSchemes["default"];
 	
+	this->divScheme = fvSchemes_divSchemes["default"];
+	
+	// cout << this->fluxScheme << this->divScheme << " " << this->gradScheme << " " << endl;
 	
 	
 	
@@ -298,6 +324,8 @@ void SEMO_Controls_Builder::readConfigures(){
 	// cout << fvSolution_dualTime["nPseudo"] << " " << fvSolution_dualTime["pseudoCo"] << endl;
 	this->pseudoCo = stod(fvSolution_dualTime["pseudoCo"]);
 	
+	this->Uco = stod(fvSolution_dualTime["Uco"]);
+	this->Lch = stod(fvSolution_dualTime["Lch"]);
 
 	// relaxationFactors
 	this->momVelURF = stod(fvSolution_relaxationFactors_momentumEq_U["default"]);
@@ -460,6 +488,9 @@ void SEMO_Controls_Builder::readConfigures(){
 	this->iterRealMax = std::numeric_limits<int>::max();
 	this->iterReal = 0;
 	
+	this->iterTotal = 0;
+	this->startClock = clock();
+	
 	
 	// this->iterPseudoMax = 15;
 
@@ -616,6 +647,41 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->mu = this->nTotalCellVar++;
 	this->name.push_back("viscosity");
 	
+	this->muT = this->nTotalCellVar++;
+	this->name.push_back("turbulence-viscosity");
+	
+	this->muEffective = this->nTotalCellVar++;
+	this->name.push_back("effective-viscosity");
+	
+	this->kappa = this->nTotalCellVar++;
+	this->name.push_back("thermal-conductivity");
+	
+	this->kappaEffective = this->nTotalCellVar++;
+	this->name.push_back("conductivity");
+	
+	this->D = this->nTotalCellVar++;
+	this->name.push_back("mass-diffusivity");
+	
+	this->DEffective = this->nTotalCellVar++;
+	this->name.push_back("effective-mass-diffusivity");
+	
+	this->kSGS = this->nTotalCellVar++;
+	this->name.push_back("subgrid-tubulent-kinetic-energy");
+	
+	this->cv = this->nTotalCellVar++;
+	this->name.push_back("constant-vloume-heat-capacity");
+	
+	this->cp = this->nTotalCellVar++;
+	this->name.push_back("constant-pressure-heat-capacity");
+	
+	// this->RCM = this->nTotalCellVar++;
+	// this->name.push_back("RCM");
+	
+	// this->invRCM = this->nTotalCellVar++;
+	// this->name.push_back("invRCM");
+	
+	
+	
 	this->UDV.push_back(this->nTotalCellVar++);
 	this->name.push_back("UDV0");
 	this->UDV.push_back(this->nTotalCellVar++);
@@ -684,5 +750,9 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 
 
 	this->time = 0.0;
+	
+	this->PrT = 0.85;
+	
+	this->ScT = 0.35;
 	
 }

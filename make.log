@@ -1,450 +1,273 @@
-[1;31m Compiling[0m[1m src/main.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/build.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/load.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/save.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/geometric.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/partition.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/distribute.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/hexaOctAMR.cpp [0m
-[1;31m Compiling[0m[1m src/math/math.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/transport.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/viscousFlux.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/saveGnuplot.cpp [0m
-[1;31m Compiling[0m[1m src/mpi/build.cpp [0m
-[1;31m Compiling[0m[1m src/controls/build.cpp [0m
-[1;31m Compiling[0m[1m src/variables/build.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/build.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/pressureBased.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/densityBased.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/reconComp.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/solvePETSc.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/solveHYPRE.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/timestep.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/RHS.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/flux.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/source.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eos.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/norm.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/NVD.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/hybridBased.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/curvature.cpp [0m
-[1;31m Compiling[0m[1m src/utility/read.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/compressible/densityBasedSingle.cpp [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/compressible/densityBasedDual.cpp [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/incompressible/pressureBased.cpp [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/compressible/hybridBased.cpp [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/utility/partition.cpp [0m
-[1;31m PARTITION CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/utility/initial.cpp [0m
-[1;31m INITIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/utility/potential.cpp [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/incompressible/pressureBased.cpp [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/mesh/geometric.cpp [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m PARTITION CODE compile/link complete [0m
-[1;31m INITIAL CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/mesh/geometric.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/geometric.cpp [0m
-[1;31m Compiling[0m[1m src/mesh/geometric.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m PARTITION CODE compile/link complete [0m
-[1;31m INITIAL CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/math/gradient.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/incompressible/pressureBased.cpp [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/main/incompressible/pressureBased.cpp [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/solvePETSc.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/solvePETSc.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/solvePETSc.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/solvePETSc.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m POTENTIAL CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
-[1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
-[1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
-[1;31m Main code compile/link complete [0m
-[1;31m Comp_density_single CODE compile/link complete [0m
-[1;31m Comp_density_dual CODE compile/link complete [0m
-[1;31m Incom_pressure CODE compile/link complete [0m
-[1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/main.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/build.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/load.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/save.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/geometric.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/partition.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/distribute.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/hexaOctAMR.cpp [0m
+-e [1;31m Compiling[0m[1m src/math/math.cpp [0m
+-e [1;31m Compiling[0m[1m src/math/gradient.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/transport.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/viscousFlux.cpp [0m
+-e [1;31m Compiling[0m[1m src/mesh/saveGnuplot.cpp [0m
+-e [1;31m Compiling[0m[1m src/mpi/build.cpp [0m
+-e [1;31m Compiling[0m[1m src/controls/build.cpp [0m
+-e [1;31m Compiling[0m[1m src/variables/build.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/build.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/pressureBased.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/densityBased.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/reconIncom.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/reconComp.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/eqMomentum.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/eqPressure.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/eqVolfrac.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/solvePETSc.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/solveHYPRE.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/timestep.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/RHS.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/flux.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/source.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/eos.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/norm.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/NVD.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/hybridBased.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/curvature.cpp [0m
+-e [1;31m Compiling[0m[1m src/utility/read.cpp [0m
+-e [1;31m Compiling[0m[1m src/turbulenceModels/LES.cpp [0m
+-e [1;31m Compiling[0m[1m src/math/RCM.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/main/compressible/densityBasedSingle.cpp [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/main/compressible/densityBasedDual.cpp [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/main/incompressible/pressureBased.cpp [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/main/compressible/hybridBased.cpp [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/utility/partition.cpp [0m
+-e [1;31m PARTITION CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/utility/initial.cpp [0m
+-e [1;31m INITIAL CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/utility/potential.cpp [0m
+-e [1;31m POTENTIAL CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/utility/mapField.cpp [0m
+-e [1;31m MapField CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/linearSolver.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m
+-e [1;31m Compiling[0m[1m src/solvers/RHS.cpp [0m
+-e [1;31m Main code compile/link complete [0m
+-e [1;31m Comp_density_single CODE compile/link complete [0m
+-e [1;31m Comp_density_dual CODE compile/link complete [0m
+-e [1;31m Incom_pressure CODE compile/link complete [0m
+-e [1;31m Comp_hybrid CODE compile/link complete [0m

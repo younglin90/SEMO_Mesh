@@ -49,7 +49,32 @@ class SEMO_Solvers_Builder{
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species);
 			
+		void setCompValuesLeftRightFaceForSegregated(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		void setCompValuesLeftRightFaceWithReconPVForSegregated(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
 		void setCompValuesLeftRightFace(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		void setIncomValuesLeftRightFaceWithReconPV(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		void setCompValuesLeftRightFaceWithRecon(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		void setCompValuesLeftRightFaceForSegregatedWithVfMSTACS(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species);
@@ -76,7 +101,17 @@ class SEMO_Solvers_Builder{
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species);
 			
+		void reconIncomZeroOrder(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
 		void calcOtherDataFromEOS(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		void calcOtherDataFromEOSMF(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species);
@@ -142,20 +177,28 @@ class SEMO_Solvers_Builder{
 		void calcIncomRealTimeStep(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls);
+
+		void calcCorantNumberForPrint(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			double& corantNum);
 			
 		void calcRHS(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species,
 			vector<vector<double>>& residuals);
 			
 		void calcSingleRHS(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species,
 			vector<vector<double>>& residuals);
 			
 		void calcFluxes(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species,
 			vector<vector<double>>& residuals);
 			
 		void calcFluxHAUS(
@@ -164,6 +207,62 @@ class SEMO_Solvers_Builder{
 			double& PR, double& UR, double& VR, double& WR, double& TR, 
 			vector<double>& YR, double& RhoR, double& CR, double& HtR,
 			vector<double>& nvec,
+			vector<double>& flux
+			);
+			
+		void calcFluxRoe(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& RhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& RhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			vector<double>& flux
+			);
+			
+		void calcFluxAPRoe(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& RhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& RhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			vector<double>& flux
+			);
+			
+		void calcFluxRoeAMTP(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& RhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& RhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			vector<double>& flux
+			);
+			
+		void calcFluxUpwind(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& RhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& RhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			vector<double>& flux
+			);
+			
+		void calcFluxAUSMPWP_N(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& rhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& rhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			double& w1 , double& w2 , double& w3 , double& fC, double Uco, double dtstep, double Lch,
+			vector<double>& flux
+			);
+			
+		void calcFluxRoeM_N(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& rhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& rhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			double& w1 , double& w2 , double& w3 , double& fC, double Uco, double dtstep, double Lch,
 			vector<double>& flux
 			);
 			
@@ -179,10 +278,12 @@ class SEMO_Solvers_Builder{
 			
 		double M_func(double M, double op, double alp);
 		double pre_func(double M, double op, double alp);
+		double f_func(double M);
 		
 		void sourceTerms(
 			SEMO_Mesh_Builder& mesh, 
 			SEMO_Controls_Builder& controls, 
+			vector<SEMO_Species>& species,
 			vector<vector<double>>& residuals);
 			
 		void calcLinearSolver(
@@ -243,6 +344,12 @@ class SEMO_Solvers_Builder{
 			double& P, double& U, double& V, double& W, double& T, vector<double>& VF,
 			double& rho, double& C, double& Ht,
 			vector<double>& MF);
+			
+		void getValuesFromEOSMF(
+			vector<SEMO_Species>& species,
+			double& P, double& U, double& V, double& W, double& T, vector<double>& MF,
+			double& rho, double& C, double& Ht,
+			vector<double>& VF);
 			
 		void eosIdeal(
 			SEMO_Species& species,
@@ -356,5 +463,25 @@ class SEMO_Solvers_Builder{
 			SEMO_Mesh_Builder& mesh,
 			int cn,
 			vector<double>& kappa);
+			
+			
+			
+			
+			
+			
+		void calcLinearSolverLUSGS(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<vector<double>>& residuals);
+	
+		void getNumericalFluxJacobianUpwind(
+			SEMO_Cell& cellL, SEMO_Cell& cellR, SEMO_Controls_Builder& controls,
+			vector<double>& nvec,
+			string LorR,
+			vector<vector<double>>& fluxJac
+			);
+			
+			
+			
 };
 

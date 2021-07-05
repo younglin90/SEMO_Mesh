@@ -108,6 +108,8 @@ dualTime
 {
 	nPseudo = 50
 	pseudoCo = 0.1
+	Uco = 0.3
+	Lch = 0.5
 }
 
 relaxationFactorsDualTime

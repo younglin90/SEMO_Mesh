@@ -29,15 +29,15 @@ void SEMO_Solvers_Builder::calcViscousFlux(
 	double WF = gc*WL + (1.0-gc)*WR;
 	
 	// Ref : Blazek's book, pp.20-21
-    double txx = 4.0/3.0 * dUdxF - 2.0/3.0 * (dVdyF + dWdzF);
+    double txx = dUdxF + dUdxF - 2.0/3.0 * (dUdxF + dVdyF + dWdzF);
     double txy = dVdxF + dUdyF;
     double txz = dWdxF + dUdzF;
     double tyx = txy;
-    double tyy = 4.0/3.0 * dVdyF - 2.0/3.0 * (dUdxF + dWdzF);
+    double tyy = dVdyF + dVdyF - 2.0/3.0 * (dUdxF + dVdyF + dWdzF);
     double tyz = dVdzF + dWdyF;
     double tzx = txz;
     double tzy = tyz;
-    double tzz = 4.0/3.0 * dWdzF - 2.0/3.0 * (dUdxF + dVdyF);
+    double tzz = dWdzF + dWdzF - 2.0/3.0 * (dUdxF + dVdyF + dWdzF);
 			
 	// flux.clear();
 	// flux.resize(controls.nEq,0.0);

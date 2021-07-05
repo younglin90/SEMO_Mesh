@@ -65,6 +65,8 @@ SOURCES = src/mesh/build.cpp\
 	      src/solvers/hybridBased.cpp\
 	      src/solvers/curvature.cpp\
 	      src/utility/read.cpp\
+	      src/turbulenceModels/LES.cpp\
+	      src/math/RCM.cpp\
 
 OBJECTS = src/main.o $(SOURCES:.cpp=.o)
 
@@ -136,48 +138,66 @@ SOURCES_POTENTIAL = src/utility/potential.cpp\
 
 OBJECTS_POTENTIAL = $(SOURCES_POTENTIAL:.cpp=.o)
 
+# MapField
+EXE_MapField = MapField
+
+SOURCES_MapField = src/utility/mapField.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/load.cpp\
+                    src/mesh/save.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/controls/build.cpp\
+                    src/utility/read.cpp\
+
+OBJECTS_MapField = $(SOURCES_MapField:.cpp=.o)
+
 COTEXT  = "\033[1;31m Compiling\033[0m\033[1m $< \033[0m"
 
 # all : $(EXE)
-all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL)
+all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField)
 # all : $(EXE_LOAD)
 
 $(EXE) : $(OBJECTS)
 	@$(CCOMPLR) -o $@ $(OBJECTS) $(LIBRARIES)
-	@echo "\033[1;31m Main code compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m Main code compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_CompDensitySingle) : $(OBJECTS_CompDensitySingle)
 	@$(CCOMPLR) -o $@ $(OBJECTS_CompDensitySingle) $(LIBRARIES)
-	@echo "\033[1;31m Comp_density_single CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m Comp_density_single CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_CompDensityDual) : $(OBJECTS_CompDensityDual)
 	@$(CCOMPLR) -o $@ $(OBJECTS_CompDensityDual) $(LIBRARIES)
-	@echo "\033[1;31m Comp_density_dual CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m Comp_density_dual CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_IncomPressure) : $(OBJECTS_IncomPressure)
 	@$(CCOMPLR) -o $@ $(OBJECTS_IncomPressure) $(LIBRARIES)
-	@echo "\033[1;31m Incom_pressure CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m Incom_pressure CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_CompHybrid) : $(OBJECTS_CompHybrid)
 	@$(CCOMPLR) -o $@ $(OBJECTS_CompHybrid) $(LIBRARIES)
-	@echo "\033[1;31m Comp_hybrid CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m Comp_hybrid CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_PARTITION) : $(OBJECTS_PARTITION)
 	@$(CCOMPLR) -o $@ $(OBJECTS_PARTITION) $(LIBRARIES)
-	@echo "\033[1;31m PARTITION CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m PARTITION CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_INITIAL) : $(OBJECTS_INITIAL)
 	@$(CCOMPLR) -o $@ $(OBJECTS_INITIAL) $(LIBRARIES)
-	@echo "\033[1;31m INITIAL CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m INITIAL CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_POTENTIAL) : $(OBJECTS_POTENTIAL)
 	@$(CCOMPLR) -o $@ $(OBJECTS_POTENTIAL) $(LIBRARIES)
-	@echo "\033[1;31m POTENTIAL CODE compile/link complete \033[0m" | tee -a make.log
+	@echo -e "\033[1;31m POTENTIAL CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_MapField) : $(OBJECTS_MapField)
+	@$(CCOMPLR) -o $@ $(OBJECTS_MapField) $(LIBRARIES)
+	@echo -e "\033[1;31m MapField CODE compile/link complete \033[0m" | tee -a make.log
 
 %.o : %.cpp
-	@echo $(COTEXT) | tee -a make.log
+	@echo -e $(COTEXT) | tee -a make.log
 	@$(CCOMPLR) $(CFLAGS) $(LIBINCLUDE) $< -o $@
 
 clean:
-	@echo "\033[1;31m deleting objects \033[0m" | tee make.log
-	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) make.log *.o
+	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log
+	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_MapField) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) make.log *.o

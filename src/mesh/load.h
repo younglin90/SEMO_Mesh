@@ -18,6 +18,7 @@ public:
 	void OpenFoam(SEMO_Mesh_Builder &in, string folder);
 	
 	void vtu(SEMO_Mesh_Builder &mesh, string folder);
+	
 	void vtu(string folder, 
 		SEMO_Mesh_Builder &mesh, 
 		SEMO_Controls_Builder &controls,

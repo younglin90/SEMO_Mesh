@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <mpi.h>
-#include <numeric>
+#include <numeric> 
 
 #include "parmetis.h" 
 #include "scotch.h" 
@@ -127,7 +127,8 @@ int main(int argc, char* argv[]) {
 		
 		geometric.init(mesh);
 		
-		math.initLeastSquare(mesh);
+		// math.initLeastSquare(mesh);
+		math.initLeastSquare2nd(mesh);
 	
 	}
 	
@@ -163,30 +164,11 @@ int main(int argc, char* argv[]) {
 	
 			if(rank==0) {
 				cout << "| real-time step = " << controls.iterReal 
-				<< " | time = " << controls.time << endl;
+				<< " | time = " << controls.time;
 			}
 		
-			// if(controls.application=="incomPBased"){
+			solvers.hybridBased(mesh, controls, species);
 				
-				// solvers.incompressiblePressureBased(mesh, controls, species);
-				
-			// }
-			// else if(controls.application=="comRhoBasedSingle"){
-				
-				// solvers.compressibleDensityBasedSingleTime(mesh, controls, species);
-				
-			// }
-			// else if(controls.application=="comRhoBasedDual"){
-				
-				// solvers.compressibleDensityBasedDualTime(mesh, controls, species);
-				
-			// }
-			// else if(controls.application=="incomPBased+comRhoBasedDual"){
-				
-				solvers.hybridBased(mesh, controls, species);
-				
-			// }
-			
 			controls.time += controls.timeStep;
 			
 			++controls.iterReal;
@@ -201,6 +183,9 @@ int main(int argc, char* argv[]) {
 				// else{
 					// foldername = "./save/" + to_string(controls.time) + "/";
 				// }
+				
+				solvers.setCompValuesLeftRightFace(mesh, controls, species);
+				
 				save.vtu(foldername, mesh, controls, species);
 			}
 		}

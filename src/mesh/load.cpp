@@ -1692,10 +1692,6 @@ void SEMO_Mesh_Load::vtu(
 
 
 
-
-
-
-
 void SEMO_Mesh_Load::boundaryProperties(string file, 
 SEMO_Mesh_Builder& mesh, vector<string>& name, vector<string>& type, vector<double>& value){
 	
@@ -1746,6 +1742,7 @@ SEMO_Mesh_Builder& mesh, vector<string>& name, vector<string>& type, vector<doub
 							type.push_back(tempstring3);
 							if(
 							type.back() == "fixedValue" ||
+							type.back() == "inletOutlet" ||
 							type.back() == "switch"){
 								istringstream iss2(read[line2+1]);
 								string tempstring2;
@@ -1830,6 +1827,16 @@ SEMO_Mesh_Builder& mesh, vector<string>& name, vector<string>& type, vector<vect
 								break;
 							}
 							else if(type.back() == "surfaceNormalFixedValue"){
+								string lineee = read[line2+1];
+								lineee.erase(lineee.find("value"),5); 
+								
+								istringstream iss2(lineee);
+								vector<double> tmpD(3,0.0);
+								iss2 >> tmpD[0];
+								value.push_back(tmpD);
+								break;
+							}
+							else if(type.back() == "inletOutlet"){
 								string lineee = read[line2+1];
 								lineee.erase(lineee.find("value"),5); 
 								

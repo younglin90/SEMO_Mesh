@@ -1,18 +1,18 @@
 
-phases = (air air)
+phases = (water air)
 
-air
+water
 {
 	thermodynamics
 	{
 		rho
 		{
 			type = NASG
-			Pinf = 0.0
-			cv = 717.0
-			gamma = 1.4
-			b = 0.0
-			q = 0.0
+			Pinf = 621780000.0
+			cv = 3610.0
+			gamma = 1.19
+			b = 6.7212e-4
+			q = -1177788.0
 		}
 	}
 	
@@ -21,7 +21,13 @@ air
 		mu
 		{
 			type = const
-			value = 1.e-3
+			value = 0.001
+		}
+
+		sigma
+		{
+			type = const
+			value = 0.0728
 		}
 	}
 }
@@ -46,26 +52,15 @@ air
 		mu
 		{
 			type = const
-			value = 1.8e-5
+			value = 1.18e-5
+		}
+
+		sigma
+		{
+			type = const
+			value = 0.0
 		}
 	}
 	
-}
-
-transfer
-{
-	surfaceTension
-	{
-		sigma = 0.0
-	}
-	
-	massTransfer
-	{
-	}
-
-	heatTransfer
-	{
-	}
-
 }
 
