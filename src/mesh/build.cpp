@@ -26,7 +26,10 @@ void SEMO_Mesh_Builder::check(){
 			int tempnum = face.owner;
 			face.owner = face.neighbour;
 			face.neighbour = tempnum;
-			std::reverse(face.points.begin(),face.points.end());
+			
+			// std::reverse(face.points.begin(),face.points.end());
+			std::reverse(face.points.begin()+1,face.points.end());
+			
 			++checkOwnerNeighbourReverse;
 		}
 		// else{
@@ -35,7 +38,7 @@ void SEMO_Mesh_Builder::check(){
 		// }
 	}
 	
-	if(size>0){
+	if(size>1){
 		if(rank == 0){
 			vector<int> buffer(size,0);
 			int gatherValue = checkOwnerNeighbourReverse;
@@ -65,6 +68,7 @@ void SEMO_Mesh_Builder::check(){
 			cout << endl;
 		}
 	}
+	// cout << "ddddd" << endl;
 	
 	for(int i=0; i<(*this).faces.size(); ++i){
 		SEMO_Face& face = (*this).faces[i];
@@ -84,6 +88,237 @@ void SEMO_Mesh_Builder::check(){
 	
 	
 }
+
+
+
+
+void SEMO_Mesh_Builder::checkMatchingProcessorFace(){
+	
+	int rank = MPI::COMM_WORLD.Get_rank(); 
+	int size = MPI::COMM_WORLD.Get_size(); 
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+	if(size>1){
+		
+		vector<int> countsFacePoints(size,0);
+		vector<int> displsFacePoints(size,0);
+		vector<int> procFacePoints;
+		
+		vector<int> counts(size,0);
+		vector<int> displs(size,0);
+		vector<double> procFaceX;
+		vector<double> procFaceY;
+		vector<double> procFaceZ;
+		// cout<<"AAAAAAAA"<<endl;
+		int tmpNum0 = 0;
+		for(auto& boundary : mesh.boundary){
+			if(boundary.neighbProcNo==-1) continue;
+			
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			
+			
+			// counts[boundary.neighbProcNo] = boundary.nFaces;
+			
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				
+				++tmpNum0;
+				
+				procFacePoints.push_back(face.points.size());
+				countsFacePoints[boundary.neighbProcNo] += 1;
+				
+			// cout << rank << " " << boundary.neighbProcNo << " " << str << " " << end << endl;
+				
+			
+				vector<double> tmpX;
+				vector<double> tmpY;
+				vector<double> tmpZ;
+				for(auto& j : face.points){
+					auto& point = mesh.points[j];
+					tmpX.push_back(point.x);
+					tmpY.push_back(point.y);
+					tmpZ.push_back(point.z);
+				}
+		// cout<<"A"<<endl;
+				if(rank > boundary.neighbProcNo){
+					std::reverse(tmpX.begin()+1, tmpX.end());
+					std::reverse(tmpY.begin()+1, tmpY.end());
+					std::reverse(tmpZ.begin()+1, tmpZ.end());
+				}
+		// cout<<"B"<< face.points.size() << " " << tmpX.size() << endl;
+				for(int j=0; j<face.points.size(); ++j){
+					procFaceX.push_back(tmpX[j]);
+					procFaceY.push_back(tmpY[j]);
+					procFaceZ.push_back(tmpZ[j]);
+				}
+		// cout<<"C"<<endl;
+				
+				counts[boundary.neighbProcNo] += tmpX.size();
+			}
+		}
+		// cout<<"BBBBBB"<<endl;
+		
+		displsFacePoints[0] = 0;
+		displs[0] = 0;
+		for(int ip=1; ip<size; ++ip){
+			displsFacePoints[ip] = displsFacePoints[ip-1] + countsFacePoints[ip-1];
+			displs[ip] = displs[ip-1] + counts[ip-1];
+		}
+		
+		// for(int ip=0; ip<size; ++ip){
+			// cout<< rank << " -> " << ip << " : "<< counts[ip] << endl;
+		// }
+		
+		// int tmpNum = 0;
+		// for(auto& i : mesh.faces){
+			// if(i.getType() == SEMO_Types::PROCESSOR_FACE){
+				// for(auto& j : i.points){
+					// ++tmpNum;
+				// }
+			// }
+		// }
+		
+		vector<int> tmpNum2(size,0);
+		for(auto& boundary : mesh.boundary){
+			if(boundary.neighbProcNo==-1) continue;
+			
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			
+			
+			// counts[boundary.neighbProcNo] = boundary.nFaces;
+			
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				for(int j=0; j<face.points.size(); ++j){
+					++tmpNum2[boundary.neighbProcNo];
+				}
+			}
+		}
+		// for(int ip=0; ip<size; ++ip){
+			// cout<< rank << " -> " << ip << " : "<< tmpNum2[ip] << endl;
+		// }
+		
+		
+		
+		MPI_Barrier(MPI_COMM_WORLD);
+		
+		
+		vector<int> procFacePoints_recv(displsFacePoints[size-1] + countsFacePoints[size-1],0.0);
+		
+		MPI_Alltoallv( procFacePoints.data(), countsFacePoints.data(), displsFacePoints.data(), MPI_INT, 
+					   procFacePoints_recv.data(), countsFacePoints.data(), displsFacePoints.data(), MPI_INT, 
+					   MPI_COMM_WORLD);
+					   
+		for(int i=0; i<procFacePoints.size(); ++i){
+			if(procFacePoints[i] != procFacePoints_recv[i]){
+				if(rank==0) {
+					cout << "| #Warning : not matching # of proc-Face-point " << " " << i << " / " << procFacePoints.size() << " " << 
+					procFacePoints[i] << " /= " << procFacePoints_recv[i] << endl;
+				}
+			}
+		}
+			
+					   
+		
+		
+		
+		vector<double> procFaceX_recv(displs[size-1] + counts[size-1],0.0);
+		vector<double> procFaceY_recv(displs[size-1] + counts[size-1],0.0);
+		vector<double> procFaceZ_recv(displs[size-1] + counts[size-1],0.0);
+		
+		MPI_Alltoallv( procFaceX.data(), counts.data(), displs.data(), MPI_DOUBLE, 
+					   procFaceX_recv.data(), counts.data(), displs.data(), MPI_DOUBLE, 
+					   MPI_COMM_WORLD);
+		MPI_Alltoallv( procFaceY.data(), counts.data(), displs.data(), MPI_DOUBLE, 
+					   procFaceY_recv.data(), counts.data(), displs.data(), MPI_DOUBLE, 
+					   MPI_COMM_WORLD);
+		MPI_Alltoallv( procFaceZ.data(), counts.data(), displs.data(), MPI_DOUBLE, 
+					   procFaceZ_recv.data(), counts.data(), displs.data(), MPI_DOUBLE, 
+					   MPI_COMM_WORLD);
+					
+		SEMO_Utility_Math utility;
+					   
+		tmpNum0 = 0;
+		for(auto& boundary : mesh.boundary){
+			if(boundary.neighbProcNo==-1) continue;
+			
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				
+				for(auto& j : face.points){
+					auto& point = mesh.points[j];
+					double sendX = procFaceX[tmpNum0];
+					double recvX = procFaceX_recv[tmpNum0];
+					double sendY = procFaceY[tmpNum0];
+					double recvY = procFaceY_recv[tmpNum0];
+					double sendZ = procFaceZ[tmpNum0];
+					double recvZ = procFaceZ_recv[tmpNum0];
+					
+					if( 
+					utility.approximatelyEqualAbsRel(sendX, recvX, 1.e-8, 1.e-6) &&
+					utility.approximatelyEqualAbsRel(sendY, recvY, 1.e-8, 1.e-6) &&
+					utility.approximatelyEqualAbsRel(sendZ, recvZ, 1.e-8, 1.e-6) 
+					){
+						// if(rank==0) {
+							// cout << "OKOKOK" << " " << i << " " << face.level << " " << point.level << endl;
+							// cout << sendX << " " << " " << sendY << " " << " " << sendZ << " " << endl;
+							// cout << recvX << " " << " " << recvY << " " << " " << recvZ << " " << endl;
+						// }
+					}
+					else{
+						// if(rank==0) {
+							cout << "| #Warning : not matching x,y,z of proc-Face-point " << " " << i << " " << face.level << " " << point.level << endl;
+							cout << sendX << " " << " " << sendY << " " << " " << sendZ << " " << endl;
+							cout << recvX << " " << " " << recvY << " " << " " << recvZ << " " << endl;
+							
+							MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+						// }
+					}
+					++tmpNum0;
+				}
+				
+			}
+		}
+		// for(int i=0; i<procFaceX.size(); ++i){
+			// double sendX = procFaceX[i];
+			// double recvX = procFaceX_recv[i];
+			// double sendY = procFaceY[i];
+			// double recvY = procFaceY_recv[i];
+			// double sendZ = procFaceZ[i];
+			// double recvZ = procFaceZ_recv[i];
+			
+			// if( 
+			// utility.approximatelyEqualAbsRel(sendX, recvX, 1.e-8, 1.e-6) &&
+			// utility.approximatelyEqualAbsRel(sendY, recvY, 1.e-8, 1.e-6) &&
+			// utility.approximatelyEqualAbsRel(sendZ, recvZ, 1.e-8, 1.e-6) 
+			// ){
+			// }
+			// else{
+				// if(rank==0) {
+					// cout << "NONONONO" << " " << sendX << " " << recvX << " " << 
+					// sendY << " " << recvY << " " << sendZ << " " << recvZ << endl;
+				// }
+			// }
+			
+			
+			
+		// }
+					   
+		
+		
+	}
+	
+	
+}
+
+
+
 
 void SEMO_Mesh_Builder::checkQualities(){
 	
@@ -734,7 +969,9 @@ void SEMO_Mesh_Builder::setCountsProcFaces(){
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	
+	(*this).countsProcFaces.clear();
 	(*this).countsProcFaces.resize(size,0);
+	
 	for(int ip=0; ip<size; ++ip){
 		(*this).countsProcFaces[ip] = 0;
 		for(auto& bc : (*this).boundary){
@@ -745,6 +982,9 @@ void SEMO_Mesh_Builder::setCountsProcFaces(){
 					// cout << endl;
 				// }
 				// cout << bc.nFaces << endl;
+				
+				// cout << rank << " " << ip << " " << bc.nFaces << endl;
+				
 				(*this).countsProcFaces[ip] = bc.nFaces;
 				break;
 			}
@@ -765,6 +1005,7 @@ void SEMO_Mesh_Builder::setDisplsProcFaces(){
 	int rank = MPI::COMM_WORLD.Get_rank(); 
 	int size = MPI::COMM_WORLD.Get_size(); 
 	
+	displsProcFaces.clear();
 	displsProcFaces.resize(size,0);
 	displsProcFaces[0] = 0;
 	for(int ip=1; ip<size; ++ip){

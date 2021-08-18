@@ -205,7 +205,7 @@ void SEMO_Solvers_Builder::calcPressureEq(
 				cellVolume_send.push_back(mesh.cells[face.owner].volume);
 			}
 		}
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					cellVolume_send, cellVolume_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -229,7 +229,7 @@ void SEMO_Solvers_Builder::calcPressureEq(
 			}
 		}
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					linAD_send, linAD_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -753,6 +753,8 @@ void SEMO_Solvers_Builder::calcPressureEq(
 	
 	
 	// update
+	double test0 = 0.0;
+	
 	for(int i=0; i<mesh.cells.size(); ++i){
 		SEMO_Cell& cell = mesh.cells[i];
 		
@@ -794,7 +796,10 @@ void SEMO_Solvers_Builder::calcPressureEq(
 		if( cell.var[controls.W] >= controls.maxW ) 
 			cell.var[controls.W] = controls.maxW;
 		
-		
+		test0 += controls.prePreURF*resiVar[i];
+		// test0 += controls.preVelURF*controls.timeStep/cell.var[controls.Rho]*gradResiP[i][0];
+		// test0 += controls.preVelURF*controls.timeStep/cell.var[controls.Rho]*gradResiP[i][1];
+		// test0 += controls.preVelURF*controls.timeStep/cell.var[controls.Rho]*gradResiP[i][2];
 		
 		
 		// cell.var[controls.UDV[0]] = resiVar[i];
@@ -820,7 +825,7 @@ void SEMO_Solvers_Builder::calcPressureEq(
 	
 	
 	
-	
+	// cout << "A : " << test0 << endl;
 	
 	
 
@@ -848,20 +853,20 @@ void SEMO_Solvers_Builder::calcPressureEq(
 		}
 		// SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					gradResiPx_send, gradResiPx_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					gradResiPy_send, gradResiPy_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					gradResiPz_send, gradResiPz_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					resiVar_send, resiVar_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);

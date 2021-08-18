@@ -566,15 +566,15 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithRecon(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send0, phi_recv0,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send1, phi_recv1,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send2, phi_recv2,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -653,15 +653,15 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceForSegregatedWithVfMSTACS(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send0, phi_recv0,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send1, phi_recv1,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send2, phi_recv2,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -740,15 +740,15 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithVfMSTACS(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send0, phi_recv0,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send1, phi_recv1,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send2, phi_recv2,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);

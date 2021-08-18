@@ -386,15 +386,15 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFaceWithVfMSTACS(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send0, phi_recv0,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send1, phi_recv1,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send2, phi_recv2,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -694,9 +694,36 @@ void SEMO_Solvers_Builder::reconIncomZeroOrder(
 					// face.varL[controls.fW] = 0.0;
 					
 				// }
+				//==================================
 				
 				
 				
+				//==================================
+				// UDF,  cylindricalInletVelocity
+				// 0 0.0006  , 0  , 0.001
+				double velSwirl = 0.1;
+				double velRadial = 0.0;
+				double velAxial = -0.1;
+				
+				
+				for(int iOrifice=0; iOrifice<24; ++iOrifice){
+					double centreOrifice = 0.0006*(double)iOrifice;
+					if(face.x > centreOrifice-0.00016 && face.x < centreOrifice+0.00016){
+						
+						double x_nor = face.x-centreOrifice;
+						double z_nor = face.z-0.001;
+						
+						double theta = atan(z_nor/x_nor);
+						
+						face.varL[controls.fU] = velRadial*cos(theta)-velSwirl*sin(theta);
+						face.varL[controls.fV] = velAxial;
+						face.varL[controls.fW] = velRadial*sin(theta)+velSwirl*cos(theta);
+						
+						
+					}
+				}
+				//==================================
+					
 										 
 										 
 										 

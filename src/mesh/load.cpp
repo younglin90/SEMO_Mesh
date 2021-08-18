@@ -1008,6 +1008,15 @@ void SEMO_Mesh_Load::vtu(
 	vector<bool> startVolFrac(1,false);
 	vector<vector<double>> volFrac(1,vector<double>(0,0.0));
 	
+	bool startCellLevels=false;
+	vector<int> cellLevels;
+	bool startCellGroups=false;
+	vector<int> cellGroups;
+	bool startFaceLevels=false;
+	vector<int> faceLevels;
+	bool startFaceGroups=false;
+	vector<int> faceGroups;
+	
 	vector<string> volFracName;
 	string tmpVolFracName;
 	tmpVolFracName = "volumeFraction-" + species[0].name;
@@ -1091,6 +1100,30 @@ void SEMO_Mesh_Load::vtu(
 				double tempint;
 				while(iss >> tempint){
 					volFrac[0].push_back(tempint);
+				}
+			}
+		}
+		else if(startCellLevels){
+			if(nextToken.find("</DataArray>") != string::npos){
+				startCellLevels=false;
+			}
+			else{
+				istringstream iss(nextToken);
+				int tempint;
+				while(iss >> tempint){
+					cellLevels.push_back(tempint);
+				}
+			}
+		}
+		else if(startCellGroups){
+			if(nextToken.find("</DataArray>") != string::npos){
+				startCellGroups=false;
+			}
+			else{
+				istringstream iss(nextToken);
+				int tempint;
+				while(iss >> tempint){
+					cellGroups.push_back(tempint);
 				}
 			}
 		}
@@ -1193,6 +1226,30 @@ void SEMO_Mesh_Load::vtu(
 				}
 			}
 		}
+		else if(startFaceLevels){
+			if(nextToken.find("</faceLevels>") != string::npos){
+				startFaceLevels=false;
+			}
+			else{
+				istringstream iss(nextToken);
+				int tempint;
+				while(iss >> tempint){
+					faceLevels.push_back(tempint);
+				}
+			}
+		}
+		else if(startFaceGroups){
+			if(nextToken.find("</faceGroups>") != string::npos){
+				startFaceGroups=false;
+			}
+			else{
+				istringstream iss(nextToken);
+				int tempint;
+				while(iss >> tempint){
+					faceGroups.push_back(tempint);
+				}
+			}
+		}
 		else if(startbcName){
 			if(nextToken.find("</bcName>") != string::npos){
 				startbcName=false;
@@ -1260,6 +1317,12 @@ void SEMO_Mesh_Load::vtu(
 			else if( nextToken.find(volFracName[0]) != string::npos ){
 				startVolFrac[0]=true;
 			}
+			else if( nextToken.find("\"cellLevels\"") != string::npos ){
+				startCellLevels=true;
+			}
+			else if( nextToken.find("\"cellGroups\"") != string::npos ){
+				startCellGroups=true;
+			}
 			else if( nextToken.find("\"NodeCoordinates\"") != string::npos ){
 				startPoints=true;
 			}
@@ -1284,6 +1347,12 @@ void SEMO_Mesh_Load::vtu(
 			}
 			else if( nextToken.find("neighbour") != string::npos ){
 				startneighbour=true;
+			}
+			else if( nextToken.find("faceLevels") != string::npos ){
+				startFaceLevels=true;
+			}
+			else if( nextToken.find("faceGroups") != string::npos ){
+				startFaceGroups=true;
 			}
 			else if( nextToken.find("bcName") != string::npos ){
 				startbcName=true;
@@ -1347,6 +1416,15 @@ void SEMO_Mesh_Load::vtu(
 			mesh.cells.back().var[controls.VF[0]] = 1.0;
 		}
 		
+		
+		
+		
+		mesh.cells.back().level = cellLevels[i];
+		mesh.cells.back().group = cellGroups[i];
+		
+		// mesh.cells.back().level = 0;
+		// mesh.cells.back().group = i;
+		
 		// // EOS
 		// vector<double> volumeFractions;
 		// double VFnSp = 0.0;
@@ -1374,11 +1452,19 @@ void SEMO_Mesh_Load::vtu(
 	}
 	
 	
+	int tmpNum = 0;
 	for(auto& face : mesh.faces){
 		face.varL.resize(controls.nTotalFaceLRVar,0.0);
 		face.varR.resize(controls.nTotalFaceLRVar,0.0);
 		
 		face.var.resize(controls.nTotalFaceVar,0.0);
+		
+		face.level = faceLevels[tmpNum];
+		face.group = faceGroups[tmpNum];
+		// face.level = 0;
+		// face.group = tmpNum;
+		
+		++tmpNum;
 	}
 	
 	
@@ -1639,7 +1725,6 @@ void SEMO_Mesh_Load::vtu(
 		cout << "-> completed" << endl;
 		cout << "└────────────────────────────────────────────────────" << endl;
 	}
-	
 	
 	
 	// mesh.buildCells();

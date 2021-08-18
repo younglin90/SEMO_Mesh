@@ -330,7 +330,7 @@ void SEMO_Utility_Math::calcLeastSquare(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send, phi_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -899,7 +899,7 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send, phi_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -1071,7 +1071,7 @@ void SEMO_Utility_Math::calcGaussGreen(
 		
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					phi_send, phi_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -1449,15 +1449,15 @@ void SEMO_Utility_Math::calcMGG(
 				}
 				SEMO_MPI_Builder mpi;
 							
-				mpi.setProcsFaceDatasDouble(
+				mpi.setProcsFaceDatas(
 							gradX_send, tmpGradientX_recv,
 							mesh.countsProcFaces, mesh.countsProcFaces, 
 							mesh.displsProcFaces, mesh.displsProcFaces);
-				mpi.setProcsFaceDatasDouble(
+				mpi.setProcsFaceDatas(
 							gradY_send, tmpGradientY_recv,
 							mesh.countsProcFaces, mesh.countsProcFaces, 
 							mesh.displsProcFaces, mesh.displsProcFaces);
-				mpi.setProcsFaceDatasDouble(
+				mpi.setProcsFaceDatas(
 							gradZ_send, tmpGradientZ_recv,
 							mesh.countsProcFaces, mesh.countsProcFaces, 
 							mesh.displsProcFaces, mesh.displsProcFaces);
@@ -1775,15 +1775,15 @@ void SEMO_Utility_Math::calcGradientFace(
 	if(size>1){
 		SEMO_MPI_Builder mpi;
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					gradientX_send, gradientX_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					gradientY_send, gradientY_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					gradientZ_send, gradientZ_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);

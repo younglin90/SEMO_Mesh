@@ -241,44 +241,47 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	
 	
 
-	// if(rank==0) {
+	//==================================
+	// extract for point data
+	// // if(rank==0) {
 
-		SEMO_Utility_Math math;
-		vector<vector<double>> gradP;
-		math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+		// SEMO_Utility_Math math;
+		// vector<vector<double>> gradP;
+		// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
 	
-		ofstream outputFile;
+		// ofstream outputFile;
  
-		string filenamePlot = "pressure_point" + to_string(rank);
-		outputFile.open(filenamePlot, ios::app);
-		if(outputFile.fail()){
-			cerr << "Unable to write file for writing." << endl;
-			MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-		}
+		// string filenamePlot = "pressure_point" + to_string(rank);
+		// outputFile.open(filenamePlot, ios::app);
+		// if(outputFile.fail()){
+			// cerr << "Unable to write file for writing." << endl;
+			// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+		// }
 	
-		outputFile << controls.time << " ";
-		outputFile.precision(4);
-		for(int i=0; i<mesh.cells.size(); ++i){
-			auto& cell = mesh.cells[i];
-			if(cell.x<0.008 && cell.y<0.008){
+		// outputFile << controls.time << " ";
+		// outputFile.precision(4);
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// auto& cell = mesh.cells[i];
+			// if(cell.x<0.008 && cell.y<0.008){
 				
-				double PF = 
-					cell.var[controls.P] +
-					 ( (gradP[i][0])*(0.0-cell.x)
-					  +(gradP[i][1])*(0.003-cell.y));
-				// double PF = cell.var[controls.P];
+				// double PF = 
+					// cell.var[controls.P] +
+					 // ( (gradP[i][0])*(0.0-cell.x)
+					  // +(gradP[i][1])*(0.003-cell.y));
+				// // double PF = cell.var[controls.P];
 				
 				
-				outputFile << scientific << PF << " ";
-				cout << endl;
-				cout << PF << endl;
-			}
-		}
-		outputFile.unsetf(ios::scientific);
-		outputFile << endl;
+				// outputFile << scientific << PF << " ";
+				// cout << endl;
+				// cout << PF << endl;
+			// }
+		// }
+		// outputFile.unsetf(ios::scientific);
+		// outputFile << endl;
 		
-		outputFile.close();
-	// }
+		// outputFile.close();
+	// // }
+	//==================================
 		
 	
 	

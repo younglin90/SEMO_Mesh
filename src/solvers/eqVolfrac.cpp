@@ -118,7 +118,7 @@ void SEMO_Solvers_Builder::calcVolfracEq(
 			}
 		}
 		
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					linAD_send, linAD_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);

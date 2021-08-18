@@ -54,6 +54,7 @@ class SEMO_Controls_Builder{
 		int Rho;
 		int C;
 		int Ht;
+		int indicatorAMR;
 		
 
 		// vector<int> Q;

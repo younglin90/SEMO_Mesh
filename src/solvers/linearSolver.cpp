@@ -5,137 +5,137 @@
 
 
 
-void SEMO_Solvers_Builder::calcLinearSolverPETSc(
-	SEMO_Mesh_Builder& mesh,
-	SEMO_Controls_Builder& controls,
-	vector<vector<double>>& residuals){
+// void SEMO_Solvers_Builder::calcLinearSolverPETSc(
+	// SEMO_Mesh_Builder& mesh,
+	// SEMO_Controls_Builder& controls,
+	// vector<vector<double>>& residuals){
 	
-	SEMO_Utility_Math math;
+	// SEMO_Utility_Math math;
 	
-	int nEq = controls.nEq;
+	// int nEq = controls.nEq;
 	
 	
-	vector<vector<vector<double>>> linA;
-	// vector<vector<double>> linB;
-	vector<vector<vector<double>>> linAL; // dR/dQL
-	vector<vector<vector<double>>> linAR; // dR/dQR
+	// vector<vector<vector<double>>> linA;
+	// // vector<vector<double>> linB;
+	// vector<vector<vector<double>>> linAL; // dR/dQL
+	// vector<vector<vector<double>>> linAR; // dR/dQR
 	
-	vector<vector<double>> resiVar;
+	// vector<vector<double>> resiVar;
 	
-	// construct A diagonal matrix
-	for(int i=0; i<mesh.cells.size(); ++i){
-		auto& cell = mesh.cells[i];
+	// // construct A diagonal matrix
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// auto& cell = mesh.cells[i];
 		
 		
-		double timeFrac = cell.var[controls.dtPseudo] / controls.timeStep;
-		vector<vector<double>> matrixA(nEq,vector<double>(nEq,0.0));
-		// vector<vector<double>> matrixB(nEq,vector<double>(nEq,0.0));
+		// double timeFrac = cell.var[controls.dtPseudo] / controls.timeStep;
+		// vector<vector<double>> matrixA(nEq,vector<double>(nEq,0.0));
+		// // vector<vector<double>> matrixB(nEq,vector<double>(nEq,0.0));
 		
-		vector<vector<double>> matrixP(nEq,vector<double>(nEq,0.0));
-		vector<vector<double>> matrixT(nEq,vector<double>(nEq,0.0));
+		// vector<vector<double>> matrixP(nEq,vector<double>(nEq,0.0));
+		// vector<vector<double>> matrixT(nEq,vector<double>(nEq,0.0));
 		
-		this->constructMatrix(cell, controls, matrixP, matrixT);
+		// this->constructMatrix(cell, controls, matrixP, matrixT);
 		
-		// A matrix (diagonal terms)
-		for(int in=0; in<nEq; ++in){
-			for(int jn=0; jn<nEq; ++jn){
-				// 2nd-order
-				matrixA[in][jn] = matrixP[in][jn] + 1.5 * timeFrac * matrixT[in][jn];
+		// // A matrix (diagonal terms)
+		// for(int in=0; in<nEq; ++in){
+			// for(int jn=0; jn<nEq; ++jn){
+				// // 2nd-order
+				// matrixA[in][jn] = matrixP[in][jn] + 1.5 * timeFrac * matrixT[in][jn];
 				
-				// matrixA[in][jn] += DsigmaApS[in][jn];
+				// // matrixA[in][jn] += DsigmaApS[in][jn];
 				
-			}
+			// }
 			
-			// matrixB[jn] = residuals[i][jn];
-		}
+			// // matrixB[jn] = residuals[i][jn];
+		// }
 		
-		linA.push_back(matrixA);
-		// linB.push_back(matrixB);
+		// linA.push_back(matrixA);
+		// // linB.push_back(matrixB);
 		
-		vector<double> tempResi(nEq,0.0);
-		resiVar.push_back(tempResi);
+		// vector<double> tempResi(nEq,0.0);
+		// resiVar.push_back(tempResi);
 		
-	}
+	// }
 	
 	
 	
-	// construct A off-diagonal matrix
-	int proc_num=0;
-	for(int i=0; i<mesh.faces.size(); ++i){
-		auto& face = mesh.faces[i];
+	// // construct A off-diagonal matrix
+	// int proc_num=0;
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// auto& face = mesh.faces[i];
 		
-		vector<vector<double>> matrixAL(nEq,vector<double>(nEq,0.0));
-		vector<vector<double>> matrixAR(nEq,vector<double>(nEq,0.0));
+		// vector<vector<double>> matrixAL(nEq,vector<double>(nEq,0.0));
+		// vector<vector<double>> matrixAR(nEq,vector<double>(nEq,0.0));
 		
-		vector<vector<double>> jacALmat;
-		vector<vector<double>> jacARmat;
+		// vector<vector<double>> jacALmat;
+		// vector<vector<double>> jacARmat;
 		
 		
-		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
-			auto& cellL = mesh.cells[face.owner];
-			auto& cellR = mesh.cells[face.neighbour];
+			// auto& cellL = mesh.cells[face.owner];
+			// auto& cellR = mesh.cells[face.neighbour];
 			
-			double rDtauPerVolL = cellL.var[controls.dtPseudo] / cellL.volume;
-			double rDtauPerVolR = cellR.var[controls.dtPseudo] / cellR.volume;
+			// double rDtauPerVolL = cellL.var[controls.dtPseudo] / cellL.volume;
+			// double rDtauPerVolR = cellR.var[controls.dtPseudo] / cellR.volume;
 			
-			this->getNumericalFluxJacobianUpwind(
-				cellL,cellR,controls,face.unitNormals,"L",jacALmat);
+			// this->getNumericalFluxJacobianUpwind(
+				// cellL,cellR,controls,face.unitNormals,"L",jacALmat);
 				
-			this->getNumericalFluxJacobianUpwind(
-				cellL,cellR,controls,face.unitNormals,"R",jacARmat);
+			// this->getNumericalFluxJacobianUpwind(
+				// cellL,cellR,controls,face.unitNormals,"R",jacARmat);
 							
-			for(int in=0; in<nEq; ++in){
-				for(int jn=0; jn<nEq; ++jn){
-					matrixAL[in][jn] = (-rDtauPerVolR*jacALmat[in][jn]*face.area);
-					matrixAR[in][jn] = (+rDtauPerVolL*jacARmat[in][jn]*face.area);
-				}
-			}
-			linAL.push_back(matrixAL);
-			linAR.push_back(matrixAR);
+			// for(int in=0; in<nEq; ++in){
+				// for(int jn=0; jn<nEq; ++jn){
+					// matrixAL[in][jn] = (-rDtauPerVolR*jacALmat[in][jn]*face.area);
+					// matrixAR[in][jn] = (+rDtauPerVolL*jacARmat[in][jn]*face.area);
+				// }
+			// }
+			// linAL.push_back(matrixAL);
+			// linAR.push_back(matrixAR);
 		
 		
-			for(int in=0; in<nEq; ++in){
-				for(int jn=0; jn<nEq; ++jn){
-					linA[face.owner][in][jn]     += (-(-rDtauPerVolL*jacALmat[in][jn]*face.area));
-					linA[face.neighbour][in][jn] += (-(+rDtauPerVolR*jacARmat[in][jn]*face.area));
-				}
-			}
+			// for(int in=0; in<nEq; ++in){
+				// for(int jn=0; jn<nEq; ++jn){
+					// linA[face.owner][in][jn]     += (-(-rDtauPerVolL*jacALmat[in][jn]*face.area));
+					// linA[face.neighbour][in][jn] += (-(+rDtauPerVolR*jacARmat[in][jn]*face.area));
+				// }
+			// }
 			
 			
-		}
-		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+		// }
+		// else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 			
-			for(int in=0; in<nEq; ++in){
-				for(int jn=0; jn<nEq; ++jn){
-					linA[face.owner][in][jn]     += (-(-rDtauPerVolL*jacALmat[in][jn]*face.area));
-				}
-			}
+			// for(int in=0; in<nEq; ++in){
+				// for(int jn=0; jn<nEq; ++jn){
+					// linA[face.owner][in][jn]     += (-(-rDtauPerVolL*jacALmat[in][jn]*face.area));
+				// }
+			// }
 
-		}
-		else{
+		// }
+		// else{
 			
-			for(int in=0; in<nEq; ++in){
-				for(int jn=0; jn<nEq; ++jn){
-					linA[face.owner][in][jn]     += (-(-rDtauPerVolL*jacALmat[in][jn]*face.area));
-				}
-			}
+			// for(int in=0; in<nEq; ++in){
+				// for(int jn=0; jn<nEq; ++jn){
+					// linA[face.owner][in][jn]     += (-(-rDtauPerVolL*jacALmat[in][jn]*face.area));
+				// }
+			// }
 			
-		}
+		// }
 		
 	
-	}
+	// }
 	
-	// linear solver : PETSc library
+	// // linear solver : PETSc library
 	
-	solvePETSc(mesh, resiVar, linA, linAL, linAR, residuals,
-		controls.solverU, controls.toleranceU, 
-		controls.relTolU, controls.preconditionerU,
-		controls.maxIterU);
+	// solvePETSc(mesh, resiVar, linA, linAL, linAR, residuals,
+		// controls.solverU, controls.toleranceU, 
+		// controls.relTolU, controls.preconditionerU,
+		// controls.maxIterU);
 	
 	
 	
-}
+// }
 
 
 

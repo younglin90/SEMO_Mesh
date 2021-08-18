@@ -60,11 +60,21 @@ class SEMO_MPI_Builder{
 			vector<int>& sendCounts, vector<int>& recvCounts, 
 			vector<int>& sendDisps, vector<int>& recvDisps);
 		
-		
-		void setProcsFaceDatasDouble(
+		void setProcsFaceDatas(
 			vector<double>& sendValues, vector<double>& recvValues,
 			vector<int>& sendCounts, vector<int>& recvCounts, 
 			vector<int>& sendDisps, vector<int>& recvDisps);
+		
+		// void setProcsFaceDatas(
+			// vector<bool>& sendValues, vector<bool>& recvValues,
+			// vector<int>& sendCounts, vector<int>& recvCounts, 
+			// vector<int>& sendDisps, vector<int>& recvDisps);
+		
+		
+		// void setProcsFaceDatasDouble(
+			// vector<double>& sendValues, vector<double>& recvValues,
+			// vector<int>& sendCounts, vector<int>& recvCounts, 
+			// vector<int>& sendDisps, vector<int>& recvDisps);
 		
 		int* sendCounts;
 		int* recvCounts;

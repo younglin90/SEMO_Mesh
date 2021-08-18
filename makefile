@@ -67,6 +67,9 @@ SOURCES = src/mesh/build.cpp\
 	      src/utility/read.cpp\
 	      src/turbulenceModels/LES.cpp\
 	      src/math/RCM.cpp\
+	      src/mesh/polyAMR.cpp\
+	      src/mesh/polyRefine.cpp\
+	      src/mesh/polyUnrefine.cpp\
 
 OBJECTS = src/main.o $(SOURCES:.cpp=.o)
 
@@ -152,10 +155,30 @@ SOURCES_MapField = src/utility/mapField.cpp\
 
 OBJECTS_MapField = $(SOURCES_MapField:.cpp=.o)
 
+# MeshAMR
+EXE_MeshAMR = MeshAMR
+
+# SOURCES_MeshAMR = src/utility/meshAMR.cpp\
+                    # src/mesh/build.cpp\
+                    # src/mesh/load.cpp\
+                    # src/mesh/save.cpp\
+                    # src/mesh/geometric.cpp\
+                    # src/math/math.cpp\
+                    # src/controls/build.cpp\
+                    # src/utility/read.cpp\
+
+OBJECTS_MeshAMR = src/utility/meshAMR.o $(SOURCES:.cpp=.o)
+# OBJECTS_MeshAMR = $(SOURCES_MeshAMR:.cpp=.o)
+
+# ExtractData
+EXE_ExtractData = ExtractData
+
+OBJECTS_ExtractData = src/utility/extractData.o $(SOURCES:.cpp=.o)
+
 COTEXT  = "\033[1;31m Compiling\033[0m\033[1m $< \033[0m"
 
 # all : $(EXE)
-all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField)
+all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
 # all : $(EXE_LOAD)
 
 $(EXE) : $(OBJECTS)
@@ -194,10 +217,18 @@ $(EXE_MapField) : $(OBJECTS_MapField)
 	@$(CCOMPLR) -o $@ $(OBJECTS_MapField) $(LIBRARIES)
 	@echo -e "\033[1;31m MapField CODE compile/link complete \033[0m" | tee -a make.log
 
+$(EXE_MeshAMR) : $(OBJECTS_MeshAMR)
+	@$(CCOMPLR) -o $@ $(OBJECTS_MeshAMR) $(LIBRARIES)
+	@echo -e "\033[1;31m MeshAMR CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_ExtractData) : $(OBJECTS_ExtractData)
+	@$(CCOMPLR) -o $@ $(OBJECTS_ExtractData) $(LIBRARIES)
+	@echo -e "\033[1;31m ExtractData CODE compile/link complete \033[0m" | tee -a make.log
+
 %.o : %.cpp
 	@echo -e $(COTEXT) | tee -a make.log
 	@$(CCOMPLR) $(CFLAGS) $(LIBINCLUDE) $< -o $@
 
 clean:
 	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log
-	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_MapField) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) make.log *.o
+	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_MapField) $(OBJECTS_MeshAMR) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData) make.log *.o

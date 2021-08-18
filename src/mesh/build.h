@@ -27,6 +27,9 @@ enum class SEMO_Types{
 
 class SEMO_Point{
 	public:
+		SEMO_Point(){
+			level=0;
+		}
 		int level;
 		double x, y, z;
 		
@@ -40,6 +43,7 @@ class SEMO_Face{
 		SEMO_Face(){
 			unitNormals.resize(3,0.0);
 			neighbour=-1;
+			level=0;
 		}
 		
 		void setType(SEMO_Types in){
@@ -61,6 +65,7 @@ class SEMO_Face{
 	
 	public:
 		int level;
+		int group;
 		vector<double> unitNormals;
 		double area;
 		double wC;
@@ -90,7 +95,9 @@ class SEMO_Cell{
 			// return variables[in];
 		// }
 		
+	public:
 		int level;
+		int group;
 		vector<int> points;
 		vector<int> faces;
 		
@@ -156,6 +163,7 @@ class SEMO_Mesh_Builder{
 		void loadFile(string filetype, string folder);
 		void saveFile(string filetype, string folder, SEMO_Controls_Builder &controls);
 		void check();
+		void checkMatchingProcessorFace();
 		void checkQualities();
 		void buildCells();
 		void buildCells2();

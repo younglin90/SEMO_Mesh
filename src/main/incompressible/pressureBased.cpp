@@ -14,6 +14,7 @@
 #include "../../mesh/build.h" 
 #include "../../mesh/load.h" 
 #include "../../mesh/geometric.h" 
+#include "../../mesh/polyAMR.h"
 
 #include "../../controls/build.h" 
 #include "../../variables/build.h" 
@@ -52,7 +53,7 @@ int main(int argc, char* argv[]) {
 	
 	bool boolLoad = true;
 	bool boolPartitioning = false;
-	bool boolAMR = false;
+	bool boolAMR = true;
 	bool boolGeometric = true;
 	
 	if(boolLoad){
@@ -69,6 +70,9 @@ int main(int argc, char* argv[]) {
 		}
 		
 		load.vtu(foldername, mesh, controls, species);
+		
+
+		
 		
 		
 		solvers.calcCellEOSVF(mesh, controls, species);
@@ -113,14 +117,34 @@ int main(int argc, char* argv[]) {
 	
 	
 	
-	if(boolAMR){
+	// if(boolAMR){
 		
-		mesh.hexaOctAMR();
+		// // mesh.hexaOctAMR();
 		
-		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-	}
+		// int tmpNum = 0;
+		// for(auto& face : mesh.faces){
+			// face.group = tmpNum;
+			// ++tmpNum;
+		// }
+		
+		// tmpNum = 0;
+		// for(auto& cell : mesh.cells){
+			// cell.group = tmpNum;
+			// ++tmpNum;
+		// }
+		
+		
+		// // SEMO_Poly_AMR_Builder AMR;
+		// // AMR.polyAMR(mesh, 0);
+		// // AMR.polyAMR(mesh, 1);
+		// // AMR.polyAMR(mesh, 1);
+		
+		// // MPI_Barrier(MPI_COMM_WORLD);
+		// // MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	// }
 	
-
+	
+	
 	
 	// geometric
 	if(boolGeometric){
@@ -196,6 +220,16 @@ int main(int argc, char* argv[]) {
 			}
 		
 			solvers.incompressiblePressureBased(mesh, controls, species);
+
+
+			//==============================
+			// AMR
+			if(controls.iterReal % 50 == 0){
+				SEMO_Poly_AMR_Builder AMR;
+				AMR.polyAMR(mesh, controls, species, 0);
+			} 
+			//==============================
+			
 				
 			controls.time += controls.timeStep;
 			
@@ -216,6 +250,11 @@ int main(int argc, char* argv[]) {
 				
 				save.vtu(foldername, mesh, controls, species);
 			}
+			
+
+			// MPI_Barrier(MPI_COMM_WORLD);
+			// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+			
 		}
 		
 	}

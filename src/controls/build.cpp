@@ -681,6 +681,8 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	// this->name.push_back("invRCM");
 	
 	
+	this->indicatorAMR = this->nTotalCellVar++;
+	this->name.push_back("indicatorAMR");
 	
 	this->UDV.push_back(this->nTotalCellVar++);
 	this->name.push_back("UDV0");

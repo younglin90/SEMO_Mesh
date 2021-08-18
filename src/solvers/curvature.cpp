@@ -90,7 +90,7 @@ void SEMO_Solvers_Builder::calcCurvature(
 				}
 			}
 			vector<double> recvValues;
-			mpi.setProcsFaceDatasDouble(
+			mpi.setProcsFaceDatas(
 						sendValues, recvValues,
 						mesh.countsProcFaces, mesh.countsProcFaces, 
 						mesh.displsProcFaces, mesh.displsProcFaces);
@@ -170,7 +170,7 @@ void SEMO_Solvers_Builder::calcCurvature(
 			}
 		}
 		vector<double> recvValues;
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					sendValues, recvValues,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
@@ -269,15 +269,15 @@ void SEMO_Solvers_Builder::calcCurvature(
 			}
 		}
 		vector<double> recvValues0, recvValues1, recvValues2;
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					sendValues0, recvValues0,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					sendValues1, recvValues1,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					sendValues2, recvValues2,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);

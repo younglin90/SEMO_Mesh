@@ -1104,6 +1104,8 @@ void SEMO_Solvers_Builder::calcMSTACS(
 	
 	
 	vector<double> corantNo;
+	double tmpCFL = 1.0;
+	double eps = 1.e-8;
 
 	for(auto& cell : mesh.cells){
 		
@@ -1121,7 +1123,7 @@ void SEMO_Solvers_Builder::calcMSTACS(
 			maxA = max(maxA,mesh.faces[i].area);
 		}
 		
-		double co = magVel * controls.timeStep * maxA / cell.volume;
+		double co = 1.0/tmpCFL * magVel * controls.timeStep * maxA / cell.volume;
 		
 		corantNo.push_back(co);
 	}
@@ -1156,150 +1158,109 @@ void SEMO_Solvers_Builder::calcMSTACS(
 			L2 = max( minAlp, min( maxAlp, L2 ));
 			R2 = max( minAlp, min( maxAlp, R2 ));
 
+			double vfL = L1;
+			double vfR = R1;
 
+			for(int LR=0; LR<2; ++LR){
+				
+				if(LR==0 && ( vfL > 1.0-eps || vfL < eps )) continue;
+				if(LR==1 && ( vfR > 1.0-eps || vfR < eps )) continue;
+				
+				double alpU=0;
+				double alpD=0;
+				double alpA=0;
+				double coDD=0;
+				double cosTheta = 0.0;
+				double tmp1 = 0.0;
+				if(LR==0) {
+					// left value
+					alpU = L2; alpD = L1; alpA = R1; 
+					coDD = corantNo[face.owner];
+					
+					for(int i=0; i<3; ++i){
+						cosTheta += pow(inpDX[face.owner][i],2.0);
+						tmp1 += pow(face.distCells[i],2.0);
+					}
+					cosTheta = sqrt(cosTheta)*sqrt(tmp1);
+					
+					tmp1 = 0.0;
+					for(int i=0; i<3; ++i){
+						tmp1 += inpDX[face.owner][i]*face.distCells[i];
+					}
+				}
+				else{
+					// right value
+					alpU = R2; alpD = R1; alpA = L1; 
+					coDD = corantNo[face.neighbour];
+					
+					for(int i=0; i<3; ++i){
+						cosTheta += pow(inpDX[face.neighbour][i],2.0);
+						tmp1 += pow(face.distCells[i],2.0);
+					}
+					cosTheta = sqrt(cosTheta)*sqrt(tmp1);
+					
+					tmp1 = 0.0;
+					for(int i=0; i<3; ++i){
+						tmp1 += inpDX[face.neighbour][i]*face.distCells[i];
+					}
+				}
+				
+				if(cosTheta>0.0) cosTheta = abs(tmp1) / cosTheta;
+				
+				double gamF = min(pow(cosTheta,4.0),1.0);
+				
+				double tildeCd = (alpD-alpU)/(abs(alpA-alpU)+1.e-200)*( alpA>alpU ? 1.0 : -1.0 );
+				
+				double gamma_f;
+				
 
-			// left value
-			double alpU = L2; 
-			double alpD = L1; 
-			double alpA = R1; 
-			double coDD = corantNo[face.owner];
-			// double coDD = 1.e-8;
-			
-			double cosTheta = 0.0;
-			double tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				cosTheta += pow(inpDX[face.owner][i],2.0);
-				tmp1 += pow(face.distCells[i],2.0);
+				// CDS-MSTACS
+				if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.0 && coDD<=0.33){
+					double tildeCf = min(1.0,tildeCd/coDD);
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.33 && coDD<=1.0) {
+					double tildeCf = min(1.0,3.0*tildeCd);
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else{
+					gamma_f = 0.0;
+				}
+				double vfCompressive = gamma_f * alpA + (1.0-gamma_f) * alpD;
+				
+				
+				// HR-STOIC
+				if(tildeCd>=0.0 && tildeCd<0.2) {
+					double tildeCf = min(1.0,3.0*tildeCd);
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.2 && tildeCd<0.5) {
+					double tildeCf = 0.5 + 0.5*tildeCd;
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.5 && tildeCd<0.8333) {
+					double tildeCf = 0.375 + 0.75*tildeCd;
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.8333 && tildeCd<1.0) {
+					double tildeCf = 1.0;
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else{
+					gamma_f = 0.0;
+				}
+				double vfDiffusive = gamma_f * alpA + (1.0-gamma_f) * alpD;
+				
+				double vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
+				
+				if(LR==0) vfL = max( 0.0, min( 1.0, vf ));
+				if(LR==1) vfR = max( 0.0, min( 1.0, vf ));
+				
 			}
-			cosTheta = sqrt(cosTheta)*sqrt(tmp1);
-			
-			tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				tmp1 += inpDX[face.owner][i]*face.distCells[i];
-			}
-			if(cosTheta>0.0) cosTheta = abs(tmp1) / cosTheta;
-			
-			double gamF = min(pow(cosTheta,4.0),1.0);
-			
-			double tildeCd = (alpD-alpU)/(abs(alpA-alpU)+1.e-200)*( alpA>alpU ? 1.0 : -1.0 );
-			
-			double gamma_f;
-			
 
-			// CDS-MSTACS
-			if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.0 && coDD<=0.33){
-				double tildeCf = min(1.0,tildeCd/coDD);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.33 && coDD<=1.0) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			double vfCompressive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			
-			// HR-STOIC
-			if(tildeCd>=0.0 && tildeCd<0.2) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.2 && tildeCd<0.5) {
-				double tildeCf = 0.5 + 0.5*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.5 && tildeCd<0.8333) {
-				double tildeCf = 0.375 + 0.75*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.8333 && tildeCd<1.0) {
-				double tildeCf = 1.0;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			double vfDiffusive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			double vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
-			
-			double vfL = max( 0.0, min( 1.0, vf ));
-			
-
-
-			// right value
-			alpU = R2; alpD = R1; alpA = L1; 
-			coDD = corantNo[face.neighbour];
-			// coDD = 1.e-8;
-
-			cosTheta = 0.0;
-			tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				cosTheta += pow(inpDX[face.neighbour][i],2.0);
-				tmp1 += pow(face.distCells[i],2.0);
-			}
-			cosTheta = sqrt(cosTheta)*sqrt(tmp1);
-			
-			tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				tmp1 += inpDX[face.neighbour][i]*face.distCells[i];
-			}
-			if(cosTheta>0.0) cosTheta = abs(tmp1) / cosTheta;
-			
-			gamF = min(pow(cosTheta,4.0),1.0);
-			
-			tildeCd = (alpD-alpU)/(abs(alpA-alpU)+1.e-200)*( alpA>alpU ? 1.0 : -1.0 );
-			
-			// CDS-MSTACS
-			if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.0 && coDD<=0.33){
-				double tildeCf = min(1.0,tildeCd/coDD);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.33 && coDD<=1.0) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			vfCompressive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			// HR-STOIC
-			if(tildeCd>=0.0 && tildeCd<0.2) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.2 && tildeCd<0.5) {
-				double tildeCf = 0.5 + 0.5*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.5 && tildeCd<0.8333) {
-				double tildeCf = 0.375 + 0.75*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.8333 && tildeCd<1.0) {
-				double tildeCf = 1.0;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			vfDiffusive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
-			
-			double vfR = max( 0.0, min( 1.0, vf ));
-			
-			
-			
 			// set velues
 			face.varL[fn] = vfL;
 			face.varR[fn] = vfR;
-			
-			// if(vfL>0) cout << vfL << " " << vfR << " " << L1 << " " << R1 << endl;
-			
 			
 			
 		}
@@ -1330,144 +1291,111 @@ void SEMO_Solvers_Builder::calcMSTACS(
 			R2 = max( minAlp, min( maxAlp, R2 ));
 
 
+			double vfL = L1;
+			double vfR = R1;
 
-			// left value
-			double alpU = L2; 
-			double alpD = L1; 
-			double alpA = R1; 
-			double coDD = corantNo[face.owner];
-			
-			double cosTheta = 0.0;
-			double tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				cosTheta += pow(inpDX[face.owner][i],2.0);
-				tmp1 += pow(face.distCells[i],2.0);
-			}
-			cosTheta = sqrt(cosTheta)*sqrt(tmp1);
-			
-			tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				tmp1 += inpDX[face.owner][i]*face.distCells[i];
-			}
-			if(cosTheta>0.0) cosTheta = abs(tmp1) / cosTheta;
-			
-			double gamF = min(pow(cosTheta,4.0),1.0);
-			
-			double tildeCd = (alpD-alpU)/(abs(alpA-alpU)+1.e-200)*( alpA>alpU ? 1.0 : -1.0 );
-			
-			double gamma_f;
-			
+			for(int LR=0; LR<2; ++LR){
+				
+				if(LR==0 && ( vfL > 1.0-eps || vfL < eps )) continue;
+				if(LR==1 && ( vfR > 1.0-eps || vfR < eps )) continue;
+				
+				double alpU=0;
+				double alpD=0;
+				double alpA=0;
+				double coDD=0;
+				double cosTheta = 0.0;
+				double tmp1 = 0.0;
+				if(LR==0) {
+					// left value
+					alpU = L2; alpD = L1; alpA = R1; 
+					coDD = corantNo[face.owner];
+					
+					for(int i=0; i<3; ++i){
+						cosTheta += pow(inpDX[face.owner][i],2.0);
+						tmp1 += pow(face.distCells[i],2.0);
+					}
+					cosTheta = sqrt(cosTheta)*sqrt(tmp1);
+					
+					tmp1 = 0.0;
+					for(int i=0; i<3; ++i){
+						tmp1 += inpDX[face.owner][i]*face.distCells[i];
+					}
+				}
+				else{
+					// right value
+					alpU = R2; alpD = R1; alpA = L1; 
+					coDD = corantNo[face.neighbour];
+					
+					for(int i=0; i<3; ++i){
+						cosTheta += pow(inpDX[procN][i],2.0);
+						tmp1 += pow(face.distCells[i],2.0);
+					}
+					cosTheta = sqrt(cosTheta)*sqrt(tmp1);
+					
+					tmp1 = 0.0;
+					for(int i=0; i<3; ++i){
+						tmp1 += inpDX[procN][i]*face.distCells[i];
+					}
+					
+				}
+				
+				if(cosTheta>0.0) cosTheta = abs(tmp1) / cosTheta;
+				
+				double gamF = min(pow(cosTheta,4.0),1.0);
+				
+				double tildeCd = (alpD-alpU)/(abs(alpA-alpU)+1.e-200)*( alpA>alpU ? 1.0 : -1.0 );
+				
+				double gamma_f;
+				
 
-			// CDS-MSTACS
-			if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.0 && coDD<=0.33){
-				double tildeCf = min(1.0,tildeCd/coDD);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				// CDS-MSTACS
+				if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.0 && coDD<=0.33){
+					double tildeCf = min(1.0,tildeCd/coDD);
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.33 && coDD<=1.0) {
+					double tildeCf = min(1.0,3.0*tildeCd);
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else{
+					gamma_f = 0.0;
+				}
+				double vfCompressive = gamma_f * alpA + (1.0-gamma_f) * alpD;
+				
+				
+				// HR-STOIC
+				if(tildeCd>=0.0 && tildeCd<0.2) {
+					double tildeCf = min(1.0,3.0*tildeCd);
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.2 && tildeCd<0.5) {
+					double tildeCf = 0.5 + 0.5*tildeCd;
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.5 && tildeCd<0.8333) {
+					double tildeCf = 0.375 + 0.75*tildeCd;
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else if(tildeCd>=0.8333 && tildeCd<1.0) {
+					double tildeCf = 1.0;
+					gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+				}
+				else{
+					gamma_f = 0.0;
+				}
+				double vfDiffusive = gamma_f * alpA + (1.0-gamma_f) * alpD;
+				
+				double vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
+				
+				if(LR==0) vfL = max( 0.0, min( 1.0, vf ));
+				if(LR==1) vfR = max( 0.0, min( 1.0, vf ));
+				
 			}
-			else if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.33 && coDD<=1.0) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			double vfCompressive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			
-			// HR-STOIC
-			if(tildeCd>=0.0 && tildeCd<0.2) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.2 && tildeCd<0.5) {
-				double tildeCf = 0.5 + 0.5*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.5 && tildeCd<0.8333) {
-				double tildeCf = 0.375 + 0.75*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.8333 && tildeCd<1.0) {
-				double tildeCf = 1.0;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			double vfDiffusive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			double vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
-			
-			double vfL = max( 0.0, min( 1.0, vf ));
-			
 
-
-			// right value
-			alpU = R2; alpD = R1; alpA = L1; coDD = corantNo[face.owner];
-
-			cosTheta = 0.0;
-			tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				cosTheta += pow(inpDX[procN][i],2.0);
-				tmp1 += pow(face.distCells[i],2.0);
-			}
-			cosTheta = sqrt(cosTheta)*sqrt(tmp1);
-			
-			tmp1 = 0.0;
-			for(int i=0; i<3; ++i){
-				tmp1 += inpDX[procN][i]*face.distCells[i];
-			}
-			if(cosTheta>0.0) cosTheta = abs(tmp1) / cosTheta;
-			
-			gamF = min(pow(cosTheta,4.0),1.0);
-			
-			tildeCd = (alpD-alpU)/(abs(alpA-alpU)+1.e-200)*( alpA>alpU ? 1.0 : -1.0 );
-			
-			// CDS-MSTACS
-			if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.0 && coDD<=0.33){
-				double tildeCf = min(1.0,tildeCd/coDD);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.0 && tildeCd<1.0 && coDD>0.33 && coDD<=1.0) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			vfCompressive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			// HR-STOIC
-			if(tildeCd>=0.0 && tildeCd<0.2) {
-				double tildeCf = min(1.0,3.0*tildeCd);
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.2 && tildeCd<0.5) {
-				double tildeCf = 0.5 + 0.5*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.5 && tildeCd<0.8333) {
-				double tildeCf = 0.375 + 0.75*tildeCd;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else if(tildeCd>=0.8333 && tildeCd<1.0) {
-				double tildeCf = 1.0;
-				gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
-			}
-			else{
-				gamma_f = 0.0;
-			}
-			vfDiffusive = gamma_f * alpA + (1.0-gamma_f) * alpD;
-			
-			vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
-			
-			double vfR = max( 0.0, min( 1.0, vf ));
-			
-			
 			
 			// set velues
 			face.varL[fn] = vfL;
 			face.varR[fn] = vfR;
-			
 			
 			
 			

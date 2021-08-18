@@ -73,6 +73,10 @@ int main(int argc, char* argv[]) {
 	vector<vector<double>> cellXYZ(mesh.cells.size(),vector<double>(3,0.0));
 	for(int i=0; i<mesh.cells.size(); ++i){
 		SEMO_Cell& cell = mesh.cells[i];
+		
+		cell.level = 0;
+		cell.group = i;
+		
 		for(auto& j : mesh.cells[i].points){
 			cellXYZ[i][0] += mesh.points[j].x;
 			cellXYZ[i][1] += mesh.points[j].y;
@@ -84,6 +88,17 @@ int main(int argc, char* argv[]) {
 		
 		cell.var.resize(6,0.0);
 	}
+	
+	
+	
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		face.level = 0;
+		face.group = i;
+	}
+	
+	
 	
 	vector<string> type;
 	vector<double> values;
@@ -656,6 +671,16 @@ void saveInitialField(string folder){
 	outputFile << "     </DataArray>" << endl;
 	
 	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"cellLevels\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << cell.level << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"cellGroups\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << cell.group << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
 	
 	
 	
@@ -769,6 +794,21 @@ void saveInitialField(string folder){
 	outputFile << endl;
 	outputFile << " </neighbour>" << endl;
 	
+	outputFile << " <faceLevels>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.level << " ";
+	}
+	outputFile << endl;
+	outputFile << " </faceLevels>" << endl;
+	
+	outputFile << " <faceGroups>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.group << " ";
+	}
+	outputFile << endl;
+	outputFile << " </faceGroups>" << endl;
+	
+	
 	outputFile << " <bcName>" << endl;
 	for(auto& boundary : mesh.boundary){
 		// cout << boundary.name << endl;
@@ -847,6 +887,8 @@ void saveInitialField(string folder){
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"temperature\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"volumeFraction-" << species[0].name << "\"/>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"cellLevels\"/>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"cellGroups\"/>" << endl;
 		outputFile << "   </PCellData>" << endl;
 		outputFile << "  </PUnstructuredGrid>" << endl;
 		outputFile << "</VTKFile>" << endl;

@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
 		SEMO_MPI_Builder mpi;
 		
 		vector<double> recvValues;
-		mpi.setProcsFaceDatasDouble(
+		mpi.setProcsFaceDatas(
 					sendValues, recvValues,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);

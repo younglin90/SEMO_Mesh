@@ -724,7 +724,7 @@ void partitionFromSerial(int nBlocks, vector<int>& idBlockCell, vector<SEMO_Mesh
 			
 				// idFacePoint_Send[idBlock].push_back(mesh.faces[k].points.size());
 				newMesh[idBlock].addFace();
-				std::reverse(idFacePoint.begin(),idFacePoint.end());
+				std::reverse(idFacePoint.begin()+1,idFacePoint.end());
 				for(int i=0; i<idFacePoint.size(); ++i){
 					// idFacePoint_Send[idBlock].push_back(idFacePoint[i]);
 					newMesh[idBlock].faces.back().points.push_back(idFacePoint[i]);

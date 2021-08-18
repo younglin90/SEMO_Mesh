@@ -561,88 +561,88 @@ void SEMO_Mesh_Save::vtu(
 	// solvers.setCompValuesLeftRightFace(mesh, controls, species);
 	
 	outputFile << "    <PointData>" << endl;
-	for(auto& point : mesh.points){
-		point.var.resize(7,0.0);
-	}
-	for(auto& face : mesh.faces){
-		if(
-		face.getType() == SEMO_Types::INTERNAL_FACE ||
-		face.getType() == SEMO_Types::PROCESSOR_FACE
-		){
-			for(auto& point : face.points){
+	// for(auto& point : mesh.points){
+		// point.var.resize(7,0.0);
+	// }
+	// for(auto& face : mesh.faces){
+		// if(
+		// face.getType() == SEMO_Types::INTERNAL_FACE ||
+		// face.getType() == SEMO_Types::PROCESSOR_FACE
+		// ){
+			// for(auto& point : face.points){
 				
-				mesh.points[point].var[0] += face.varL[controls.fP];
-				mesh.points[point].var[0] += face.varR[controls.fP];
+				// mesh.points[point].var[0] += face.varL[controls.fP];
+				// mesh.points[point].var[0] += face.varR[controls.fP];
 				
-				mesh.points[point].var[1] += face.varL[controls.fU];
-				mesh.points[point].var[1] += face.varR[controls.fU];
+				// mesh.points[point].var[1] += face.varL[controls.fU];
+				// mesh.points[point].var[1] += face.varR[controls.fU];
 				
-				mesh.points[point].var[2] += face.varL[controls.fV];
-				mesh.points[point].var[2] += face.varR[controls.fV];
+				// mesh.points[point].var[2] += face.varL[controls.fV];
+				// mesh.points[point].var[2] += face.varR[controls.fV];
 				
-				mesh.points[point].var[3] += face.varL[controls.fW];
-				mesh.points[point].var[3] += face.varR[controls.fW];
+				// mesh.points[point].var[3] += face.varL[controls.fW];
+				// mesh.points[point].var[3] += face.varR[controls.fW];
 				
-				mesh.points[point].var[4] += face.varL[controls.fT];
-				mesh.points[point].var[4] += face.varR[controls.fT];
+				// mesh.points[point].var[4] += face.varL[controls.fT];
+				// mesh.points[point].var[4] += face.varR[controls.fT];
 				
-				mesh.points[point].var[5] += face.varL[controls.fRho];
-				mesh.points[point].var[5] += face.varR[controls.fRho];
+				// mesh.points[point].var[5] += face.varL[controls.fRho];
+				// mesh.points[point].var[5] += face.varR[controls.fRho];
 				
-				// mesh.points[point].var[5] += face.varL[controls.fVF[0]];
-				// mesh.points[point].var[5] += face.varR[controls.fVF[0]];
+				// // mesh.points[point].var[5] += face.varL[controls.fVF[0]];
+				// // mesh.points[point].var[5] += face.varR[controls.fVF[0]];
 				
-				mesh.points[point].var[6] += 2.0;
-			}
-		}
-	}
-	for(auto& point : mesh.points){
-		point.var[0] /= point.var[6];
-		point.var[1] /= point.var[6];
-		point.var[2] /= point.var[6];
-		point.var[3] /= point.var[6];
-		point.var[4] /= point.var[6];
-		point.var[5] /= point.var[6];
-	}
-	for(auto& face : mesh.faces){
-		if(
-		face.getType() == SEMO_Types::BOUNDARY_FACE
-		){
-			for(auto& point : face.points){
+				// mesh.points[point].var[6] += 2.0;
+			// }
+		// }
+	// }
+	// for(auto& point : mesh.points){
+		// point.var[0] /= point.var[6];
+		// point.var[1] /= point.var[6];
+		// point.var[2] /= point.var[6];
+		// point.var[3] /= point.var[6];
+		// point.var[4] /= point.var[6];
+		// point.var[5] /= point.var[6];
+	// }
+	// for(auto& face : mesh.faces){
+		// if(
+		// face.getType() == SEMO_Types::BOUNDARY_FACE
+		// ){
+			// for(auto& point : face.points){
 				
-				mesh.points[point].var[0] = face.varL[controls.fP];
-				mesh.points[point].var[1] = face.varL[controls.fU];
-				mesh.points[point].var[2] = face.varL[controls.fV];
-				mesh.points[point].var[3] = face.varL[controls.fW];
-				mesh.points[point].var[4] = face.varL[controls.fT];
-				mesh.points[point].var[5] = face.varL[controls.fRho];
-				// mesh.points[point].var[5] = face.varL[controls.fVF[0]];
-			}
-		}
-	}
-	outputFile << "     <DataArray type=\"Float64\" Name=\"pointP\" format=\"ascii\">" << endl;
-	for(auto& point : mesh.points) outputFile << scientific << point.var[0] << " ";
-	outputFile << endl;
-	outputFile << "     </DataArray>" << endl;
+				// mesh.points[point].var[0] = face.varL[controls.fP];
+				// mesh.points[point].var[1] = face.varL[controls.fU];
+				// mesh.points[point].var[2] = face.varL[controls.fV];
+				// mesh.points[point].var[3] = face.varL[controls.fW];
+				// mesh.points[point].var[4] = face.varL[controls.fT];
+				// mesh.points[point].var[5] = face.varL[controls.fRho];
+				// // mesh.points[point].var[5] = face.varL[controls.fVF[0]];
+			// }
+		// }
+	// }
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"pointP\" format=\"ascii\">" << endl;
+	// for(auto& point : mesh.points) outputFile << scientific << point.var[0] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
 	
-	outputFile << "     <DataArray type=\"Float64\" Name=\"pointVel\" NumberOfComponents=\"3\" format=\"ascii\">" << endl;
-	for(auto& point : mesh.points) outputFile << scientific << point.var[1] << " "<< point.var[2] << " "<< point.var[3] << " ";
-	outputFile << endl;
-	outputFile << "     </DataArray>" << endl;
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"pointVel\" NumberOfComponents=\"3\" format=\"ascii\">" << endl;
+	// for(auto& point : mesh.points) outputFile << scientific << point.var[1] << " "<< point.var[2] << " "<< point.var[3] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
 
-	outputFile << "     <DataArray type=\"Float64\" Name=\"pointT\" format=\"ascii\">" << endl;
-	for(auto& point : mesh.points) outputFile << scientific << point.var[4] << " ";
-	outputFile << endl;
-	outputFile << "     </DataArray>" << endl;
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"pointT\" format=\"ascii\">" << endl;
+	// for(auto& point : mesh.points) outputFile << scientific << point.var[4] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
 	
-	outputFile << "     <DataArray type=\"Float64\" Name=\"pointRho\" format=\"ascii\">" << endl;
-	for(auto& point : mesh.points) outputFile << scientific << point.var[5] << " ";
-	outputFile << endl;
-	outputFile << "     </DataArray>" << endl;
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"pointRho\" format=\"ascii\">" << endl;
+	// for(auto& point : mesh.points) outputFile << scientific << point.var[5] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
 	
-	for(auto& point : mesh.points){
-		point.var.clear();
-	}
+	// for(auto& point : mesh.points){
+		// point.var.clear();
+	// }
 	outputFile << "    </PointData>" << endl;
 	
 	
@@ -691,27 +691,40 @@ void SEMO_Mesh_Save::vtu(
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
-	// cell volume
-	outputFile << "     <DataArray type=\"Float64\" Name=\"volume\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.volume << " ";
+	
+	// cell levels
+	outputFile << "     <DataArray type=\"Int64\" Name=\"cellLevels\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << cell.level << " ";
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
-	// UDV
-	outputFile << "     <DataArray type=\"Float64\" Name=\"UDV0\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.UDV[0]] << " ";
+	// cell groups
+	outputFile << "     <DataArray type=\"Int64\" Name=\"cellGroups\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << cell.group << " ";
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
-	outputFile << "     <DataArray type=\"Float64\" Name=\"UDV1\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.UDV[1]] << " ";
-	outputFile << endl;
-	outputFile << "     </DataArray>" << endl;
+	// // cell volume
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"volume\" format=\"ascii\">" << endl;
+	// for(auto& cell : mesh.cells) outputFile << scientific << cell.volume << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
 	
-	outputFile << "     <DataArray type=\"Float64\" Name=\"UDV2\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.UDV[2]] << " ";
-	outputFile << endl;
-	outputFile << "     </DataArray>" << endl;
+	// // UDV
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"UDV0\" format=\"ascii\">" << endl;
+	// for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.UDV[0]] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
+	
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"UDV1\" format=\"ascii\">" << endl;
+	// for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.UDV[1]] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
+	
+	// outputFile << "     <DataArray type=\"Float64\" Name=\"UDV2\" format=\"ascii\">" << endl;
+	// for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.UDV[2]] << " ";
+	// outputFile << endl;
+	// outputFile << "     </DataArray>" << endl;
 	
 	
 	
@@ -831,6 +844,23 @@ void SEMO_Mesh_Save::vtu(
 	outputFile << endl;
 	outputFile << " </neighbour>" << endl;
 	
+	
+	outputFile << " <faceLevels>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.level << " ";
+	}
+	outputFile << endl;
+	outputFile << " </faceLevels>" << endl;
+	
+	
+	outputFile << " <faceGroups>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.group << " ";
+	}
+	outputFile << endl;
+	outputFile << " </faceGroups>" << endl;
+	
+	
 	outputFile << " <bcName>" << endl;
 	for(auto& boundary : mesh.boundary){
 		// cout << boundary.name << endl;
@@ -915,10 +945,10 @@ void SEMO_Mesh_Save::vtu(
 		}
 		outputFile << "   <PPointData>" << endl;
 
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"pointP\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"pointVel\" NumberOfComponents=\"3\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"pointT\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"pointRho\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointP\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointVel\" NumberOfComponents=\"3\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointT\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointRho\"/>" << endl;
 		
 		outputFile << "   </PPointData>" << endl;
 		outputFile << "   <PCellData>" << endl;
@@ -927,10 +957,12 @@ void SEMO_Mesh_Save::vtu(
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"temperature\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"density\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"" << volFracName[0] << "\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"volume\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"UDV0\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"UDV1\"/>" << endl;
-		outputFile << "    <PDataArray type=\"Float64\" Name=\"UDV2\"/>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"cellLevels\"/>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"cellGroups\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"volume\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"UDV0\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"UDV1\"/>" << endl;
+		// outputFile << "    <PDataArray type=\"Float64\" Name=\"UDV2\"/>" << endl;
 		outputFile << "   </PCellData>" << endl;
 		outputFile << "  </PUnstructuredGrid>" << endl;
 		outputFile << "</VTKFile>" << endl;

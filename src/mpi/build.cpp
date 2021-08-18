@@ -100,21 +100,29 @@ void SEMO_MPI_Builder::setProcsFaceDatas(
 	MPI_Alltoallv( sendValues.data(), sendCounts.data(), sendDisps.data(), MPI_INT, 
 				   recvValues.data(), recvCounts.data(), recvDisps.data(), MPI_INT, 
 				   MPI_COMM_WORLD);
-	// int num=0;
-	// for(auto& i : recvValues){
-		
-		// cout << sendValues[num] << " " << i << endl;
-		// ++num;
-	// }
-	
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 }
 
 
+// void SEMO_MPI_Builder::setProcsFaceDatas(
+	// vector<bool>& sendValues, vector<bool>& recvValues,
+	// vector<int>& sendCounts, vector<int>& recvCounts, 
+	// vector<int>& sendDisps, vector<int>& recvDisps){
+		
+		
+	// int size = sendCounts.size(); 
+	
+	// recvValues.clear();
+	// recvValues.resize(recvDisps[size-1] + recvCounts[size-1],false);
+	
+	// // MPI_Alltoallv( sendValues.data(), sendCounts.data(), sendDisps.data(), MPI_C_BOOL, 
+				   // // recvValues.data(), recvCounts.data(), recvDisps.data(), MPI_C_BOOL, 
+				   // // MPI_COMM_WORLD);
+	
+// }
 
-void SEMO_MPI_Builder::setProcsFaceDatasDouble(
+
+void SEMO_MPI_Builder::setProcsFaceDatas(
 	vector<double>& sendValues, vector<double>& recvValues,
 	vector<int>& sendCounts, vector<int>& recvCounts, 
 	vector<int>& sendDisps, vector<int>& recvDisps){
@@ -123,12 +131,32 @@ void SEMO_MPI_Builder::setProcsFaceDatasDouble(
 	int size = sendCounts.size(); 
 	
 	recvValues.clear();
-	recvValues.resize(recvDisps[size-1] + recvCounts[size-1],0);
+	recvValues.resize(recvDisps[size-1] + recvCounts[size-1],0.0);
 	
 	MPI_Alltoallv( sendValues.data(), sendCounts.data(), sendDisps.data(), MPI_DOUBLE, 
 				   recvValues.data(), recvCounts.data(), recvDisps.data(), MPI_DOUBLE, 
 				   MPI_COMM_WORLD);
 	
 }
+
+
+
+
+// void SEMO_MPI_Builder::setProcsFaceDatasDouble(
+	// vector<double>& sendValues, vector<double>& recvValues,
+	// vector<int>& sendCounts, vector<int>& recvCounts, 
+	// vector<int>& sendDisps, vector<int>& recvDisps){
+		
+		
+	// int size = sendCounts.size(); 
+	
+	// recvValues.clear();
+	// recvValues.resize(recvDisps[size-1] + recvCounts[size-1],0);
+	
+	// MPI_Alltoallv( sendValues.data(), sendCounts.data(), sendDisps.data(), MPI_DOUBLE, 
+				   // recvValues.data(), recvCounts.data(), recvDisps.data(), MPI_DOUBLE, 
+				   // MPI_COMM_WORLD);
+	
+// }
 
 
