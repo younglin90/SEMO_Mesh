@@ -25,6 +25,18 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	SEMO_Utility_Math math;
 	SEMO_Solvers_Builder solvers;
 	
+	
+	
+	for(int i=0; i<mesh.cells.size(); ++i){
+		mesh.cells[i].level = 0;
+		mesh.cells[i].group = i;
+	}
+	for(int i=0; i<mesh.faces.size(); ++i){
+		mesh.faces[i].level = 0;
+	}
+	
+	
+	
 	// for(int i=0; i<15; ++i){
 
 
@@ -39,25 +51,20 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	}
 
 		
-	
+	for(int i=0; i<3; ++i){
 		
 	polyRefine(mesh, controls, 0);
 	polyRefine(mesh, controls, 0);
-	polyRefine(mesh, controls, 0);
-	polyRefine(mesh, controls, 0);
-	polyRefine(mesh, controls, 0);
-	polyRefine(mesh, controls, 0);
-	polyRefine(mesh, controls, 0);
+	// polyRefine(mesh, controls, 0);
+	// polyRefine(mesh, controls, 0);
+	// polyRefine(mesh, controls, 0);
+	// polyRefine(mesh, controls, 0);
+	// polyRefine(mesh, controls, 0);
 	
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
+	polyUnrefine(mesh, controls, 0);
+	polyUnrefine(mesh, controls, 0);
+	polyUnrefine(mesh, controls, 0);
+	polyUnrefine(mesh, controls, 0);
 	// polyUnrefine(mesh, controls, 0);
 	// polyUnrefine(mesh, controls, 0);
 	// polyUnrefine(mesh, controls, 0);
@@ -65,6 +72,7 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	// polyUnrefine(mesh, controls, 0);
 	// polyUnrefine(mesh, controls, 0);
 	
+	}
 	
 
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -246,8 +254,8 @@ void SEMO_Poly_AMR_Builder::restrictCellRefine(
 			++proc_num;
 		}
 	}
-	cLevel_recv.clear();
-	cRefine_recv.clear();
+	// cLevel_recv.clear();
+	// cRefine_recv.clear();
 }
 
 

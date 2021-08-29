@@ -32,19 +32,19 @@ public:
 		SEMO_Controls_Builder& controls,
 		int iter);
 		
-	void sortCellCanUnrefine(
-		vector<int>& vLevel, 
-		int saveLevel, 
-		int& num, 
-		vector<vector<int>>& vGroupLevel, 
-		vector<vector<int>>& vGroupNumber);
+	// void sortCellCanUnrefine(
+		// vector<int>& vLevel, 
+		// int saveLevel, 
+		// int& num, 
+		// vector<vector<int>>& vGroupLevel, 
+		// vector<vector<int>>& vGroupNumber);
 		
-	void sortFaceCanUnrefine(
-		vector<int>& vLevel, 
-		int saveLevel, 
-		int& num, 
-		vector<vector<int>>& vGroupLevel, 
-		vector<vector<int>>& vGroupNumber);
+	// void sortFaceCanUnrefine(
+		// vector<int>& vLevel, 
+		// int saveLevel, 
+		// int& num, 
+		// vector<vector<int>>& vGroupLevel, 
+		// vector<vector<int>>& vGroupNumber);
 		
 	void mpiLevelRefine(
 		SEMO_Mesh_Builder& mesh, 

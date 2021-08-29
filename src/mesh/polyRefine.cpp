@@ -654,7 +654,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 		
 		
 		
-			// // boolCellRefine[i] = true;
+			// boolCellRefine[i] = true;
 		
 		
 			// // boolCellRefine[i] = false;
@@ -667,6 +667,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 		
 		
 	} 
+			// // boolCellRefine[0] = true;
 		// if(rank==0){
 			// // boolCellRefine[i] = false;
 		// }
@@ -762,7 +763,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "0000 : " << rank << endl;
+	// cout << "0000 : " << rank << endl;
 	
 	
 	//====================================================
@@ -933,7 +934,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	}
 	
 	
-	cout << "1111 : " << rank << endl;
+	// cout << "1111 : " << rank << endl;
 	
 	
 	//====================================================
@@ -1095,7 +1096,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "2222 : " << rank << endl;
+	// cout << "2222 : " << rank << endl;
 	
 
 	
@@ -1119,12 +1120,16 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	// createCellInternalFaces
 	
 	vector<int> groupCellInternalFaces_id(mesh.cells.size(),-1);
-	vector<vector<int>> groupCell_Levels(mesh.cells.size(),vector<int>());
+	// vector<vector<int>> groupCell_Levels(mesh.cells.size(),vector<int>());
+	// vector<vector<int>> groupCell_Groups(mesh.cells.size(),vector<int>());
+	vector<vector<int>> groupCell_Levels;
+	vector<vector<int>> groupCell_Groups;
 	int totalCellNum = 0;
 	for(int i=0; i<mesh.cells.size(); ++i){
 		
 		auto& cell = mesh.cells[i];
 		int cellLevel = cell.level;
+		int cellGroup = cell.group;
 		
 		if(boolCellRefine[i]==true){
 			
@@ -1226,7 +1231,15 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 				
 			// }
 			
-			groupCell_Levels[i].resize(cellVertexOrder.size(),cellLevel+1);
+			groupCell_Levels.push_back(vector<int>());
+			for(int jj=0; jj<cellVertexOrder.size(); ++jj){
+				groupCell_Levels.back().push_back(cellLevel+1);
+			}
+			
+			groupCell_Groups.push_back(vector<int>());
+			for(int jj=0; jj<cellVertexOrder.size(); ++jj){
+				groupCell_Groups.back().push_back(cellGroup);
+			}
 			
 			totalCellNum += cellVertexOrder.size();
 			// cout << "1-2" << endl;
@@ -1258,7 +1271,15 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 			reorderOuterFacesOwnerNeighbour(mesh, cell, i, totalCellNum,
 				groupChildFaces_id, groupChildFaces);
 				
-			groupCell_Levels[i].push_back(cellLevel);
+			// groupCell_Levels[i].push_back(cellLevel);
+			// groupCell_Groups[i].push_back(cellGroup);
+			
+			
+			groupCell_Levels.push_back(vector<int>());
+			groupCell_Levels.back().push_back(cellLevel);
+			
+			groupCell_Groups.push_back(vector<int>());
+			groupCell_Groups.back().push_back(cellGroup);
 			
 			++totalCellNum;
 			
@@ -1270,7 +1291,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "3333 : " << rank << endl;
+	// cout << "3333 : " << rank << endl;
 	
 	
 	
@@ -1341,7 +1362,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "4444 : " << rank << endl;
+	// cout << "4444 : " << rank << endl;
 	
 	
 	// cout << faceResizeNum << " " << mesh.faces.size() << endl;
@@ -1358,7 +1379,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "5555 : " << rank << endl;
+	// cout << "5555 : " << rank << endl;
 	
 	
 	// Proc & B.C. faces	
@@ -1413,7 +1434,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "6666 : " << rank << endl;
+	// cout << "6666 : " << rank << endl;
 	
 	
 	
@@ -1446,7 +1467,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "7777 : " << rank << endl;
+	// cout << "7777 : " << rank << endl;
 	// cout << saveI << endl;
 	
 	
@@ -1510,7 +1531,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	cout << "8888 : " << rank << endl;
+	// cout << "8888 : " << rank << endl;
 	
 	
 	
@@ -1519,37 +1540,37 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	// mesh.setFaceTypes();
 	MPI_Barrier(MPI_COMM_WORLD);
-	cout << "9 : " << rank << endl;
+	// cout << "9 : " << rank << endl;
 	
 	mesh.buildLists();
 	
-	cout << "10 : " << rank << endl;
+	// cout << "10 : " << rank << endl;
 	
 	mesh.connectCelltoFaces();
 	
-	cout << "11 : " << rank << endl;
+	// cout << "11 : " << rank << endl;
 	
 	mesh.connectCelltoPoints();
 	
-	cout << "12 : " << rank << endl;
+	// cout << "12 : " << rank << endl;
 	
 	
 	mesh.setCountsProcFaces();
 	
-	cout << "13 : " << rank << endl;
+	// cout << "13 : " << rank << endl;
 	
 	mesh.setDisplsProcFaces(); 
 	
-	cout << "14 : " << rank << endl;
+	// cout << "14 : " << rank << endl;
 	
 	
-	proc_num = 0;
-	for(int i=0; i<mesh.faces.size(); ++i){
-		if(mesh.faces[i].getType() == SEMO_Types::PROCESSOR_FACE){
-			++proc_num;
-		}
-	}
-	cout << "11111 : " << rank << " " << proc_num << " " << mesh.displsProcFaces[size-1] + mesh.countsProcFaces[size-1] << endl;
+	// proc_num = 0;
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// if(mesh.faces[i].getType() == SEMO_Types::PROCESSOR_FACE){
+			// ++proc_num;
+		// }
+	// }
+	// cout << "11111 : " << rank << " " << proc_num << " " << mesh.displsProcFaces[size-1] + mesh.countsProcFaces[size-1] << endl;
 	
 	// if(rank==1){
 		// for(int ip=0; ip<10000; ++ip){
@@ -1578,14 +1599,23 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 			++tmpCellNum;
 		}
 	}
+	tmpCellNum = 0;
+	for(auto& groupCell : groupCell_Groups){
+		for(auto& group : groupCell){
+			mesh.cells[tmpCellNum].group = group;
+			++tmpCellNum;
+		}
+	}
 	
-	MPI_Barrier(MPI_COMM_WORLD);
-	cout << "15 : " << rank << endl;
+	// cout << tmpCellNum << " " << mesh.cells.size() << endl;
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << "15 : " << rank << endl;
 	
 	this->mpiLevels(mesh, cLevel_recv);
 	
-	MPI_Barrier(MPI_COMM_WORLD);
-	cout << "16 : " << rank << endl;
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << "16 : " << rank << endl;
 	
 	
 	proc_num = 0;
@@ -1614,8 +1644,8 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 		}
 	}
 	
-	MPI_Barrier(MPI_COMM_WORLD);
-	cout << "17 : " << rank << endl;
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << "17 : " << rank << endl;
 	
 	
 
