@@ -126,26 +126,29 @@ void sortCellCanUnrefine(
 	vector<vector<int>>& vGroupNumber
 	) {
 		
+	int rank = MPI::COMM_WORLD.Get_rank();
+	int size = MPI::COMM_WORLD.Get_size();
 		
 	vector<int> tmpLevels;
 	vector<int> tmpNumbers;
 	int limitNum = 7;
-	if (saveLevel <= 1) limitNum = 1000000;
+	if (saveLevel <= 1) limitNum = 2147483647;
 	while (1) {
 		if (vLevel.size() - 1 >= num) {
 			int level = vLevel.at(num);
 			// cout << num << " " << tmpLevels.size()<< " " << saveLevel << " " << level << endl;
 
-			if (
-				saveLevel == level &&
-				tmpLevels.size() < limitNum
-				) {
+			if(
+			saveLevel == level &&
+			tmpLevels.size() < limitNum
+			){
 				tmpLevels.push_back(saveLevel);
 				tmpNumbers.push_back(num);
 			}
-			else if (
-				saveLevel == level &&
-				tmpLevels.size() == limitNum) {
+			else if(
+			saveLevel == level &&
+			tmpLevels.size() == limitNum
+			){
 				if (std::find(tmpNumbers.begin(), tmpNumbers.end(), -1) == tmpNumbers.end()) {
 					tmpLevels.push_back(saveLevel);
 					tmpNumbers.push_back(num);
@@ -154,9 +157,9 @@ void sortCellCanUnrefine(
 				}
 				break;
 			}
-			else if (
-				saveLevel < level
-				) {
+			else if(
+			saveLevel < level
+			){
 				// cout << "start" << endl;
 
 				if (tmpLevels.size() == limitNum+1) {
@@ -182,7 +185,15 @@ void sortCellCanUnrefine(
 		else {
 			
 			if(saveLevel>1 && tmpLevels.size()!=8){
-				cout << "WWWWWWWWWWWWWWW" << endl;
+				cout << "WWWWWWWWWWWWWWW" << " " << rank << " " << saveLevel << " " << tmpLevels.size() << " " << vLevel.size() << " " << num << endl;
+				
+				cout << rank << " ";
+				for(auto& k : vLevel){
+					cout << k << " ";
+				}
+				cout << endl;
+				
+				MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 			}
 			
 			break;
@@ -240,7 +251,7 @@ void extractGroupCellListsCanUnrefine(
 		groupCellListsLevelZero.push_back(vector<int>(1,i));
 		groupCellLevelListsLevelZero.push_back(vector<int>(1,mesh.cells[i].level));
 		
-		if(mesh.cells[i].level==0) continue;
+		if(mesh.cells[i].level<=0) continue;
 		
 		int groupOrg = mesh.cells[i].group;
 		
@@ -255,10 +266,10 @@ void extractGroupCellListsCanUnrefine(
 	
 	
 	int testNum = 0;
-	for(auto& j : groupCellListsLevelZero[0]){
-		// if(rank==0) cout << j << " ";
-		++testNum;
-	}
+	// for(auto& j : groupCellListsLevelZero[0]){
+		// // if(rank==0) cout << j << " ";
+		// ++testNum;
+	// }
 			
 	
 	
@@ -266,6 +277,15 @@ void extractGroupCellListsCanUnrefine(
 	vector<int> test;
 	for(int i=0; i<groupCellListsLevelZero.size(); ++i){
 		// cout << i << endl;
+		
+		
+		
+		
+		if(groupCellLevelListsLevelZero[i].size()==1) continue;
+		
+		
+		
+		
 		bool boolAllLevelOne = true;
 		for(auto& j : groupCellLevelListsLevelZero[i]){
 			if(j != 1) {
@@ -294,6 +314,8 @@ void extractGroupCellListsCanUnrefine(
 		// ++testNum;
 	// }	
 	// cout << endl;
+			
+			// cout << rank << " " << groupCellListsLevelZero[i][0] << " " << i << endl;
 			
 			sortCellCanUnrefine(
 				groupCellLevelListsLevelZero[i],
@@ -509,7 +531,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 
-	// if(rank==0) cout << "----Unrefine start-----" << endl;
+	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	if(rank==0) cout << "| execute AMR - Unrefine " << endl;
 	
 	
 	SEMO_Mesh_Geometric geometric;
@@ -529,6 +552,16 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// // math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	
+	// vector<bool> boolCanNotUnrefineCells(mesh.cells.size(),false);
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// if(mesh.cells[i].level < 0) boolCanNotUnrefineCells[i] = true;
+	// }
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// if(mesh.faces[i].level < 0) mesh.faces[i].level = 0;
+	// }
+	
+	
+	
 	
 	vector<bool> boolCellUnrefine(mesh.cells.size(),false);
 	for(int i=0; i<mesh.cells.size(); ++i){
@@ -547,6 +580,15 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		
 		// 만약 셀의 레벨이 0 이면, false
 		if(mesh.cells[i].level == 0) boolCellUnrefine[i] = false;
+		
+		
+		if(mesh.cells[i].level < 0) boolCellUnrefine[i] = false;
+		// if(boolCanNotUnrefineCells[i]==true) {
+			// boolCellUnrefine[i] = false;
+			// mesh.cells[i].level = 0;
+		// }
+		
+		
 	}
 	
 	
@@ -570,7 +612,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	//====================================================
-	cout << rank << " : cell groupping start" << endl;
+	// cout << rank << " : cell groupping start" << endl;
 	
 	// 오리지널 그룹 
 	// int saveGroup = mesh.cells[0].group;
@@ -747,6 +789,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	for(int i=0; i<mesh.cells.size(); ++i){
 		if(groupCells_id[i] == -1){
 			cellsLevel[newCellNum] = mesh.cells[i].level;
+			// if(boolCanNotUnrefineCells[i]==true) cellsLevel[newCellNum] = -1;
 			cellsGroup[newCellNum] = mesh.cells[i].group;
 			
 			newCellsNumber[i] = newCellNum;
@@ -755,6 +798,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		}
 		else{
 			cellsLevel[newCellNum] = mesh.cells[i].level-1;
+			// if(boolCanNotUnrefineCells[i]==true) cellsLevel[newCellNum] = -1;
 			cellsGroup[newCellNum] = mesh.cells[i].group;
 			
 			for(auto& j : groupCellsUnrefine[groupCells_id[i]].child){
@@ -767,6 +811,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		}
 	}
 	
+	int totalCellNum = newCellNum;
+	
 	
 	//====================================================
 	// 포인트 삭제 및 넘버링
@@ -775,6 +821,10 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	for(int i=0; i<mesh.cells.size(); ++i){
 		auto& cell = mesh.cells[i];
 		int cellLevel = cell.level;
+		
+		
+		if(cellLevel==-1) cellLevel=0;
+		
 		
 		if(boolCellUnrefine[i] == true){
 			for(auto& j : cell.points){
@@ -806,6 +856,13 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 			int ngbLevel = cLevel_recv[proc_num];
 			bool ownUnrefine = boolCellUnrefine[face.owner];
 			bool ngbUnrefine = cUnrefine_recv[proc_num];
+			
+			
+			if(faceLevel==-1) faceLevel=0;
+			if(ownLevel==-1) ownLevel=0;
+			if(ngbLevel==-1) ngbLevel=0;
+			
+			
 			if(
 			(ownLevel<ngbLevel && ngbUnrefine==false) ||
 			(ownLevel==ngbLevel && ownUnrefine==true && ngbUnrefine==false) 
@@ -842,7 +899,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// Unrefine : 면 합침 , 면 - 포인트 연결
 	// if(rank==0) cout << "face combined start" << endl;
 	
-	cout << rank << " : face combined start" << endl;
+	// cout << rank << " : face combined start" << endl;
 	
 	int proc_total_num = 0;
 	
@@ -1094,7 +1151,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
-	cout << rank << " : 222222222" << endl;
+	// cout << rank << " : 222222222" << endl;
 	
 	
 
@@ -1264,7 +1321,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
-	cout << rank << " : 3333333" << endl;
+	// cout << rank << " : 3333333" << endl;
 	
 	
 	
@@ -1472,7 +1529,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// 면 재정립
 	
 	
-	cout << rank << " : 444444" << endl;
+	// cout << rank << " : 444444" << endl;
 	
 	proc_total_num=0;
 	int nBC = 0;
@@ -1482,9 +1539,18 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
 		
-		if(numN==mesh.boundary[nBC].startFace){
-			mesh.boundary[nBC].startFace = i;
-			++nBC;
+		int orgnBC = nBC;
+		for(int j=orgnBC; j<mesh.boundary.size(); ++j){
+			if(
+			numN==mesh.boundary[j].startFace ||
+			mesh.boundary[j].startFace == 0 ||
+			mesh.boundary[j].nFaces == 0){
+				mesh.boundary[j].startFace = i;
+				++nBC;
+			}
+			else{
+				break;
+			}
 		}
 		
 		// internal faces
@@ -1886,10 +1952,20 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
-	cout << rank << " prco_total_num = " << proc_total_num << endl;
+	
+	if(nBC!=mesh.boundary.size()){
+		cout << rank << " NO BOUNDARY MATCHING" << endl;
+		for(auto& boundary : mesh.boundary){
+			cout << rank << " : " << boundary.neighbProcNo << " " << boundary.startFace << " " << boundary.nFaces << " " << mesh.faces.size() << endl;
+		}
+		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	}
 	
 	
-	cout << rank << " : 55555555" << endl;
+	// cout << rank << " prco_total_num = " << proc_total_num << endl;
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 55555555" << endl;
 	
 	
 	
@@ -1905,6 +1981,13 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	mesh.faces.shrink_to_fit();
 	
 	
+	// proc_num = 0;
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// if(mesh.faces[i].getType() == SEMO_Types::PROCESSOR_FACE){
+			// ++proc_num;
+		// }
+	// }
+	// cout << "11111 : " << rank << " " << proc_num << endl;
 	
 	// for(int i=0; i<mesh.faces.size(); ++i){
 		// if(rank==0) cout << rank << " " << i << " " << mesh.faces[i].points.size() << endl;
@@ -1913,6 +1996,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	// if(rank==0) cout << "2222222222222" << endl;
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 66666666" << endl;
 
 	//====================================================
 	// boundary setting
@@ -1926,14 +2011,31 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	int maxBDsize = mesh.boundary.size()-1;
 	mesh.boundary[maxBDsize].nFaces = mesh.faces.size()-mesh.boundary[maxBDsize].startFace;
 	
-	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// for(auto& boundary : mesh.boundary){
+		// if(rank==0) cout << rank << " : " << boundary.startFace << " " << boundary.nFaces << " " << mesh.faces.size() << endl;
+	// }
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// for(auto& boundary : mesh.boundary){
+		// if(rank==1) cout << rank << " : " << boundary.startFace << " " << boundary.nFaces << " " << mesh.faces.size() << endl;
+	// }
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// for(auto& boundary : mesh.boundary){
+		// if(rank==2) cout << rank << " : " << boundary.startFace << " " << boundary.nFaces << " " << mesh.faces.size() << endl;
+	// }
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// for(auto& boundary : mesh.boundary){
+		// if(rank==3) cout << rank << " : " << boundary.startFace << " " << boundary.nFaces << " " << mesh.faces.size() << endl;
+	// }
 		
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 77777777" << endl;
 	//====================================================
 	// Unrefine : 면 삭제 , 면 - 셀
 	
 	// if(rank==0) cout << "face erase, face-cell connect start" << endl;
 	
-	cout << rank << " : face erase, face-cell connect start" << endl;
+	// cout << rank << " : face erase, face-cell connect start" << endl;
 		
 	// for(int i=0; i<mesh.faces.size(); ++i){
 		// auto& face = mesh.faces[i];
@@ -1958,7 +2060,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// if(rank==0) cout << "mesh clear, setting start" << endl;
 	
 	
-	cout << rank << " : mesh clear, setting start" << endl;
+	// cout << rank << " : mesh clear, setting start" << endl;
 
 	
 	
@@ -1994,36 +2096,95 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 
-	mesh.buildCells();
+	// mesh.buildCells();
+	int orgCellSize = mesh.cells.size();
+	int tmpCellNum = 0;
+	for(int i=0; i<orgCellSize; ++i){
+		if(groupCells_id[i] == -1){
+			
+			mesh.cells[tmpCellNum].var.assign(
+				mesh.cells[i].var.begin(),mesh.cells[i].var.end());
+			
+		}
+		else{
+			
+			int varSize = mesh.cells[tmpCellNum].var.size();
+			int subCellSize = groupCellsUnrefine[groupCells_id[i]].child.size();
+			double dSubCellSize = (double)subCellSize;
+			vector<double> tmpVars(varSize,0.0);
+			for(auto& j : groupCellsUnrefine[groupCells_id[i]].child){
+				for(int k=0; k<varSize; ++k){
+					tmpVars[k] += mesh.cells[i].var[k]/dSubCellSize;
+				}
+				++i;
+			}
+			--i;
+			
+			mesh.cells[tmpCellNum].var.assign(tmpVars.begin(),tmpVars.end());
+			
+		}
+		
+		mesh.cells[tmpCellNum].points.clear();
+		mesh.cells[tmpCellNum].faces.clear();
+		
+		++tmpCellNum;
+		
+	}
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 888888888" << endl;
+	
+	for(int i=totalCellNum; i<orgCellSize; ++i){
+		mesh.cells.pop_back();
+	}
 	mesh.cells.shrink_to_fit();
+	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 999999999" << endl;
+	
+	// cout << rank << " : SETTING 0" << endl;
 	
 	
 	mesh.buildLists();
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 10" << endl;
+	
 	mesh.connectCelltoFaces();
 	
-	// cout << rank << " : SETTING 1" << endl;
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 11" << endl;
 	
 	mesh.connectCelltoPoints();
 	
-	// cout << rank << " : SETTING 2" << endl;
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 12" << endl;
 	
 	mesh.setCountsProcFaces();
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 13" << endl;
+	
 	mesh.setDisplsProcFaces(); 
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 14" << endl;
 	
-	proc_num = 0;
-	for(int i=0; i<mesh.faces.size(); ++i){
-		if(mesh.faces[i].getType() == SEMO_Types::PROCESSOR_FACE){
-			++proc_num;
-		}
-	}
-	cout << "11111 : " << rank << " " << proc_num << " " << mesh.displsProcFaces[size-1] + mesh.countsProcFaces[size-1] << endl;
+	// proc_num = 0;
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// if(mesh.faces[i].getType() == SEMO_Types::PROCESSOR_FACE){
+			// ++proc_num;
+		// }
+	// }
 	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << "15 : " << rank << " " << proc_num << " " << mesh.displsProcFaces[size-1] + mesh.countsProcFaces[size-1] << " " << mesh.displsProcFaces[size-1] << " " <<  mesh.countsProcFaces[size-1] << endl;
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
 	// for(auto& boundary : mesh.boundary){
-		// if(rank==0) cout << boundary.startFace << " " << boundary.nFaces << endl;
+		// cout << boundary.startFace << " " << boundary.nFaces << endl;
 	// }
 
 	
@@ -2040,11 +2201,14 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		mesh.cells[i].group = cellsGroup[i];
 	}
 	
-	cout << rank << " : SETTING 4" << endl;
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 16" << endl;
+	
 	
 	this->mpiLevels(mesh, cLevel_recv);
 	
-	cout << rank << " : SETTING 5" << endl;
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 17" << endl;
 	
 	proc_num = 0;
 	for(int i=0; i<mesh.faces.size(); ++i){
@@ -2072,104 +2236,21 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		}
 	}
 	
-	cout << rank << " : SETTING 6" << endl;
+	// cout << rank << " : SETTING 6" << endl;
 	
 		
 	mesh.informations();
 	
-	SEMO_Mesh_Save save;
-	string tmpFile = "./Urf" + to_string(iter);
-	// string tmpFile = "./";
-	save.vtu(tmpFile, rank, mesh);
+	// SEMO_Mesh_Save save;
+	// string tmpFile = "./Urf" + to_string(iter);
+	// // string tmpFile = "./";
+	// save.vtu(tmpFile, rank, mesh);
 	
 	
-	if(rank==0) cout << "----Unrefine finished-----" << endl;
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	// // 원래 메쉬 클리어 및 복사
-	// mesh.cells.clear();
-	
-
-	// mesh.check();
-	
-	
-	
-	// // mesh.checkMatchingProcessorFace();
-	
-	
-	
-	// mesh.buildCells();
-	
-	// // mesh.setFaceTypes();
-
-	// mesh.buildLists();
-	
-	// mesh.connectCelltoFaces();
-	
-	
-	// for(int i=0; i<mesh.cells.size(); ++i){
-		// auto& cell = mesh.cells[i];
-		// // int minLevel = 999999999;
-		// // for(int j=0; j<cell.faces.size(); ++j){
-			// // auto& face = mesh.faces[cell.faces[j]];
-			// // minLevel = min(minLevel,face.level);
-		// // }
-		// // cell.level = minLevel;
-		
-		// cell.level = cellLeveling[i];
-		// cell.group = cellGroupping[i];
-		
-		// cell.var.resize(controls.nTotalCellVar,0.0); 
-		// int tmpNum = 0;
-		// for(auto& k : cellVariables[i]){
-			// cell.var[tmpNum] = k;
-			// ++tmpNum;
-		// }
-	// }
-	
-	
-	
-	// mesh.connectCelltoPoints();
-	
-	// // set processor face counts
-	// mesh.setCountsProcFaces();
-	
-	// // set processor face displacements
-	// mesh.setDisplsProcFaces(); 
-		
-	
-	// if(rank==0) cout << "----Unrefine finished-----" << endl;
-
-	
-	
-
+	if(rank==0){
+		cout << "| AMR - Unrefine completed" << endl;
+		cout << "└────────────────────────────────────────────────────" << endl;
+	}
 	
 	
 }

@@ -13,32 +13,58 @@ https://thebuildingcoder.typepad.com/blog/2008/12/3d-polygon-areas.html
 */
 void SEMO_Mesh_Geometric::calcUnitNormals_Area3dPolygon(
 	int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
-	vector<double>& unitNormals, double& area ){
+	vector<double>& unitNormals, double& area,
+	double& x, double& y, double& z ){
 		
-	double Nx, Ny, Nz;
-	int a,b,c,s;
-	
-	b=n-2; c=n-1;
-	Nx=0.0; Ny=0.0; Nz=0.0;
+	double sumArea = 0.0;
+	unitNormals.clear();
+	unitNormals.resize(3,0.0);
+	x = 0.0;  y = 0.0; z = 0.0;
 	for(int i = 0; i < n; ++i ) {
-	  a = b; b = c; c = i;
- 
-	  Nx += Vy[b] * ( Vz[c] - Vz[a] );
-	  Ny += Vz[b] * ( Vx[c] - Vx[a] );
-	  Nz += Vx[b] * ( Vy[c] - Vy[a] );
+		double vect_A[3];
+		double vect_B[3];
+		
+		vect_A[0] = Vx[i]-Vx[0];
+		vect_A[1] = Vy[i]-Vy[0];
+		vect_A[2] = Vz[i]-Vz[0];
+		
+		int ne = i+1;
+		if(i==n-1) ne = 0;
+		vect_B[0] = Vx[ne]-Vx[0];
+		vect_B[1] = Vy[ne]-Vy[0];
+		vect_B[2] = Vz[ne]-Vz[0];
+	  
+		double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
+		double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
+		double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
+
+		unitNormals[0] += Nx_tmp;
+		unitNormals[1] += Ny_tmp;
+		unitNormals[2] += Nz_tmp;
+
+		double area_tmp = sqrt(Nx_tmp*Nx_tmp + Ny_tmp*Ny_tmp + Nz_tmp*Nz_tmp);
+		sumArea += area_tmp;
+		x += area_tmp*(Vx[0]+Vx[i]+Vx[ne])/3.0;
+		y += area_tmp*(Vy[0]+Vy[i]+Vy[ne])/3.0;
+		z += area_tmp*(Vz[0]+Vz[i]+Vz[ne])/3.0;
 	}
-	double length = sqrt(pow(Nx, 2) + pow(Ny, 2) + pow(Nz, 2));
-	Nx /= length; Ny /= length; Nz /= length;
 	
-	area = 0.5*length;
+	x /= sumArea;
+	y /= sumArea;
+	z /= sumArea;
+	
+	unitNormals[0] /= sumArea;
+	unitNormals[1] /= sumArea;
+	unitNormals[2] /= sumArea;
+	
+	area = sumArea;
+	
 	if(area < std::numeric_limits<double>::min()) {
 		cerr << endl;
 		cerr << "#error, from calcArea3dPolygon, area = " << area <<  " < cpu_min_val " << endl;
 		cerr << endl;
 		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	}
-	unitNormals.resize(3,0.0);
-	unitNormals[0] = Nx; unitNormals[1] = Ny; unitNormals[2] = Nz;
 	
 }
 
@@ -360,20 +386,22 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 			Vz.push_back(mesh.points[iPoint].z);
 		}
 		
-		// this->calcUnitNormals_Area3dPolygon(
-			// face.points.size(), Vx,Vy,Vz,
-			// face.unitNormals, face.area );
+		this->calcUnitNormals_Area3dPolygon(
+			face.points.size(), Vx,Vy,Vz,
+			face.unitNormals, face.area,
+			face.x, face.y, face.z );
+			
 		// face.x = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)face.points.size();
 		// face.y = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)face.points.size();
 		// face.z = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)face.points.size();
 		
-		this->calcUnitNormals_ArbitraryPolyhedral(
-			face.points.size(), Vx,Vy,Vz,
-			face.unitNormals, face.area, 
-			face.x, face.y, face.z );
-		face.x = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)face.points.size();
-		face.y = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)face.points.size();
-		face.z = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)face.points.size();
+		// this->calcUnitNormals_ArbitraryPolyhedral(
+			// face.points.size(), Vx,Vy,Vz,
+			// face.unitNormals, face.area, 
+			// face.x, face.y, face.z );
+		// face.x = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)face.points.size();
+		// face.y = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)face.points.size();
+		// face.z = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)face.points.size();
 		
 		// if(face.unitNormals[2]>0.0001 && face.unitNormals[2]<1.0){
 		// cout << face.unitNormals[2] << endl;
@@ -390,30 +418,53 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 		cell.y = 0.0;
 		cell.z = 0.0;
 	}
-	
 	for(auto& face : mesh.faces){
-			
 		double rn = face.x*face.unitNormals[0] + face.y*face.unitNormals[1] + face.z*face.unitNormals[2];
-			
+		double vol_tmp = rn*face.area/3.0;
+		
+		mesh.cells[face.owner].volume += vol_tmp;
+		
+		mesh.cells[face.owner].x += face.x*3.0/4.0 * vol_tmp;
+		mesh.cells[face.owner].y += face.y*3.0/4.0 * vol_tmp;
+		mesh.cells[face.owner].z += face.z*3.0/4.0 * vol_tmp;
+		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			mesh.cells[face.owner].volume += rn*face.area;
-			mesh.cells[face.neighbour].volume -= rn*face.area;
-		}
-		else{
-			mesh.cells[face.owner].volume += rn*face.area;
+			mesh.cells[face.neighbour].volume -= vol_tmp;
+			
+			mesh.cells[face.neighbour].x -= face.x*3.0/4.0 * vol_tmp;
+			mesh.cells[face.neighbour].y -= face.y*3.0/4.0 * vol_tmp;
+			mesh.cells[face.neighbour].z -= face.z*3.0/4.0 * vol_tmp;
 		}
 		
 	}
+	for(auto& cell : mesh.cells){
+		cell.x /= cell.volume;
+		cell.y /= cell.volume;
+		cell.z /= cell.volume;
+	}
+	
 	
 	int tmp_icell = 0;
 	for(auto& cell : mesh.cells){
-		cell.volume /= 3.0;
+		
+		// cout << "aaa" << endl;
+		// cout << cell.volume << endl;
+		// cout << cell.x << " " << cell.y << " " << cell.z << endl;
+		// for(auto& i : cell.faces){
+			// cout << " face : " << mesh.faces[i].x << " " << mesh.faces[i].y << " " << mesh.faces[i].z << endl;
+			
+			// for(auto& j : mesh.faces[i].points){
+				// cout << mesh.points[j].x << " " << mesh.points[j].y << " " << mesh.points[j].z << endl;
+			// }
+		// }
+		
 		
 		if(cell.volume < std::numeric_limits<double>::min()) {
 			cerr << endl;
 			cerr << endl;
 			cerr << "  #error, from calc cell volume, cell volume = " << cell.volume << " < cpu_min_val " << endl;
 			cerr << tmp_icell << endl;
+			cerr << "Cell level = " << cell.level << endl;
 			cerr << endl;
 			int ii = 0;
 			int jj = 0;
@@ -427,6 +478,13 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				else if(mesh.faces[i].getType() == SEMO_Types::BOUNDARY_FACE){
 					cout << i << " " << "BOUNDARY_FACE" << endl;
 				}
+				
+				// cout << " level = " << mesh.faces[i].level << endl;
+				// cout << " owner = " << mesh.faces[i].owner << " , neighbour = " << mesh.faces[i].neighbour << endl;
+				// cout << " owner lv = " << mesh.cells[mesh.faces[i].owner].level << " , neighbour lv = " << mesh.cells[mesh.faces[i].neighbour].level << endl;
+				// cout << " owner->face vec = " << mesh.faces[i].x-mesh.cells[mesh.faces[i].owner].x << " " << mesh.faces[i].y-mesh.cells[mesh.faces[i].owner].y << " " << mesh.faces[i].z-mesh.cells[mesh.faces[i].owner].z << endl;
+				// cout << " neighbour->face vec = " << mesh.faces[i].x-mesh.cells[mesh.faces[i].neighbour].x << " " << mesh.faces[i].y-mesh.cells[mesh.faces[i].neighbour].y << " " << mesh.faces[i].z-mesh.cells[mesh.faces[i].neighbour].z << endl;
+				// cout << " face normal vec = " << mesh.faces[i].unitNormals[0] << " " << mesh.faces[i].unitNormals[1] << " " << mesh.faces[i].unitNormals[2] << endl;
 				
 				for(auto& j : mesh.faces[i].points){
 					cout << ii << " " << jj << " " << mesh.points[j].x << " " << mesh.points[j].y << " " << mesh.points[j].z << endl;
@@ -443,61 +501,8 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	}
 	
 	
-	for(auto& cell : mesh.cells){
-		
-		double tmpX = 0.0;
-		double tmpY = 0.0;
-		double tmpZ = 0.0;
-		
-		vector<double> Vx, Vy, Vz;
-		for(auto iPoint : cell.points){
-			Vx.push_back(mesh.points[iPoint].x);
-			Vy.push_back(mesh.points[iPoint].y);
-			Vz.push_back(mesh.points[iPoint].z);
-			tmpX += mesh.points[iPoint].x;
-			tmpY += mesh.points[iPoint].y;
-			tmpZ += mesh.points[iPoint].z;
-		}
-		// cell.x = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)cell.points.size();
-		// cell.y = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)cell.points.size();
-		// cell.z = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)cell.points.size();
-		
-		cell.x = tmpX / (double)cell.points.size();
-		cell.y = tmpY / (double)cell.points.size();
-		cell.z = tmpZ / (double)cell.points.size();
-	}
-	// for(auto& face : mesh.faces){
-			
-		// double rn = face.x*face.unitNormals[0] + face.y*face.unitNormals[1] + face.z*face.unitNormals[2];
-		
-		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			
-			// mesh.cells[face.owner].x += 
-				// 0.25/mesh.cells[face.owner].volume*rn*face.x*face.area;
-			// mesh.cells[face.owner].y += 
-				// 0.25/mesh.cells[face.owner].volume*rn*face.y*face.area;
-			// mesh.cells[face.owner].z += 
-				// 0.25/mesh.cells[face.owner].volume*rn*face.z*face.area;
-			
-			// mesh.cells[face.neighbour].x -= 
-				// 0.25/mesh.cells[face.neighbour].volume*rn*face.x*face.area;
-			// mesh.cells[face.neighbour].y -= 
-				// 0.25/mesh.cells[face.neighbour].volume*rn*face.y*face.area;
-			// mesh.cells[face.neighbour].z -= 
-				// 0.25/mesh.cells[face.neighbour].volume*rn*face.z*face.area;
-		// }
-		// else{
-			
-			// mesh.cells[face.owner].x += 
-				// 0.25/mesh.cells[face.owner].volume*rn*face.x*face.area;
-			// mesh.cells[face.owner].y += 
-				// 0.25/mesh.cells[face.owner].volume*rn*face.y*face.area;
-			// mesh.cells[face.owner].z += 
-				// 0.25/mesh.cells[face.owner].volume*rn*face.z*face.area;
-		// }
-		
-	// }
-	
+
+
 	
 	
 	for(auto& face : mesh.faces){
@@ -582,6 +587,10 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if(rank==0) cout << endl;
+	// if(rank==0) cout << "| 5 finished" << endl;
+	// if(rank==0) cout << endl;
 	
 
 	
@@ -715,17 +724,19 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	// }
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if(rank==0) cout << endl;
+	// if(rank==0) cout << "| Geometric finished" << endl;
+	// if(rank==0) cout << endl;
+	
 	
 	this->setStencil(mesh);
 	
 	
 	
-	
 	MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	if(rank==0) cout << "-> completed" << endl;
 	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 		
 }
 
@@ -745,6 +756,14 @@ void SEMO_Mesh_Geometric::setStencil(SEMO_Mesh_Builder& mesh){
 	int rank = MPI::COMM_WORLD.Get_rank();
 	int size = MPI::COMM_WORLD.Get_size();
 
+	for(auto& point : mesh.points){
+		point.stencil.clear();
+	}
+	for(auto& cell : mesh.cells){
+		cell.stencil.clear();
+	}
+	
+	
 	
 	for(int i=0; i<mesh.cells.size(); ++i){
 		

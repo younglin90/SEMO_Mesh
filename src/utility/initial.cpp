@@ -69,6 +69,11 @@ int main(int argc, char* argv[]) {
 
 	loadOnlyMeshVtu(mesh, "./grid/0/");
 	
+	
+	for(auto& point : mesh.points){
+		point.level = 0;
+	}
+	
 
 	vector<vector<double>> cellXYZ(mesh.cells.size(),vector<double>(3,0.0));
 	for(int i=0; i<mesh.cells.size(); ++i){
@@ -91,12 +96,30 @@ int main(int argc, char* argv[]) {
 	
 	
 	
-	for(int i=0; i<mesh.faces.size(); ++i){
-		auto& face = mesh.faces[i];
+	// 중복 포인트, 면 > 3 찾기
+	int noAMR_Cells = 0;
+	for(int i=0; i<mesh.cells.size(); ++i){
+		auto& cell = mesh.cells[i];
 		
-		face.level = 0;
-		face.group = i;
+		for(auto& p0 : cell.points){
+			int p0Num = 0;
+			for(auto& j : cell.faces){
+				auto& face = mesh.faces[j];
+				auto& facePoints = face.points;
+				if( std::find(facePoints.begin(),facePoints.end(),p0)!=facePoints.end() ){
+					++p0Num;
+				}
+			}
+			if(p0Num>3){
+				cell.level = -1;
+				// cout << "| #WARNING : 1 point share " << p0Num << " faces" << endl;
+			}
+		}
+		if(cell.level==-1) ++noAMR_Cells;
+		
 	}
+	cout << "| #WARNING : " << noAMR_Cells << " cells can NOT AMR" << endl;
+	
 	
 	
 	
@@ -637,6 +660,12 @@ void saveInitialField(string folder){
 	
 	// Points data
 	outputFile << "    <PointData>" << endl;
+	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"pointLevels\" format=\"ascii\">" << endl;
+	for(auto& point : mesh.points) outputFile << point.level << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
 	outputFile << "    </PointData>" << endl;
 	
 	
@@ -794,12 +823,12 @@ void saveInitialField(string folder){
 	outputFile << endl;
 	outputFile << " </neighbour>" << endl;
 	
-	outputFile << " <faceLevels>" << endl;
-	for(auto& face : mesh.faces){
-		outputFile << face.level << " ";
-	}
-	outputFile << endl;
-	outputFile << " </faceLevels>" << endl;
+	// outputFile << " <faceLevels>" << endl;
+	// for(auto& face : mesh.faces){
+		// outputFile << face.level << " ";
+	// }
+	// outputFile << endl;
+	// outputFile << " </faceLevels>" << endl;
 	
 	outputFile << " <faceGroups>" << endl;
 	for(auto& face : mesh.faces){
@@ -881,6 +910,7 @@ void saveInitialField(string folder){
 			outputFile << "    <Piece Source=\"" << filenamevtus << "\"/>" << endl;
 		}
 		outputFile << "   <PPointData>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"pointLevels\"/>" << endl;
 		outputFile << "   </PPointData>" << endl;
 		outputFile << "   <PCellData>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"pressure\"/>" << endl;

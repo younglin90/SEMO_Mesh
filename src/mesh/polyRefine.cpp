@@ -19,6 +19,8 @@ public:
 	vector<int> points;
 	int owner;
 	int neighbour;
+	bool boolOwner = false;
+	bool boolNeighbour = false;
 };
 
 
@@ -533,9 +535,11 @@ void addOuterFacesOwnerNeighbour(
 			auto& subFace = groupOuterFace.faces[k];
 			if(face.owner == i){
 				subFace.owner = totalCellNum + cellVertexOrder[verP];
+				cout << " owner = " << subFace.owner << endl;
 			}
 			else{
 				subFace.neighbour = totalCellNum + cellVertexOrder[verP];
+				cout << " neighbour = " << subFace.neighbour << endl;
 			}
 		}
 	}
@@ -549,6 +553,8 @@ void reorderOuterFacesOwnerNeighbour(
 	int& i,
 	int& totalCellNum,
 	vector<int>& groupChildFaces_id,
+	vector<bool>& boolInputFacesOwner,
+	vector<bool>& boolInputFacesNeighbour, 
 	vector<groupMesh_Refine>& groupChildFaces
 ) {
 
@@ -556,21 +562,38 @@ void reorderOuterFacesOwnerNeighbour(
 		auto& face = mesh.faces[j];
 		
 		if(groupChildFaces_id[j]==-1){
-			if(face.owner == i){
+			if(face.owner == i && boolInputFacesOwner[j]==false){
 				face.owner = totalCellNum;
+				boolInputFacesOwner[j] = true;
+				// cout << " owner = " << face.owner << " " << face.level << endl;
+			}
+			else if(face.neighbour == i && boolInputFacesNeighbour[j]==false){
+				face.neighbour = totalCellNum;
+				boolInputFacesNeighbour[j] = true;
+				// cout << " neighbour = " << face.neighbour << " " << face.level << endl;
 			}
 			else{
-				face.neighbour = totalCellNum;
+				cout << "ERROR 25" << endl;
+				cout << face.owner << " " <<  face.neighbour << " " << i << endl;
+				MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 			}
 		}
 		else{
 			auto& groupOuterFace = groupChildFaces[groupChildFaces_id[j]];
 			for(auto& subFace : groupOuterFace.faces){
-				if(face.owner == i){
+				if(face.owner == i && subFace.boolOwner==false){
 					subFace.owner = totalCellNum;
+					subFace.boolOwner = true;
+					// cout << " owner = " << subFace.owner << endl;
+				}
+				else if(face.neighbour == i && subFace.boolNeighbour==false){
+					subFace.neighbour = totalCellNum;
+					subFace.boolNeighbour = true;
+					// cout << " neighbour = " << subFace.neighbour << endl;
 				}
 				else{
-					subFace.neighbour = totalCellNum;
+					cout << "ERROR 35" << endl;
+					MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 				}
 			}
 		}
@@ -618,12 +641,26 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	// }
 	
 	
+	// cout << mesh.cells[53001].points.size() << endl;
+	// cout << mesh.cells[53001].faces.size() << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[0]].points.size() << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[1]].points.size() << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[2]].points.size() << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[3]].points.size() << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[4]].points.size() << endl;
+	
+	// cout << mesh.faces[mesh.cells[53001].faces[0]].owner << " " << mesh.faces[mesh.cells[53001].faces[0]].neighbour << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[1]].owner << " " << mesh.faces[mesh.cells[53001].faces[1]].neighbour << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[2]].owner << " " << mesh.faces[mesh.cells[53001].faces[2]].neighbour << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[3]].owner << " " << mesh.faces[mesh.cells[53001].faces[3]].neighbour << endl;
+	// cout << mesh.faces[mesh.cells[53001].faces[4]].owner << " " << mesh.faces[mesh.cells[53001].faces[4]].neighbour << endl;
+	
+	// cout << mesh.points[mesh.cells[53001].points[0]].x << " " << mesh.points[mesh.cells[53001].points[0]].y << " " << mesh.points[mesh.cells[53001].points[0]].z << endl;
 	
 	
 	
-	
-	if(rank==0) cout << "----Refine start-----" << endl;
-	
+	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	if(rank==0) cout << "| execute AMR - Refine " << endl;
 	
 	SEMO_Mesh_Geometric geometric;
 	
@@ -645,56 +682,50 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	// refine.iFaces.resize(mesh.faces.size(),vector<int>(0,0));
 	// refine.iCells.resize(mesh.cells.size(),vector<int>(0,0));
 	
+	
+
+	// vector<bool> boolCanNotRefineCells(mesh.cells.size(),false);
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// if(mesh.cells[i].level < 0) boolCanNotRefineCells[i] = true;
+	// }
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// if(mesh.faces[i].level < 0) mesh.faces[i].level = 0;
+	// }
+	
+	
+	
+	
 	vector<bool> boolCellRefine(mesh.cells.size(),false);
 	for(int i=0; i<mesh.cells.size(); ++i){
-		if( distr(eng) > 0.3 ){
+		
+		if( distr(eng) > 0.9 ){
 			// cout << "CELL REFINE : " << i << endl;
 			boolCellRefine[i] = true;
 		}
-		
-		
-		
-			// boolCellRefine[i] = true;
-		
-		
-			// // boolCellRefine[i] = false;
-		// if(rank==0){
 			// boolCellRefine[i] = false;
-		// }
-		// else{
+		
+		
+		
 			// boolCellRefine[i] = true;
+		
+		
+		
+		// if(mesh.cells[i].vol < 1.e-15) boolCellRefine[i] = false;
+		
+		
+		if(mesh.cells[i].level > 4) boolCellRefine[i] = false;
+		
+		
+		if(mesh.cells[i].level < 0) boolCellRefine[i] = false;
+		
+		// if(boolCanNotRefineCells[i]==true) {
+			// boolCellRefine[i] = false;
+			// // mesh.cells[i].level = 0;
 		// }
+		
 		
 		
 	} 
-			// // boolCellRefine[0] = true;
-		// if(rank==0){
-			// // boolCellRefine[i] = false;
-		// }
-		// else{
-			// boolCellRefine[0] = true;
-		// }
-	
-	// if(iter==0){
-		// boolCellRefine[1] = true;
-		// // boolCellRefine[1] = true;
-		// // boolCellRefine[5] = true;
-		// // boolCellRefine[7] = true;
-	// }
-	
-	
-	// if(iter==1){
-		// // boolCellRefine[8] = true;
-		// boolCellRefine[10] = true;
-		// // boolCellRefine[13] = true;
-		// // boolCellRefine[14] = true;
-	// }
-	
-	
-		
-	
-	
-	
 	
 	vector<int> cLevel_recv;
 	vector<int> cRefine_recv;
@@ -863,7 +894,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 			
 			
 			if( groupChildFace.vertexPoints.size() != groupChildFace.vertexCenterPoints.size() ){
-				cout << "| WARNING : vertexPoints.size != vertexCenterPoints.size" << endl;
+				cout << "| WARNING : vertexPoints.size != vertexCenterPoints.size " << groupChildFace.vertexPoints.size() << " " << groupChildFace.vertexCenterPoints.size() << endl;
 				MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 			}
 				
@@ -1077,10 +1108,10 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 			std::reverse(
 				groupChildFace.subIntEdgePoints[1].begin(),
 				groupChildFace.subIntEdgePoints[1].end());
-				
-				
+			
+			
 			// cout << groupChildFace.subIntEdgePoints[0].size() << " " << groupChildFace.subIntEdgePoints[1].size() << endl;
-				
+			
 			// cout << "2-6" << endl;
 			
 			if(face.points.size()>100){
@@ -1120,6 +1151,10 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	// createCellInternalFaces
 	
 	vector<int> groupCellInternalFaces_id(mesh.cells.size(),-1);
+	
+	vector<bool> boolInputFacesOwner(mesh.faces.size(),false);
+	vector<bool> boolInputFacesNeighbour(mesh.faces.size(),false);
+	
 	// vector<vector<int>> groupCell_Levels(mesh.cells.size(),vector<int>());
 	// vector<vector<int>> groupCell_Groups(mesh.cells.size(),vector<int>());
 	vector<vector<int>> groupCell_Levels;
@@ -1179,6 +1214,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 				}
 			}
 				
+			// cout << i << endl;
 			addInternalFacesOwnerNeighbour(mesh, cellLevel, totalCellNum,
 				cellVertexOrder, intFacesVertexs, groupChildFace.faces);
 				
@@ -1218,11 +1254,19 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 					}
 					
 					// cout << k << " " << verP << " " << cellVertexOrder[verP] << endl;
-					if(face.owner == i){
+					if(face.owner == i && subFace.boolOwner==false){
 						subFace.owner = totalCellNum + cellVertexOrder[verP];
+						subFace.boolOwner = true;
+						// cout << " owner = " << subFace.owner << endl;
+					}
+					else if(face.neighbour == i && subFace.boolNeighbour==false){
+						subFace.neighbour = totalCellNum + cellVertexOrder[verP];
+						subFace.boolNeighbour = true;
+						// cout << " neighbour = " << subFace.neighbour << endl;
 					}
 					else{
-						subFace.neighbour = totalCellNum + cellVertexOrder[verP];
+						cout << "NONONONONONONONONO 33" << endl;
+						MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 					}
 				}
 			}
@@ -1269,14 +1313,20 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 			// cout << "2-1" << endl;
 			
 			reorderOuterFacesOwnerNeighbour(mesh, cell, i, totalCellNum,
-				groupChildFaces_id, groupChildFaces);
+				groupChildFaces_id, boolInputFacesOwner, boolInputFacesNeighbour, 
+				groupChildFaces);
 				
 			// groupCell_Levels[i].push_back(cellLevel);
 			// groupCell_Groups[i].push_back(cellGroup);
 			
 			
 			groupCell_Levels.push_back(vector<int>());
-			groupCell_Levels.back().push_back(cellLevel);
+			// if(boolCanNotRefineCells[i]==true) {
+				// groupCell_Levels.back().push_back(-1);
+			// }
+			// else{
+				groupCell_Levels.back().push_back(cellLevel);
+			// }
 			
 			groupCell_Groups.push_back(vector<int>());
 			groupCell_Groups.back().push_back(cellGroup);
@@ -1536,10 +1586,27 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	mesh.buildCells();
+	// mesh.buildCells();
+	
+	int tmpCellNum = totalCellNum-1;
+	mesh.cells.resize(totalCellNum,SEMO_Cell());
+	for(int i=orgCellSize-1; i>=0; --i){
+		int subCellSize = groupCell_Levels[i].size();
+		for(int j=0; j<subCellSize; ++j){
+			// int varSize = mesh.cells[i].var.size();
+			// mesh.cells[tmpCellNum].var.resize(controls.nTotalCellVar,0.0);
+			mesh.cells[tmpCellNum].var.assign(mesh.cells[i].var.begin(),mesh.cells[i].var.end());
+			mesh.cells[tmpCellNum].points.clear();
+			mesh.cells[tmpCellNum].faces.clear();
+			--tmpCellNum;
+		}
+	}
+	
+	
+	
 	
 	// mesh.setFaceTypes();
-	MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Barrier(MPI_COMM_WORLD);
 	// cout << "9 : " << rank << endl;
 	
 	mesh.buildLists();
@@ -1592,7 +1659,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 
 	// level setting
-	int tmpCellNum = 0;
+	tmpCellNum = 0;
 	for(auto& groupCell : groupCell_Levels){
 		for(auto& level : groupCell){
 			mesh.cells[tmpCellNum].level = level;
@@ -1676,17 +1743,53 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 		
 	// mesh.searchNeighbProcFaces();
+	
+	
+	
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// auto& cell = mesh.cells[i];
+		
+		// if(cell.faces.size()!=6){
+			// cout << i << " " << cell.faces.size() << " " << cell.points.size() << endl;
+		// }
+	// }
+	
+	// 53001 , 448735
+	// cout << groupCell_Groups[53001].size() << endl;
+	
+	// tmpCellNum = 0;
+	// int tmpCellNum2=0;
+	// for(auto& groupCell : groupCell_Groups){
+		// for(auto& group : groupCell){
+			// if(tmpCellNum==448735){
+				// cout << tmpCellNum2 << endl;
+			// }
+			// ++tmpCellNum;
+		// }
+		// ++tmpCellNum2;
+	// }
+	
+	
 		
 	mesh.informations();
 	
-	SEMO_Mesh_Save save;
-	string tmpFile = "./Rf" + to_string(iter);
-	// string tmpFile = "./";
-	save.vtu(tmpFile, rank, mesh);
+	// SEMO_Mesh_Save save;
+	// string tmpFile = "./Rf" + to_string(iter);
+	// // string tmpFile = "./";
+	// save.vtu(tmpFile, rank, mesh);
 	
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	
+	
+	if(rank==0){
+		cout << "| AMR - Refine completed" << endl;
+		cout << "└────────────────────────────────────────────────────" << endl;
+	}
+	
+	
+	
 	
 }
 

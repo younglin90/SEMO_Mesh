@@ -26,16 +26,92 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	SEMO_Solvers_Builder solvers;
 	
 	
+	// for(auto& i : mesh.cells[11004].faces){
+		// cout << "11004 : " << i << endl;
+		// cout << mesh.faces[i].owner << " " << mesh.faces[i].neighbour << endl;
+		// for(auto& j : mesh.faces[i].points){
+			// cout << j << endl;
+			// cout << "(" << mesh.points[j].x << " " << mesh.points[j].y << " " << mesh.points[j].z << ")" << endl;
+		// }
+	// }
 	
-	for(int i=0; i<mesh.cells.size(); ++i){
-		mesh.cells[i].level = 0;
-		mesh.cells[i].group = i;
-	}
-	for(int i=0; i<mesh.faces.size(); ++i){
-		mesh.faces[i].level = 0;
-	}
+	// for(auto& i : mesh.cells[11081].faces){
+		// cout << "11081 : " << i << endl;
+		// cout << mesh.faces[i].owner << " " << mesh.faces[i].neighbour << endl;
+		// for(auto& j : mesh.faces[i].points){
+			// cout << j << endl;
+			// cout << "(" << mesh.points[j].x << " " << mesh.points[j].y << " " << mesh.points[j].z << ")" << endl;
+		// }
+	// }
+	// cout << mesh.faces[33063].owner << " " << mesh.faces[33063].neighbour << endl;
+	// for(auto& i : mesh.faces[33063].points){
+		// cout << "33063 : " << i << endl;
+		// cout << mesh.points[i].x << " " << mesh.points[i].y << " " << mesh.points[i].z << endl;
+	// }
+	
+	// int tet23=0;
+	// for(auto& i : mesh.faces){
+		// int tmtmtmtm=0;
+		// for(auto& j : i.points){
+			// double tmtmtmea = 0.1;
+			// if(
+			// (4946.06-tmtmtmea < mesh.points[j].x && mesh.points[j].x < 4946.06+tmtmtmea) &&
+			// (506.356-tmtmtmea < mesh.points[j].y && mesh.points[j].y < 506.356+tmtmtmea) &&
+			// (-1.94131-tmtmtmea < mesh.points[j].z && mesh.points[j].z < -1.94131+tmtmtmea)
+			// ){
+				// ++tmtmtmtm;
+			// }
+			
+			// if(
+			// (4938.62-tmtmtmea < mesh.points[j].x && mesh.points[j].x < 4938.62+tmtmtmea) &&
+			// (603.291-tmtmtmea < mesh.points[j].y && mesh.points[j].y < 603.291+tmtmtmea) &&
+			// (2.26684-tmtmtmea < mesh.points[j].z && mesh.points[j].z < 2.26684+tmtmtmea)
+			// ){
+				// ++tmtmtmtm;
+			// }
+			
+			// if(
+			// (4939.31-tmtmtmea < mesh.points[j].x && mesh.points[j].x < 4939.31+tmtmtmea) &&
+			// (485.982-tmtmtmea < mesh.points[j].y && mesh.points[j].y < 485.982+tmtmtmea) &&
+			// (-122.955-tmtmtmea < mesh.points[j].z && mesh.points[j].z < -122.955+tmtmtmea)
+			// ){
+				// ++tmtmtmtm;
+			// }
+			
+			
+		// }
+		
+		// if(tmtmtmtm==3){
+			// cout << tet23 << endl;
+			// cout << i.owner << endl;
+			// cout << i.neighbour << endl;
+		// }
+		
+		// ++tet23;
+	// }
 	
 	
+	
+	
+	
+	// for(int i=0; i<mesh.points.size(); ++i){
+		// cout << mesh.points[i].level << endl;
+	// }
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// cout << mesh.cells[i].group << endl;
+	// }
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// mesh.cells[i].level = 0;
+		// mesh.cells[i].group = i;
+	// }
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// mesh.faces[i].level = 0;
+	// }
+	
+	
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// cout << mesh.faces[i].level << endl;
+	// }
 	
 	// for(int i=0; i<15; ++i){
 
@@ -50,29 +126,25 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 				 gradVF[i][2]*gradVF[i][2]);
 	}
 
+	// geometric.init(mesh);
 		
-	for(int i=0; i<3; ++i){
+	for(int i=0; i<5; ++i){
 		
 	polyRefine(mesh, controls, 0);
-	polyRefine(mesh, controls, 0);
-	// polyRefine(mesh, controls, 0);
-	// polyRefine(mesh, controls, 0);
-	// polyRefine(mesh, controls, 0);
-	// polyRefine(mesh, controls, 0);
-	// polyRefine(mesh, controls, 0);
+	geometric.init(mesh);
+	
 	
 	polyUnrefine(mesh, controls, 0);
-	polyUnrefine(mesh, controls, 0);
-	polyUnrefine(mesh, controls, 0);
-	polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
-	// polyUnrefine(mesh, controls, 0);
+	geometric.init(mesh);
 	
 	}
+	
+	
+	MPI_Barrier(MPI_COMM_WORLD);
+	SEMO_Mesh_Save save;
+	save.vtu("./save/1/", mesh, controls, species);
+	// save.vtu("./save/2/", mesh, controls, species);
+	
 	
 
 	MPI_Barrier(MPI_COMM_WORLD);

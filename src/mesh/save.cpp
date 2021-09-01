@@ -561,6 +561,16 @@ void SEMO_Mesh_Save::vtu(
 	// solvers.setCompValuesLeftRightFace(mesh, controls, species);
 	
 	outputFile << "    <PointData>" << endl;
+	
+	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"pointLevels\" format=\"ascii\">" << endl;
+	for(auto& point : mesh.points) outputFile << point.level << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
+	
+	
+	
 	// for(auto& point : mesh.points){
 		// point.var.resize(7,0.0);
 	// }
@@ -845,20 +855,20 @@ void SEMO_Mesh_Save::vtu(
 	outputFile << " </neighbour>" << endl;
 	
 	
-	outputFile << " <faceLevels>" << endl;
-	for(auto& face : mesh.faces){
-		outputFile << face.level << " ";
-	}
-	outputFile << endl;
-	outputFile << " </faceLevels>" << endl;
+	// outputFile << " <faceLevels>" << endl;
+	// for(auto& face : mesh.faces){
+		// outputFile << face.level << " ";
+	// }
+	// outputFile << endl;
+	// outputFile << " </faceLevels>" << endl;
 	
 	
-	outputFile << " <faceGroups>" << endl;
-	for(auto& face : mesh.faces){
-		outputFile << face.group << " ";
-	}
-	outputFile << endl;
-	outputFile << " </faceGroups>" << endl;
+	// outputFile << " <faceGroups>" << endl;
+	// for(auto& face : mesh.faces){
+		// outputFile << face.group << " ";
+	// }
+	// outputFile << endl;
+	// outputFile << " </faceGroups>" << endl;
 	
 	
 	outputFile << " <bcName>" << endl;
@@ -945,6 +955,8 @@ void SEMO_Mesh_Save::vtu(
 		}
 		outputFile << "   <PPointData>" << endl;
 
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"pointLevels\"/>" << endl;
+		
 		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointP\"/>" << endl;
 		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointVel\" NumberOfComponents=\"3\"/>" << endl;
 		// outputFile << "    <PDataArray type=\"Float64\" Name=\"pointT\"/>" << endl;

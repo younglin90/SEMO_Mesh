@@ -371,7 +371,8 @@ void SEMO_Mesh_Builder::checkQualities(){
 		
 		geometric.calcUnitNormals_Area3dPolygon(
 			face.points.size(), Vx,Vy,Vz,
-			face.unitNormals, face.area );
+			face.unitNormals, face.area,
+			face.x, face.y, face.z );
 			
 		vector<double> orthogonality(3,0.0); 
 		orthogonality[0] = face.unitNormals[0] - cellToFaceNvec[0];
@@ -984,6 +985,8 @@ void SEMO_Mesh_Builder::setCountsProcFaces(){
 				// cout << bc.nFaces << endl;
 				
 				// cout << rank << " " << ip << " " << bc.nFaces << endl;
+				
+				// cout << rank << " -> " << ip << " " << bc.nFaces << endl;
 				
 				(*this).countsProcFaces[ip] = bc.nFaces;
 				break;

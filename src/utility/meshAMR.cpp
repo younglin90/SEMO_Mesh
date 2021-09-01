@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
 		
 		if(starttime == 0.0){
 			foldername = "./save/0/";
+			// foldername = "./save/1/";
 		}
 		
 		load.vtu(foldername, mesh, controls, species);
@@ -119,17 +120,17 @@ int main(int argc, char* argv[]) {
 		
 		// mesh.hexaOctAMR();
 		
-		int tmpNum = 0;
-		for(auto& face : mesh.faces){
-			face.group = tmpNum;
-			++tmpNum;
-		}
+		// int tmpNum = 0;
+		// for(auto& face : mesh.faces){
+			// face.group = tmpNum;
+			// ++tmpNum;
+		// }
 		
-		tmpNum = 0;
-		for(auto& cell : mesh.cells){
-			cell.group = tmpNum;
-			++tmpNum;
-		}
+		// tmpNum = 0;
+		// for(auto& cell : mesh.cells){
+			// cell.group = tmpNum;
+			// ++tmpNum;
+		// }
 		
 		
 		SEMO_Poly_AMR_Builder AMR;

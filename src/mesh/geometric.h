@@ -12,7 +12,8 @@ class SEMO_Mesh_Geometric{
 	public:
 		void calcUnitNormals_Area3dPolygon(
 			int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
-			vector<double>& unitNormals, double& area );
+			vector<double>& unitNormals, double& area,
+			double& x, double& y, double& z );
 		
 		void calcUnitNormals_ArbitraryPolyhedral(
 			int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,

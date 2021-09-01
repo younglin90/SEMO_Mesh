@@ -1008,6 +1008,8 @@ void SEMO_Mesh_Load::vtu(
 	vector<bool> startVolFrac(1,false);
 	vector<vector<double>> volFrac(1,vector<double>(0,0.0));
 	
+	bool startPointLevels=false;
+	vector<int> pointLevels;
 	bool startCellLevels=false;
 	vector<int> cellLevels;
 	bool startCellGroups=false;
@@ -1039,6 +1041,18 @@ void SEMO_Mesh_Load::vtu(
 				double tempint;
 				while(iss >> tempint){
 					timevalue = tempint;
+				}
+			}
+		}
+		else if(startPointLevels){
+			if(nextToken.find("</DataArray>") != string::npos){
+				startPointLevels=false;
+			}
+			else{
+				istringstream iss(nextToken);
+				int tempint;
+				while(iss >> tempint){
+					pointLevels.push_back(tempint);
 				}
 			}
 		}
@@ -1305,6 +1319,9 @@ void SEMO_Mesh_Load::vtu(
 			if( nextToken.find("\"TimeValue\"") != string::npos ){
 				startTimeValue=true;
 			}
+			else if( nextToken.find("\"pointLevels\"") != string::npos ){
+				startPointLevels=true;
+			}
 			else if( nextToken.find("\"pressure\"") != string::npos ){
 				startPressure=true;
 			}
@@ -1348,12 +1365,12 @@ void SEMO_Mesh_Load::vtu(
 			else if( nextToken.find("neighbour") != string::npos ){
 				startneighbour=true;
 			}
-			else if( nextToken.find("faceLevels") != string::npos ){
-				startFaceLevels=true;
-			}
-			else if( nextToken.find("faceGroups") != string::npos ){
-				startFaceGroups=true;
-			}
+			// else if( nextToken.find("faceLevels") != string::npos ){
+				// startFaceLevels=true;
+			// }
+			// else if( nextToken.find("faceGroups") != string::npos ){
+				// startFaceGroups=true;
+			// }
 			else if( nextToken.find("bcName") != string::npos ){
 				startbcName=true;
 			}
@@ -1393,6 +1410,11 @@ void SEMO_Mesh_Load::vtu(
 	
 	// SEMO_Solvers_Builder solver;
 	
+	for(int i=0; i<mesh.points.size(); ++i){
+		mesh.points[i].level = pointLevels[i];
+		
+		// cout << pointLevels[i] << endl;
+	}
 	
 	mesh.cells.clear();
 	for(int i=0; i<ncells+1; ++i){
@@ -1459,8 +1481,8 @@ void SEMO_Mesh_Load::vtu(
 		
 		face.var.resize(controls.nTotalFaceVar,0.0);
 		
-		face.level = faceLevels[tmpNum];
-		face.group = faceGroups[tmpNum];
+		// face.level = faceLevels[tmpNum];
+		// face.group = faceGroups[tmpNum];
 		// face.level = 0;
 		// face.group = tmpNum;
 		
@@ -1751,6 +1773,48 @@ void SEMO_Mesh_Load::vtu(
 	
 	// set processor face displacements
 	mesh.setDisplsProcFaces(); 
+	
+	
+	
+	// face level
+	vector<int> cLevel_recv;
+	if(size>1){
+		vector<int> cLevel_send;
+		
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				cLevel_send.push_back(mesh.cells[face.owner].level);
+			}
+		}
+		
+		cLevel_recv.clear();
+		cLevel_recv.resize(cLevel_send.size(),0);
+
+		MPI_Alltoallv( cLevel_send.data(), mesh.countsProcFaces.data(), mesh.displsProcFaces.data(), MPI_INT, 
+					   cLevel_recv.data(), mesh.countsProcFaces.data(), mesh.displsProcFaces.data(), MPI_INT, 
+					   MPI_COMM_WORLD);
+	}
+	
+	int proc_num=0;
+	for(auto& face : mesh.faces){
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			face.level = max(
+				mesh.cells[face.owner].level, mesh.cells[face.neighbour].level);
+		}
+		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			face.level = max(
+				mesh.cells[face.owner].level, cLevel_recv[proc_num]);
+			++proc_num;
+		}
+		else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
+			face.level = mesh.cells[face.owner].level;
+		}
+	}
+	
+	
+	
 	
 
 	mesh.informations();
