@@ -7,6 +7,8 @@ void SEMO_Solvers_Builder::calcPseudoTimeStep(
 	SEMO_Controls_Builder& controls){
 	
 	
+	
+	
 	for(auto& cell : mesh.cells){
 
 		double maxA=0.0;
@@ -43,14 +45,14 @@ void SEMO_Solvers_Builder::calcPseudoTimeStep(
 		// cell.var[Ur] = C;
 		
 		
-		
+	
 		
 		double eta = pow(cell.var[Ur]/C,2.0);
 		double iegenU = 0.5*magVel*(1.0+eta);
 		double iegenC = 0.5*sqrt(pow(magVel*(1.0-eta),2.0)+4.0*pow(cell.var[Ur],2.0));
-		double convTime = controls.pseudoCo * cell.volume / maxA / (iegenU+iegenC);
+		double convTime = controls.allowableCFL * cell.volume / maxA / (iegenU+iegenC);
 		
-		double viscTime = controls.pseudoCo * 0.5 * minA
+		double viscTime = controls.allowableCFL * 0.5 * minA
 			/ ( cell.var[controls.mu] + 1.e-200 ) * cell.var[controls.Rho];
 			
 		double minDt = min(convTime,viscTime);
@@ -59,13 +61,13 @@ void SEMO_Solvers_Builder::calcPseudoTimeStep(
 			sqrt(pow(controls.gravityAcceleration[0],2.0) +
                  pow(controls.gravityAcceleration[1],2.0) +
                  pow(controls.gravityAcceleration[2],2.0));
-		double gravTime = controls.pseudoCo * sqrt( pow(cell.volume,0.333) / (gravMag+1.e-200) );
+		double gravTime = controls.allowableCFL * sqrt( pow(cell.volume,0.333) / (gravMag+1.e-200) );
 		minDt = min(minDt,gravTime);
 		
 		
 		double surfTensCoeff = 1.96;
 		double surfTensTime = 
-			controls.pseudoCo * pow(pow(cell.volume,0.333),1.5)*sqrt(1001/(4.0*3.14*surfTensCoeff));
+			controls.allowableCFL * pow(pow(cell.volume,0.333),1.5)*sqrt(1001/(4.0*3.14*surfTensCoeff));
 		minDt = min(minDt,surfTensTime);
 		
 		

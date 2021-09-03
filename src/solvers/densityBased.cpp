@@ -153,6 +153,11 @@ void SEMO_Solvers_Builder::compressibleDensityBasedDualTime(
 	// }
 	
 	
+	//===========================================
+	// SER
+	controls.allowableCFL = controls.specifiedCFL;
+	vector<double> norm_ago;
+	//===========================================
 	
 	
 	controls.iterPseudo = 0;
@@ -176,11 +181,31 @@ void SEMO_Solvers_Builder::compressibleDensityBasedDualTime(
 
 
 
-		// this->calcLinearSolver(mesh, controls, residuals);
-		this->calcLinearSolverLUSGS(mesh, controls, residuals);
+		this->calcLinearSolver(mesh, controls, residuals);
+		// this->calcLinearSolverLUSGS(mesh, controls, residuals);
 		
 		
+		//===========================================
+		// SER
+		int myReturnSER = 0;
+		for(int i=0; i<mesh.cells.size(); ++i){
+			if(
+			abs(residuals[i][0])>0.01*mesh.cells[i].var[controls.P] ||
+			abs(residuals[i][4])>0.01*mesh.cells[i].var[controls.T] 
+			){
+				myReturnSER = 1;
+			}
+		}
 		
+		int returnSER;
+		MPI_Allreduce(&myReturnSER, &returnSER, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+		
+		if(returnSER>0){
+				if(rank==0) cout << "| Retunrs calculation for SER method" << endl;
+				controls.allowableCFL *= 0.5; 
+				continue;
+		}
+		//===========================================
 		
 
 		vector<double> norm;
@@ -197,6 +222,19 @@ void SEMO_Solvers_Builder::compressibleDensityBasedDualTime(
 			cout << dClock << " s | ";
 			cout << endl;
 		}
+		
+		
+		//===========================================
+		// SER
+		if(returnSER==0 && controls.iterPseudo!=0){
+			double tmp_cfl = controls.allowableCFL*norm_ago[0]/norm[0];
+			tmp_cfl = min(tmp_cfl, controls.allowableCFL*norm_ago[4]/norm[4]);
+			controls.allowableCFL = min(tmp_cfl, controls.specifiedCFL); 
+		}
+		
+		norm_ago = norm;
+		//===========================================
+		
 		
 		
 		this->updateValues(mesh, controls, residuals);

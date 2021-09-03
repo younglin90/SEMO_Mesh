@@ -609,8 +609,8 @@ void SEMO_Mesh_Builder::connectCelltoFaces(){
 	
 	// cell connection (cell's face)
 		
-	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
-	if(rank==0) cout << "| execute cell's face connecting ... ";
+	// if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	// if(rank==0) cout << "| execute cell's face connecting ... ";
 	for(int i=0; i<(*this).faces.size(); ++i){
 		SEMO_Face& face = (*this).faces[i];
 		
@@ -625,8 +625,8 @@ void SEMO_Mesh_Builder::connectCelltoFaces(){
 			(*this).cells[face.owner].faces.push_back(i);
 		}
 	}
-	if(rank==0) cout << "-> completed" << endl;
-	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
+	// if(rank==0) cout << "-> completed" << endl;
+	// if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
 		
 	
 
@@ -642,8 +642,8 @@ void SEMO_Mesh_Builder::connectCelltoPoints(){
 
 	// cell connection (cell's points)
 	// for(auto iter=mesh.faces.begin(); iter!=mesh.faces.end(); iter++){
-	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
-	if(rank==0) cout << "| execute cell's points connecting ... ";
+	// if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
+	// if(rank==0) cout << "| execute cell's points connecting ... ";
 	for(auto& iter : (*this).faces){
 		if(iter.getType() == SEMO_Types::INTERNAL_FACE){
 			for(int i=0; i<iter.points.size(); ++i){
@@ -692,8 +692,8 @@ void SEMO_Mesh_Builder::connectCelltoPoints(){
 			}
 		}
 	}
-	if(rank==0) cout << "-> completed" << endl;
-	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
+	// if(rank==0) cout << "-> completed" << endl;
+	// if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
 	
 }
 

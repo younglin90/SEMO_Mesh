@@ -861,6 +861,15 @@ void partitionFromSerial(int nBlocks, vector<int>& idBlockCell, vector<SEMO_Mesh
 		}
 	}
 	
+	
+	for(int ip=0; ip<nBlocks; ++ip){
+		int maxBCNum = newMesh[ip].boundary.size()-1;
+		newMesh[ip].boundary[maxBCNum].startFace = newMesh[ip].faces.size()-newMesh[ip].boundary[maxBCNum].nFaces;
+		for(int i=maxBCNum-1; i>=0; --i){
+			newMesh[ip].boundary[i].startFace = newMesh[ip].boundary[i+1].startFace-newMesh[ip].boundary[i].nFaces;
+		}
+	}
+	
 	// //==========================================
 	
 	vector<int> nPointsInf;

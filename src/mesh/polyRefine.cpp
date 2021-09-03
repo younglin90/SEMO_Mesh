@@ -693,39 +693,36 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	// }
 	
 	
-	
+	int maxLevel_AMR = controls.maxLevelRefine;
+	double indicatorRefine_AMR = controls.indicatorRefine;
+	double minVolume_AMR = controls.minVolumeRefine;
+	int maxCells_AMR = controls.maxCellsRefine;
 	
 	vector<bool> boolCellRefine(mesh.cells.size(),false);
-	for(int i=0; i<mesh.cells.size(); ++i){
-		
-		if( distr(eng) > 0.9 ){
-			// cout << "CELL REFINE : " << i << endl;
-			boolCellRefine[i] = true;
-		}
-			// boolCellRefine[i] = false;
-		
-		
-		
-			// boolCellRefine[i] = true;
-		
-		
-		
-		// if(mesh.cells[i].vol < 1.e-15) boolCellRefine[i] = false;
-		
-		
-		if(mesh.cells[i].level > 4) boolCellRefine[i] = false;
-		
-		
-		if(mesh.cells[i].level < 0) boolCellRefine[i] = false;
-		
-		// if(boolCanNotRefineCells[i]==true) {
-			// boolCellRefine[i] = false;
-			// // mesh.cells[i].level = 0;
-		// }
-		
-		
-		
-	} 
+	if(mesh.cells.size()<maxCells_AMR){
+		for(int i=0; i<mesh.cells.size(); ++i){
+			
+			// if( distr(eng) > 0.9 ){
+				// // cout << "CELL REFINE : " << i << endl;
+				// boolCellRefine[i] = true;
+			// }
+
+			if(mesh.cells[i].var[controls.indicatorAMR[0]] > indicatorRefine_AMR) 
+				boolCellRefine[i] = true;
+			
+			
+			if(mesh.cells[i].volume < minVolume_AMR) boolCellRefine[i] = false;
+			if(mesh.cells[i].level >= maxLevel_AMR) boolCellRefine[i] = false;
+			if(mesh.cells[i].level < 0) boolCellRefine[i] = false;
+			
+			// if(boolCanNotRefineCells[i]==true) {
+				// boolCellRefine[i] = false;
+				// // mesh.cells[i].level = 0;
+			// }
+			
+			
+		} 
+	}
 	
 	vector<int> cLevel_recv;
 	vector<int> cRefine_recv;
@@ -742,7 +739,6 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 			// cout << rank << " CELL REFINE : " << i << endl;
 		// }
 	// } 
-	
 	
 	
 	
@@ -1571,9 +1567,13 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	}
 	
 	for (int i=0; i<mesh.boundary.size()-1; ++i) {
+		// if(rank==0) cout << " AA : " << mesh.boundary[i+1].startFace << " " << mesh.boundary[i].startFace << endl;
+		// mesh.boundary[i+1].startFace = max(mesh.boundary[i+1].startFace,mesh.boundary[i].startFace);
+		// if(rank==0) cout << mesh.boundary[i].nFaces << " " << mesh.boundary[i+1].startFace-mesh.boundary[i].startFace << endl;
 		mesh.boundary[i].nFaces = mesh.boundary[i+1].startFace-mesh.boundary[i].startFace;
 	}
 	int maxBDsize = mesh.boundary.size()-1;
+	// if(rank==0) cout << mesh.boundary[maxBDsize].nFaces << " " << mesh.faces.size()-mesh.boundary[maxBDsize].startFace << endl;
 	mesh.boundary[maxBDsize].nFaces = mesh.faces.size()-mesh.boundary[maxBDsize].startFace;
 	
 	
@@ -1688,6 +1688,11 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	proc_num = 0;
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
+		
+		face.var.resize(controls.nTotalFaceVar,0.0);
+		face.varL.resize(controls.nTotalFaceLRVar,0.0);
+		face.varR.resize(controls.nTotalFaceLRVar,0.0);
+		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			int maxLevel = 
@@ -1771,7 +1776,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 		
-	mesh.informations();
+	// mesh.informations();
 	
 	// SEMO_Mesh_Save save;
 	// string tmpFile = "./Rf" + to_string(iter);

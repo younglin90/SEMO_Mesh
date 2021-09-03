@@ -324,6 +324,13 @@ void SEMO_Controls_Builder::readConfigures(){
 	// cout << fvSolution_dualTime["nPseudo"] << " " << fvSolution_dualTime["pseudoCo"] << endl;
 	this->pseudoCo = stod(fvSolution_dualTime["pseudoCo"]);
 	
+	
+
+	this->specifiedCFL = this->pseudoCo;
+	this->allowableCFL = this->pseudoCo;
+	
+	
+	
 	this->Uco = stod(fvSolution_dualTime["Uco"]);
 	this->Lch = stod(fvSolution_dualTime["Lch"]);
 
@@ -459,9 +466,27 @@ void SEMO_Controls_Builder::readConfigures(){
 	}
 	
 	//===========================
+	// dynamic mesh
+	map<string,string> dynamicMesh_Refine;
+	read.file("./system/dynamicMesh", 
+		"dynamicRefineMesh",  
+		dynamicMesh_Refine);
+		
+	this->intervalRefine = stoi(dynamicMesh_Refine["interval"]);
+	this->indicatorRefine = stod(dynamicMesh_Refine["indicator"]);
+	this->maxLevelRefine = stoi(dynamicMesh_Refine["maxLevel"]);
+	this->maxCellsRefine = stoi(dynamicMesh_Refine["maxCells"]);
+	this->minVolumeRefine = stod(dynamicMesh_Refine["minVolume"]);
+		
+	map<string,string> dynamicMesh_Unrefine;
+	read.file("./system/dynamicMesh", 
+		"dynamicUnrefineMesh",  
+		dynamicMesh_Unrefine);
+		
+	this->intervalUnrefine = stoi(dynamicMesh_Unrefine["interval"]);
+	this->indicatorUnrefine = stod(dynamicMesh_Unrefine["indicator"]);
 
-
-
+	//===========================
 
 
 
@@ -681,7 +706,7 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	// this->name.push_back("invRCM");
 	
 	
-	this->indicatorAMR = this->nTotalCellVar++;
+	this->indicatorAMR.push_back(this->nTotalCellVar++);
 	this->name.push_back("indicatorAMR");
 	
 	this->UDV.push_back(this->nTotalCellVar++);

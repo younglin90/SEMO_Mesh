@@ -1,0 +1,17 @@
+ 
+
+dynamicRefineMesh
+{
+	interval = 10
+	indicator = 1.0
+	maxLevel = 2
+	maxCells = 100000000
+	minVolume = 1.e-10
+}
+
+dynamicUnrefineMesh
+{
+	interval = 10
+	indicator = 0.8
+}
+

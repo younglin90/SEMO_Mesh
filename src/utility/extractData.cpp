@@ -193,15 +193,15 @@ int main(int argc, char* argv[]) {
 			}
 			else{
 				
-				for(auto& j : extDataRankX[i]){
-					extDataX[i].push_back(j);
-				}
-				for(auto& j : extDataRankY[i]){
-					extDataY[i].push_back(j);
-				}
-				for(auto& j : extDataRankVF[i]){
-					extDataVF[i].push_back(j);
-				}
+				// for(auto& j : extDataRankX[i]){
+					// extDataX[i].push_back(j);
+				// }
+				// for(auto& j : extDataRankY[i]){
+					// extDataY[i].push_back(j);
+				// }
+				// for(auto& j : extDataRankVF[i]){
+					// extDataVF[i].push_back(j);
+				// }
 				
 			}
 		}
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
 			// fileName = "region2_" + streamObj.str();
 			// saveExtractedData("./extract/", fileName, extDataX[2], extDataY[2], extDataVF[2]);
 		}
-		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD); 
 	}
 	
 

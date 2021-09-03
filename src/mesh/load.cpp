@@ -1585,6 +1585,14 @@ void SEMO_Mesh_Load::vtu(
 		// cout << mesh.boundary.back().name << endl;
 		
 	}
+	
+	
+	int maxBCNum = mesh.boundary.size()-1;
+	mesh.boundary[maxBCNum].startFace = mesh.faces.size()-mesh.boundary[maxBCNum].nFaces;
+	for(int i=maxBCNum-1; i>=0; --i){
+		mesh.boundary[i].startFace = mesh.boundary[i+1].startFace-mesh.boundary[i].nFaces;
+	}
+	
 	bcName.clear();
 	bcStartFace.clear();
 	bcNFaces.clear();

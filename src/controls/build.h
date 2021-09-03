@@ -54,7 +54,7 @@ class SEMO_Controls_Builder{
 		int Rho;
 		int C;
 		int Ht;
-		int indicatorAMR;
+		vector<int> indicatorAMR;
 		
 
 		// vector<int> Q;
@@ -242,6 +242,8 @@ class SEMO_Controls_Builder{
 		double time;
 		double timeStep;
 		double pseudoCo;
+		double specifiedCFL;
+		double allowableCFL;
 		
 		// iterator
 		int iterRealMax;
@@ -277,5 +279,17 @@ class SEMO_Controls_Builder{
 
 		double PrT;
 		double ScT;
+		
+		
+		// dynamic Mesh
+		int intervalRefine;
+		double indicatorRefine;
+		int maxLevelRefine;
+		int maxCellsRefine;
+		double minVolumeRefine;
+		
+		int intervalUnrefine;
+		double indicatorUnrefine;
+		
 };
 

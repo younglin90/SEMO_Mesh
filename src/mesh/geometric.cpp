@@ -445,6 +445,8 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	
 	
 	int tmp_icell = 0;
+	double myMaxVolume = 0.0;
+	double myMinVolume = 1.e10;
 	for(auto& cell : mesh.cells){
 		
 		// cout << "aaa" << endl;
@@ -457,6 +459,9 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				// cout << mesh.points[j].x << " " << mesh.points[j].y << " " << mesh.points[j].z << endl;
 			// }
 		// }
+		
+		myMaxVolume = max(myMaxVolume,cell.volume);
+		myMinVolume = min(myMinVolume,cell.volume);
 		
 		
 		if(cell.volume < std::numeric_limits<double>::min()) {
@@ -501,7 +506,15 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	}
 	
 	
-
+	
+	double maxVolume;
+	double minVolume;
+	MPI_Allreduce(&myMaxVolume, &maxVolume, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	MPI_Allreduce(&myMinVolume, &minVolume, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+	if(rank==0) cout << endl;
+	if(rank==0) cout << "| Max Cell Volume = " << maxVolume << endl;
+	if(rank==0) cout << "| Min Cell Volume = " << minVolume << endl;
+	
 
 	
 	

@@ -14,6 +14,7 @@
 #include "../../mesh/build.h" 
 #include "../../mesh/load.h" 
 #include "../../mesh/geometric.h" 
+#include "../../mesh/polyAMR.h"
 
 #include "../../controls/build.h" 
 #include "../../variables/build.h" 
@@ -178,7 +179,17 @@ int main(int argc, char* argv[]) {
 				<< " | time = " << controls.time << endl;
 			}
 		
-				solvers.compressibleDensityBasedDualTime(mesh, controls, species);
+			solvers.compressibleDensityBasedDualTime(mesh, controls, species);
+				
+			//==============================
+			// AMR
+			if(controls.iterReal % 1 == 0 && controls.iterReal != 0){
+				SEMO_Poly_AMR_Builder AMR;
+				AMR.polyAMR(mesh, controls, species, 0);
+				solvers.calcCellEOSMF(mesh, controls, species);
+				solvers.calcCellTransport(mesh, controls, species);
+			} 
+			//==============================
 				
 			controls.time += controls.timeStep;
 			

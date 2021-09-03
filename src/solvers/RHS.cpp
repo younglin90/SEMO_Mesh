@@ -119,10 +119,10 @@ void SEMO_Solvers_Builder::calcFluxes(
 		// }
 		
 		
-		if(
-		face.getType() == SEMO_Types::INTERNAL_FACE 
-		||
-		face.getType() == SEMO_Types::PROCESSOR_FACE
+		if(0
+		// face.getType() == SEMO_Types::INTERNAL_FACE 
+		// ||
+		// face.getType() == SEMO_Types::PROCESSOR_FACE
 		){
 			auto& cellLeft = mesh.cells[face.owner];
 
@@ -198,12 +198,10 @@ void SEMO_Solvers_Builder::calcFluxes(
 			this->getValuesFromEOSMF( species, 
 				Phat, Uhat, Vhat, What, That, MFhat, dummy1, fC, dummy2, dummy3 );
 				
-			
+			this->calcFluxRoe(
 			// this->calcFluxRoeAMTP(
 			// this->calcFluxAPRoe(
 			// this->calcFluxHAUS(
-			// this->calcFluxAUSMPWP_N(
-			this->calcFluxRoeM_N(
 				face.varL[controls.fP],
 				face.varL[controls.fU], face.varL[controls.fV], face.varL[controls.fW],
 				face.varL[controls.fT], MFL,
@@ -213,8 +211,21 @@ void SEMO_Solvers_Builder::calcFluxes(
 				face.varR[controls.fT], MFR,
 				face.varR[controls.fRho], face.varR[controls.fC], face.varR[controls.fHt],
 				face.unitNormals,
-				w1 , w2 , w3 , fC, controls.Uco, controls.timeStep, controls.Lch,
 				cFlux );
+				
+			// this->calcFluxAUSMPWP_N(
+			// this->calcFluxRoeM_N(
+				// face.varL[controls.fP],
+				// face.varL[controls.fU], face.varL[controls.fV], face.varL[controls.fW],
+				// face.varL[controls.fT], MFL,
+				// face.varL[controls.fRho], face.varL[controls.fC], face.varL[controls.fHt],
+				// face.varR[controls.fP],
+				// face.varR[controls.fU], face.varR[controls.fV], face.varR[controls.fW],
+				// face.varR[controls.fT], MFR,
+				// face.varR[controls.fRho], face.varR[controls.fC], face.varR[controls.fHt],
+				// face.unitNormals,
+				// w1 , w2 , w3 , fC, controls.Uco, controls.timeStep, controls.Lch,
+				// cFlux );
 			
 		}
 		else {

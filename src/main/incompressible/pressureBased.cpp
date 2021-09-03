@@ -224,9 +224,16 @@ int main(int argc, char* argv[]) {
 
 			//==============================
 			// AMR
-			if(controls.iterReal % 50 == 0){
+			// if(controls.iterReal % 10 == 0 && controls.iterReal != 0){
+			// if(controls.iterReal % 1 == 0){ 
+			if(
+			controls.iterReal % controls.intervalRefine == 0 ||
+			controls.iterReal % controls.intervalUnrefine == 0
+			){ 
 				SEMO_Poly_AMR_Builder AMR;
 				AMR.polyAMR(mesh, controls, species, 0);
+				solvers.calcIncomCellEOSVF(mesh, controls, species);
+				solvers.calcCellTransport(mesh, controls, species);
 			} 
 			//==============================
 			

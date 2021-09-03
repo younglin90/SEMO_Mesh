@@ -561,13 +561,13 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// }
 	
 	
-	
+	double indicatorUnrefine_AMR = controls.indicatorUnrefine;
 	
 	vector<bool> boolCellUnrefine(mesh.cells.size(),false);
 	for(int i=0; i<mesh.cells.size(); ++i){
-		if( distr(eng) < 0.9 ){
-			boolCellUnrefine[i] = true;
-		}
+		// if( distr(eng) < 0.9 ){
+			// boolCellUnrefine[i] = true;
+		// }
 		// boolCellUnrefine[i] = true;
 		// boolCellUnrefine[i] = false;
 		
@@ -576,6 +576,10 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		// }
 		
 			// boolCellUnrefine[i] = true;
+		
+
+		if(mesh.cells[i].var[controls.indicatorAMR[0]] < indicatorUnrefine_AMR) 
+			boolCellUnrefine[i] = true;
 		
 		
 		// 만약 셀의 레벨이 0 이면, false
@@ -1953,6 +1957,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
+	
 	if(nBC!=mesh.boundary.size()){
 		cout << rank << " NO BOUNDARY MATCHING" << endl;
 		for(auto& boundary : mesh.boundary){
@@ -2004,6 +2009,18 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// for (int i=0; i<mesh.boundary.size(); ++i) {
 		// mesh.boundary[i].startFace = startFaces[ mesh.boundary[i].startFace ];
 	// }
+	
+	
+
+	int maxBCnum = mesh.boundary.size()-1;
+	if(mesh.boundary[maxBCnum].nFaces == 0){
+		mesh.boundary[maxBCnum].startFace = mesh.faces.size();
+	}
+	for(int i=maxBCnum-1; i>=0; --i){
+		if(mesh.boundary[i].nFaces == 0){
+			mesh.boundary[i].startFace = mesh.boundary[i+1].startFace;
+		}
+	} 
 	
 	for (int i=0; i<mesh.boundary.size()-1; ++i) {
 		mesh.boundary[i].nFaces = mesh.boundary[i+1].startFace-mesh.boundary[i].startFace;
@@ -2213,6 +2230,11 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	proc_num = 0;
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
+		
+		face.var.resize(controls.nTotalFaceVar,0.0);
+		face.varL.resize(controls.nTotalFaceLRVar,0.0);
+		face.varR.resize(controls.nTotalFaceLRVar,0.0);
+		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			int maxLevel = 
@@ -2239,7 +2261,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// cout << rank << " : SETTING 6" << endl;
 	
 		
-	mesh.informations();
+	// mesh.informations();
 	
 	// SEMO_Mesh_Save save;
 	// string tmpFile = "./Urf" + to_string(iter);
