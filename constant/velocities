@@ -3,14 +3,19 @@
 //============================================
 initialField
 {
-	type			fixedValue;
-	value			(69.4 0.0 0.0);
+        type                    fixedValue;
+        value    (0 0 0);
 }
 
 
 
 boundaryField
 {
+	suboutlet
+	{
+		type	zeroGradient;
+	}
+
 	invwall
 	{
 		type	slip;
@@ -20,15 +25,17 @@ boundaryField
 	{
 		type	noSlip;
 	}
-
-	subinlet
+	
+	gasinlet
 	{
-		type	fixedValue;
-		value	(69.4 0.0 0.0);
+		type	surfaceNormalFixedValue;
+		value	-0.8;
 	}
 
-	suboutlet
+	liqinlet
 	{
-		type	zeroGradient;
+		type	surfaceNormalFixedValue;
+		value	-0.8416;
 	}
+	
 }

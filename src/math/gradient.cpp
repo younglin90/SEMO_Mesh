@@ -413,6 +413,10 @@ void SEMO_Utility_Math::initLeastSquare2nd(
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 	
+	
+	SEMO_MPI_Builder mpi;
+	
+	
 	vector<vector<double>> vsum(mesh.cells.size(),vector<double>(6,0.0));
 	
 	// internal cells
@@ -518,29 +522,91 @@ void SEMO_Utility_Math::initLeastSquare2nd(
 	
 	
 	
+		
 	// processor faces
 	if(size>1){
+
+		int proc_num=0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				++proc_num;
+			}
+		}
+		
+		vector<vector<double>> vsum_send(6,vector<double>(proc_num,0.0));
+		proc_num=0;
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				
-				// double wk = 1.0;
-				double wk = 1.0 / (
-					pow(face.distCells[0],2.0)+
-					pow(face.distCells[1],2.0)+
-					pow(face.distCells[2],2.0));
-				wk = pow(wk,weight);
+				// // double wk = 1.0;
+				// double wk = 1.0 / (
+					// pow(face.distCells[0],2.0)+
+					// pow(face.distCells[1],2.0)+
+					// pow(face.distCells[2],2.0));
+				// wk = pow(wk,weight);
 				
-				vsum[face.owner][0] += wk * face.distCells[0]*face.distCells[0];
-				vsum[face.owner][1] += wk * face.distCells[0]*face.distCells[1];
-				vsum[face.owner][2] += wk * face.distCells[0]*face.distCells[2];
-				vsum[face.owner][3] += wk * face.distCells[1]*face.distCells[1];
-				vsum[face.owner][4] += wk * face.distCells[1]*face.distCells[2];
-				vsum[face.owner][5] += wk * face.distCells[2]*face.distCells[2];
+				// vsum[face.owner][0] += wk * face.distCells[0]*face.distCells[0];
+				// vsum[face.owner][1] += wk * face.distCells[0]*face.distCells[1];
+				// vsum[face.owner][2] += wk * face.distCells[0]*face.distCells[2];
+				// vsum[face.owner][3] += wk * face.distCells[1]*face.distCells[1];
+				// vsum[face.owner][4] += wk * face.distCells[1]*face.distCells[2];
+				// vsum[face.owner][5] += wk * face.distCells[2]*face.distCells[2];
+				
+				for(auto j : face.stencil){
+					auto& cellSten = mesh.cells[j];
+						
+					double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+					double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+					double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+					
+					// double wk = 1.0;
+					double wk = 1.0 / (
+						pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+					wk = pow(wk,weight);
+					
+					vsum_send[0][proc_num] += wk * distX*distX;
+					vsum_send[1][proc_num] += wk * distX*distY;
+					vsum_send[2][proc_num] += wk * distX*distZ;
+					vsum_send[3][proc_num] += wk * distY*distY;
+					vsum_send[4][proc_num] += wk * distY*distZ;
+					vsum_send[5][proc_num] += wk * distZ*distZ;
+				}
+				
+				++proc_num;
 			}
 		}
+		
+		vector<vector<double>> vsum_recv(6,vector<double>(proc_num,0.0));
+		for(int j=0; j<6; ++j){
+			mpi.setProcsFaceDatas(
+						vsum_send[j], vsum_recv[j],
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+		}
+		vsum_send.clear();
+		
+		
+		proc_num=0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				for(int j=0; j<6; ++j){
+					vsum[face.owner][j] += vsum_recv[j][proc_num];
+				}
+				++proc_num;
+			}
+		}
+		
 	}
+	
+	
+	
 	
 	
 	for(int i=0; i<mesh.cells.size(); ++i){
@@ -597,6 +663,8 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 	
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
+	
+	SEMO_MPI_Builder mpi;
 	
 	gradient.clear();
 	gradient.resize(mesh.cells.size(),vector<double>(3,0.0));
@@ -700,28 +768,107 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 		// }
 	// }
 	
-	
+
+		
 	// processor faces
 	if(size>1){
+
+		int proc_num=0;
+		vector<double> var_send, var_recv;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				var_send.push_back(mesh.cells[face.owner].var[cn]);
+				++proc_num;
+			}
+		}
+		mpi.setProcsFaceDatas(
+					var_send, var_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		var_send.clear();
+		
+		vector<double> gradientX_send(proc_num,0.0);
+		vector<double> gradientY_send(proc_num,0.0);
+		vector<double> gradientZ_send(proc_num,0.0);
+		proc_num=0;
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				
-				// double wk = 1.0;
-				double wk = 1.0 / (
-					pow(face.distCells[0],2.0)+
-					pow(face.distCells[1],2.0)+
-					pow(face.distCells[2],2.0));
-				wk = pow(wk,weight);
+				// // double wk = 1.0;
+				// double wk = 1.0 / (
+					// pow(face.distCells[0],2.0)+
+					// pow(face.distCells[1],2.0)+
+					// pow(face.distCells[2],2.0));
+				// wk = pow(wk,weight);
 				
-				double DVar = face.varR[fn] - mesh.cells[face.owner].var[cn];
+				// double DVar = face.varR[fn] - mesh.cells[face.owner].var[cn];
 				
-				gradient[face.owner][0] += wk * face.distCells[0] * DVar;
-				gradient[face.owner][1] += wk * face.distCells[1] * DVar;
-				gradient[face.owner][2] += wk * face.distCells[2] * DVar;
+				// gradient[face.owner][0] += wk * face.distCells[0] * DVar;
+				// gradient[face.owner][1] += wk * face.distCells[1] * DVar;
+				// gradient[face.owner][2] += wk * face.distCells[2] * DVar;
+
+				for(auto j : face.stencil){
+					auto& cellSten = mesh.cells[j];
+						
+
+					double DVar = cellSten.var[cn] - var_recv[proc_num];
+						
+					double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+					double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+					double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+					
+					// double wk = 1.0;
+					double wk = 1.0 / (
+						pow(distX,2.0)+
+						pow(distY,2.0)+
+						pow(distZ,2.0));
+					wk = pow(wk,weight);
+						
+					gradientX_send[proc_num] += wk * distX * DVar;
+					gradientY_send[proc_num] += wk * distY * DVar;
+					gradientZ_send[proc_num] += wk * distZ * DVar;
+				}
+				
+				++proc_num;
 			}
 		}
+		
+		vector<double> gradientX_recv;
+		vector<double> gradientY_recv;
+		vector<double> gradientZ_recv;
+		mpi.setProcsFaceDatas(
+					gradientX_send, gradientX_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatas(
+					gradientY_send, gradientY_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatas(
+					gradientZ_send, gradientZ_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		var_send.clear();
+		
+		
+		proc_num=0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				gradient[face.owner][0] += gradientX_recv[proc_num];
+				gradient[face.owner][1] += gradientY_recv[proc_num];
+				gradient[face.owner][2] += gradientZ_recv[proc_num];
+				
+				++proc_num;
+			}
+		}
+		
 	}
 	
 	
@@ -773,6 +920,9 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
     int rank = MPI::COMM_WORLD.Get_rank(); 
     int size = MPI::COMM_WORLD.Get_size();
 	
+	SEMO_MPI_Builder mpi;
+		
+		
 	gradient.clear();
 	gradient.resize(mesh.cells.size(),vector<double>(3,0.0));
 	
@@ -885,48 +1035,111 @@ void SEMO_Utility_Math::calcLeastSquare2nd(
 		// }
 	// }
 	
-	
+
 	// processor faces
 	if(size>1){
+
+		int proc_num=0;
 		vector<double> phi_send, phi_recv;
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				phi_send.push_back(phi[face.owner]);
+				++proc_num;
 			}
 		}
 		
-		SEMO_MPI_Builder mpi;
 		
 		mpi.setProcsFaceDatas(
 					phi_send, phi_recv,
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
-					
-		int proc_num=0;
+		phi_send.clear();
+				
+		
+		vector<double> gradientX_send(proc_num,0.0);
+		vector<double> gradientY_send(proc_num,0.0);
+		vector<double> gradientZ_send(proc_num,0.0);
+		proc_num=0;
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				
-				// double wk = 1.0;
-				double wk = 1.0 / (
-					pow(face.distCells[0],2.0)+
-					pow(face.distCells[1],2.0)+
-					pow(face.distCells[2],2.0));
-				wk = pow(wk,weight);
+				// // double wk = 1.0;
+				// double wk = 1.0 / (
+					// pow(face.distCells[0],2.0)+
+					// pow(face.distCells[1],2.0)+
+					// pow(face.distCells[2],2.0));
+				// wk = pow(wk,weight);
 				
-				double DVar = phi_recv[proc_num] - phi[face.owner];
+				// double DVar = phi_recv[proc_num] - phi[face.owner];
 				
-				gradient[face.owner][0] += wk * face.distCells[0] * DVar;
-				gradient[face.owner][1] += wk * face.distCells[1] * DVar;
-				gradient[face.owner][2] += wk * face.distCells[2] * DVar;
+				// gradient[face.owner][0] += wk * face.distCells[0] * DVar;
+				// gradient[face.owner][1] += wk * face.distCells[1] * DVar;
+				// gradient[face.owner][2] += wk * face.distCells[2] * DVar;
+				
+
+				for(auto j : face.stencil){
+					auto& cellSten = mesh.cells[j];
+						
+
+					double DVar = phi[j] - phi_recv[proc_num];
+						
+					double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+					double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+					double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+					
+					// double wk = 1.0;
+					double wk = 1.0 / (
+						pow(distX,2.0)+
+						pow(distY,2.0)+
+						pow(distZ,2.0));
+					wk = pow(wk,weight);
+						
+					gradientX_send[proc_num] += wk * distX * DVar;
+					gradientY_send[proc_num] += wk * distY * DVar;
+					gradientZ_send[proc_num] += wk * distZ * DVar;
+				}
 				
 				++proc_num;
 			}
 		}
+		
+		vector<double> gradientX_recv;
+		vector<double> gradientY_recv;
+		vector<double> gradientZ_recv;
+		mpi.setProcsFaceDatas(
+					gradientX_send, gradientX_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatas(
+					gradientY_send, gradientY_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatas(
+					gradientZ_send, gradientZ_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		
+		
+		proc_num=0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				gradient[face.owner][0] += gradientX_recv[proc_num];
+				gradient[face.owner][1] += gradientY_recv[proc_num];
+				gradient[face.owner][2] += gradientZ_recv[proc_num];
+				
+				++proc_num;
+			}
+		}
+		
 	}
+	
 	
 	
 	
@@ -973,8 +1186,11 @@ void SEMO_Utility_Math::calcGaussGreen(
 		auto& face = mesh.faces[i];
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
-			double varF = 
-				face.wC*mesh.cells[face.owner].var[cn]+(1.0-face.wC)*mesh.cells[face.neighbour].var[cn];
+			double wCL = face.wC;
+			// double wCL = 0.5;
+			double wCR = 1.0 - wCL;
+			
+			double varF = wCL*mesh.cells[face.owner].var[cn] + wCR*mesh.cells[face.neighbour].var[cn];
 			
 			for(int j=0; j<3; ++j){
 				gradient[face.owner][j] += 
@@ -985,7 +1201,8 @@ void SEMO_Utility_Math::calcGaussGreen(
 		}
 		else{
 			
-			double varF = face.wC*mesh.cells[face.owner].var[cn]+(1.0-face.wC)*face.varR[fn];
+			// double varF = face.wC*mesh.cells[face.owner].var[cn]+(1.0-face.wC)*face.varR[fn];
+			double varF = 0.5*mesh.cells[face.owner].var[cn]+0.5*face.varR[fn];
 			for(int j=0; j<3; ++j){
 				gradient[face.owner][j] += 
 					varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
@@ -1014,10 +1231,14 @@ void SEMO_Utility_Math::calcGaussGreen(
 	// internal faces
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
+		
+		double wCL = face.wC;
+		// double wCL = 0.5;
+		double wCR = 1.0 - wCL;
+			
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
-			double varF = 
-				face.wC*phi[face.owner]+(1.0-face.wC)*phi[face.neighbour];
+			double varF = wCL*phi[face.owner]+wCR*phi[face.neighbour];
 			
 			for(int j=0; j<3; ++j){
 				gradient[face.owner][j] += 
@@ -1080,10 +1301,13 @@ void SEMO_Utility_Math::calcGaussGreen(
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
+			double wCL = face.wC;
+			// double wCL = 0.5;
+			double wCR = 1.0 - wCL;
+			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				
-				double varF = 
-					face.wC*phi[face.owner]+(1.0-face.wC)*phi_recv[proc_num];
+				double varF = wCL*phi[face.owner]+wCR*phi_recv[proc_num];
 				
 				for(int j=0; j<3; ++j){
 					gradient[face.owner][j] += 

@@ -69,21 +69,25 @@ void SEMO_Mesh_Load::OpenFoam(SEMO_Mesh_Builder &mesh, string folder){
 					break;
 				}
 				else{
-					double xyz[3];
+					vector<double> xyz(3,0.0);
 					nextToken.erase(nextToken.find("("),1); 
 					nextToken.erase(nextToken.find(")"),1); 
 					stringstream sstream(nextToken);
 					string word;
 					char del = ' ';
 					int num=0;
+						// cout << "A" << endl;
 					while (getline(sstream, word, del)){
-						xyz[num] = stod(word);
+						// cout << word << endl;
+						xyz[num] = stold(word);
 						++num;
 					}
+						// cout << "B" << endl;
 					mesh.addPoint();
 					mesh.points.back().x = xyz[0];
 					mesh.points.back().y = xyz[1];
 					mesh.points.back().z = xyz[2];
+						// cout << "C" << endl;
 					
 				}
 			}
@@ -96,7 +100,6 @@ void SEMO_Mesh_Load::OpenFoam(SEMO_Mesh_Builder &mesh, string folder){
 		// cout << "------------------------------------" << endl;
 		// cout << "point x,y,z size : " << mesh.points.size() << endl;
 		inputFile.close();
-		
 		
 		
 
@@ -392,6 +395,8 @@ void SEMO_Mesh_Load::OpenFoam(SEMO_Mesh_Builder &mesh, string folder){
 	mesh.connectCelltoFaces();
 	
 	mesh.connectCelltoPoints();
+	
+	mesh.cellsGlobal();
 		
 	mesh.informations();
 		
@@ -1006,7 +1011,9 @@ void SEMO_Mesh_Load::vtu(
 	bool startTemperature=false;
 	vector<double> temperature;
 	vector<bool> startVolFrac(1,false);
+	vector<bool> startMassFrac(1,false);
 	vector<vector<double>> volFrac(1,vector<double>(0,0.0));
+	vector<vector<double>> massFrac(1,vector<double>(0,0.0));
 	
 	bool startPointLevels=false;
 	vector<int> pointLevels;
@@ -1023,6 +1030,11 @@ void SEMO_Mesh_Load::vtu(
 	string tmpVolFracName;
 	tmpVolFracName = "volumeFraction-" + species[0].name;
 	volFracName.push_back(tmpVolFracName);
+	
+	vector<string> massFracName;
+	string tmpMassFracName;
+	tmpMassFracName = "massFraction-" + species[0].name;
+	massFracName.push_back(tmpMassFracName);
 	
 	// cout << volFracName[0] << endl;
 	
@@ -1114,6 +1126,18 @@ void SEMO_Mesh_Load::vtu(
 				double tempint;
 				while(iss >> tempint){
 					volFrac[0].push_back(tempint);
+				}
+			}
+		}
+		else if(startMassFrac[0]){
+			if(nextToken.find("</DataArray>") != string::npos){
+				startMassFrac[0]=false;
+			}
+			else{
+				istringstream iss(nextToken);
+				double tempint;
+				while(iss >> tempint){
+					massFrac[0].push_back(tempint);
 				}
 			}
 		}
@@ -1334,6 +1358,9 @@ void SEMO_Mesh_Load::vtu(
 			else if( nextToken.find(volFracName[0]) != string::npos ){
 				startVolFrac[0]=true;
 			}
+			else if( nextToken.find(massFracName[0]) != string::npos ){
+				startMassFrac[0]=true;
+			}
 			else if( nextToken.find("\"cellLevels\"") != string::npos ){
 				startCellLevels=true;
 			}
@@ -1433,9 +1460,15 @@ void SEMO_Mesh_Load::vtu(
 			for(int is=1; is<controls.nSp; ++is){
 				mesh.cells.back().var[controls.VF[is]] = volFrac[0][is];
 			}
+			
+			mesh.cells.back().var[controls.MF[0]] = massFrac[0][i];
+			for(int is=1; is<controls.nSp; ++is){
+				mesh.cells.back().var[controls.MF[is]] = massFrac[0][is];
+			}
 		}
 		else{
 			mesh.cells.back().var[controls.VF[0]] = 1.0;
+			mesh.cells.back().var[controls.MF[0]] = 1.0;
 		}
 		
 		
@@ -1782,6 +1815,7 @@ void SEMO_Mesh_Load::vtu(
 	// set processor face displacements
 	mesh.setDisplsProcFaces(); 
 	
+	mesh.cellsGlobal();
 	
 	
 	// face level

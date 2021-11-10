@@ -32,8 +32,8 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 				mesh.countsProcFaces, mesh.countsProcFaces, 
 				mesh.displsProcFaces, mesh.displsProcFaces);
 	vector<vector<double>> gradVF;
-	// math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	for(int i=0; i<mesh.cells.size(); ++i){
 		mesh.cells[i].var[controls.indicatorAMR[0]] = 
 			sqrt(gradVF[i][0]*gradVF[i][0]+
@@ -42,9 +42,144 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	}
 	
 	
+	
+	// ======================
+	double coeff_indi_refine = 5.0; // 2D
+	// double coeff_indi_refine = 100.0; // 3D
+	double coeff_indi_const = 1.0;
+	// ======================
+	
+	
+	for(auto& cell : mesh.cells){
+		if(cell.var[controls.indicatorAMR[0]] > coeff_indi_refine){
+			cell.var[controls.indicatorAMR[0]] = coeff_indi_const;  //coeff_mul_indi * controls.indicatorRefine;
+		}
+		else{
+			cell.var[controls.indicatorAMR[0]] = 0.0;
+		} 
+	}
+	
+
+	vector<double> smoothAi;
+	vector<double> AiUp;
+	vector<double> AiDown;
+	
+	for(int i=0; i<mesh.cells.size(); ++i){
+		smoothAi.push_back(mesh.cells[i].var[controls.indicatorAMR[0]]);
+	}
+	
+	//================================================
+	// smoothing Ai
+	for(int iter=0; iter<5; ++iter){
+		
+		AiUp.clear();
+		AiDown.clear();
+		for(int i=0; i<mesh.cells.size(); ++i){
+			AiUp.push_back(0.0);
+			AiDown.push_back(0.0);
+		}
+		
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			double wCL = face.wC;
+			// double wCL = 0.5;
+			double wCR = 1.0 - wCL;
+			
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			
+				double AiF = 
+					wCL*smoothAi[face.owner] +
+					wCR*smoothAi[face.neighbour];
+				
+				AiUp[face.owner] += AiF*face.area;
+				AiUp[face.neighbour] += AiF*face.area;
+				
+				AiDown[face.owner] += face.area;
+				AiDown[face.neighbour] += face.area;
+			
+			}
+			
+		}
+
+		// boundary
+		for(auto& boundary : mesh.boundary){
+			
+			if(boundary.neighbProcNo == -1){
+				
+				int str = boundary.startFace;
+				int end = str + boundary.nFaces;
+				
+				for(int i=str; i<end; ++i){
+					auto& face = mesh.faces[i];
+					
+					double AiF = smoothAi[face.owner];
+					
+					AiUp[face.owner] += AiF*face.area;
+				
+					AiDown[face.owner] += face.area;
+					
+				}
+			}
+		}
+		
+		if(size>1){
+			// processor faces
+			vector<double> sendValues;
+			for(int i=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					sendValues.push_back(smoothAi[face.owner]);
+				}
+			}
+			vector<double> recvValues;
+			mpi.setProcsFaceDatas(
+						sendValues, recvValues,
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+			int num=0;
+			for(int i=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+			
+				double wCL = face.wC;
+				// double wCL = 0.5;
+				double wCR = 1.0 - wCL;
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
+					double AiF = wCL*smoothAi[face.owner]+wCR*recvValues[num];
+					
+					AiUp[face.owner] += AiF*face.area;
+				
+					AiDown[face.owner] += face.area;
+					
+					++num;
+				}
+			}
+			
+		}
+	
+		
+		for(int i=0; i<mesh.cells.size(); ++i){
+			smoothAi[i] = AiUp[i]/AiDown[i];
+			if(mesh.cells[i].var[controls.indicatorAMR[0]] > coeff_indi_refine){
+				smoothAi[i] = coeff_indi_const; //coeff_mul_indi * controls.indicatorRefine;
+			}
+			
+		}
+		
+	}
+	
+	for(int i=0; i<mesh.cells.size(); ++i){
+		mesh.cells[i].var[controls.indicatorAMR[0]] = smoothAi[i];
+	}
+	
+	
+	
+	
 	// //=========================================================
 	// for(auto& cell : mesh.cells){
-		// if(cell.var[controls.indicatorAMR[0]] > 0.7){
+		// if(cell.var[controls.indicatorAMR[0]] > controls.indicatorRefine){
 			// cell.var[controls.indicatorAMR[0]] = 1.0;
 		// }
 		// else{
@@ -80,9 +215,7 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 			// distanceCells.push_back(face.distCells[0]);
 			// distanceCells.push_back(face.distCells[1]);
 			// distanceCells.push_back(face.distCells[2]);
-			// double dPN = sqrt(pow(distanceCells[0],2.0) + 
-							  // pow(distanceCells[1],2.0) + 
-							  // pow(distanceCells[2],2.0));
+			// double dPN = face.magPN;
 							  
 			// double dtstepK = 0.6*0.5*dPN*dPN;//0.1*0.5*dPN*dPN*dPN*dPN;
 			
@@ -143,12 +276,12 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 
 	// for(int i=0; i<5; ++i){
 		
-	if(controls.iterReal % controls.intervalRefine == 0) 
+	// if(controls.iterReal % controls.intervalRefine == 0) 
 		polyRefine(mesh, controls, 0);
 	
 	// geometric.init(mesh);
 	
-	if(controls.iterReal % controls.intervalUnrefine == 0)
+	// if(controls.iterReal % controls.intervalUnrefine == 0)
 		polyUnrefine(mesh, controls, 0);
 	
 	// geometric.init(mesh);

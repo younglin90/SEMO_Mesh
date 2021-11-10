@@ -20,7 +20,7 @@ class SEMO_Controls_Builder{
 		string application;
 		string startFrom;
 		string stopAt;
-		int saveInterval;
+		double saveInterval;
 		string saveControl;
 		string saveFormat;
 		string saveCompression;
@@ -69,6 +69,7 @@ class SEMO_Controls_Builder{
 		vector<int> oldVF;
 		vector<int> oldMF;
 		int oldRho;
+		int oldHt;
 		
 		int dRhoDP;
 		int dHtDP;
@@ -85,6 +86,7 @@ class SEMO_Controls_Builder{
 		vector<int> UDV;
 		
 		int Un;
+		int oldUn;
 		// int wC;
 		
 		
@@ -124,6 +126,19 @@ class SEMO_Controls_Builder{
 		int fC;
 		int fHt;
 		int fmu;
+		
+		int fdRhoDP;
+		int fdRhoDT;
+		int fdHtDP;
+		int fdHtDT;
+		vector<int> fdRhoDMF;
+		vector<int> fdHtDMF;
+		
+		vector<int> fMF_HO;
+		int fRho_HO;
+		int fHt_HO;
+	
+		
 		
 		// face var
 		int nTotalFaceVar;

@@ -127,7 +127,7 @@ void SEMO_Controls_Builder::readConfigures(){
 	this->stopAt = controlDict["stopAt"];
 	this->timeStep = stod(controlDict["timeStep"]);
 	this->orgTimeStep = this->timeStep;
-	this->saveInterval = stoi(controlDict["saveInterval"]);
+	this->saveInterval = stod(controlDict["saveInterval"]);
 	this->saveControl = controlDict["saveControl"];
 	this->saveFormat = controlDict["saveFormat"];
 	this->saveCompression = controlDict["saveCompression"];
@@ -616,10 +616,10 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	// for(int i=0; i<this->nEq; ++i){
 		// this->Q.push_back(this->nTotalCellVar++);
 	// }
-	for(int i=0; i<this->nEq; ++i){
+	for(int i=0; i<this->nEq+2; ++i){
 		this->Qn.push_back(this->nTotalCellVar++);
 	}
-	for(int i=0; i<this->nEq; ++i){
+	for(int i=0; i<this->nEq+2; ++i){
 		this->Qm.push_back(this->nTotalCellVar++);
 	}
 
@@ -656,6 +656,9 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	
 	this->oldRho = this->nTotalCellVar++;
 	this->name.push_back("density-old");
+	
+	this->oldHt = this->nTotalCellVar++;
+	this->name.push_back("total-enthalpy-old");
 	
 	
 	// cout << "BBBBBBBB" << endl;
@@ -737,6 +740,22 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->fHt = this->nTotalFaceLRVar++;
 
 	this->fmu = this->nTotalFaceLRVar++;
+
+	this->fdRhoDP = this->nTotalFaceLRVar++;
+	this->fdRhoDT = this->nTotalFaceLRVar++;
+	this->fdHtDP = this->nTotalFaceLRVar++;
+	this->fdHtDT = this->nTotalFaceLRVar++;
+	for(int i=0; i<this->nSp-1; ++i){
+		this->fdRhoDMF.push_back(this->nTotalFaceLRVar++);
+		this->fdHtDMF.push_back(this->nTotalFaceLRVar++);
+	}
+	
+	
+	for(int i=0; i<this->nSp-1; ++i){
+		this->fMF_HO.push_back(this->nTotalFaceLRVar++);
+	}
+	this->fRho_HO = this->nTotalFaceLRVar++;
+	this->fHt_HO = this->nTotalFaceLRVar++;
 	
 	
 	
@@ -744,6 +763,8 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->nTotalFaceVar = 0;
 	
 	this->Un = this->nTotalFaceVar++;
+	this->oldUn = this->nTotalFaceVar++;
+	// this->old2Un = this->nTotalFaceVar++;
 	
 	this->dUdx = this->nTotalFaceVar++;
 	this->dUdy = this->nTotalFaceVar++;

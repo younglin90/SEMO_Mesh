@@ -11,12 +11,12 @@ ddtSchemes
 
 gradSchemes
 {
-    default = Gauss linear
+    default = Gauss upwind
 }
  
 divSchemes
 {
-	default = Gauss linear
+    default = Gauss upwind
 }
  
 laplacianSchemes

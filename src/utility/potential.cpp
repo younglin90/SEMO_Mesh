@@ -587,7 +587,6 @@ void saveInitialmkdirs(char *dir_path){
 
 
 
-
 void saveInitialField(string folder){
 
 
@@ -607,6 +606,9 @@ void saveInitialField(string folder){
 	}
 	
 	outputFile.open(filenamePlot);
+	
+	outputFile.precision(20);
+	
 	if(outputFile.fail()){
 		cerr << "Unable to write file for writing." << endl;
 		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
@@ -620,6 +622,12 @@ void saveInitialField(string folder){
 	
 	// Points data
 	outputFile << "    <PointData>" << endl;
+	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"pointLevels\" format=\"ascii\">" << endl;
+	for(auto& point : mesh.points) outputFile << point.level << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
 	outputFile << "    </PointData>" << endl;
 	
 	
@@ -628,31 +636,41 @@ void saveInitialField(string folder){
 	
 	
 	outputFile << "     <DataArray type=\"Float64\" Name=\"pressure\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.P] << " ";
+	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[0] << " ";
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
 	
 	outputFile << "     <DataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"ascii\">" << endl;
 	for(auto& cell : mesh.cells){
-		outputFile << scientific << cell.var[controls.U] << " " 
-		<< cell.var[controls.V] << " " << cell.var[controls.W] << " ";
+		outputFile << scientific << cell.var[1] << " " 
+		<< cell.var[2] << " " << cell.var[3] << " ";
 	}
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
 	
 	outputFile << "     <DataArray type=\"Float64\" Name=\"temperature\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.T] << " ";
+	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[4] << " ";
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
 	
 	outputFile << "     <DataArray type=\"Float64\" Name=\"volumeFraction-" << species[0].name << "\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.VF[0]] << " ";
+	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[5] << " ";
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	
+	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"cellLevels\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << cell.level << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
+	outputFile << "     <DataArray type=\"Int64\" Name=\"cellGroups\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << cell.group << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
 	
 	
 	
@@ -767,6 +785,21 @@ void saveInitialField(string folder){
 	outputFile << endl;
 	outputFile << " </neighbour>" << endl;
 	
+	// outputFile << " <faceLevels>" << endl;
+	// for(auto& face : mesh.faces){
+		// outputFile << face.level << " ";
+	// }
+	// outputFile << endl;
+	// outputFile << " </faceLevels>" << endl;
+	
+	outputFile << " <faceGroups>" << endl;
+	for(auto& face : mesh.faces){
+		outputFile << face.group << " ";
+	}
+	outputFile << endl;
+	outputFile << " </faceGroups>" << endl;
+	
+	
 	outputFile << " <bcName>" << endl;
 	for(auto& boundary : mesh.boundary){
 		// cout << boundary.name << endl;
@@ -812,7 +845,7 @@ void saveInitialField(string folder){
 	
 
 	if(rank==0){
-		string filenamePvtu = folder + "../plot.0_Potential.pvtu";
+		string filenamePvtu = folder + "../plot.0.pvtu";
 		
 		outputFile.open(filenamePvtu);
 		if(outputFile.fail()){
@@ -833,18 +866,21 @@ void saveInitialField(string folder){
 		outputFile << "    <PDataArray type=\"Float64\" NumberOfComponents=\"3\" Name=\"Points\"/>" << endl;
 		outputFile << "   </PPoints>" << endl;
 		for(int ip=0; ip<size; ++ip){
-			string filenamevtus = "./0_Potential/plot.";
+			string filenamevtus = "./0/plot.";
 			filenamevtus += to_string(ip);
 			filenamevtus += ".vtu";
 			outputFile << "    <Piece Source=\"" << filenamevtus << "\"/>" << endl;
 		}
 		outputFile << "   <PPointData>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"pointLevels\"/>" << endl;
 		outputFile << "   </PPointData>" << endl;
 		outputFile << "   <PCellData>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"pressure\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"temperature\"/>" << endl;
 		outputFile << "    <PDataArray type=\"Float64\" Name=\"volumeFraction-" << species[0].name << "\"/>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"cellLevels\"/>" << endl;
+		outputFile << "    <PDataArray type=\"Int64\" Name=\"cellGroups\"/>" << endl;
 		outputFile << "   </PCellData>" << endl;
 		outputFile << "  </PUnstructuredGrid>" << endl;
 		outputFile << "</VTKFile>" << endl;
@@ -862,7 +898,3 @@ void saveInitialField(string folder){
 	
 	
 }
-
-
-
-

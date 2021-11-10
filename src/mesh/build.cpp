@@ -369,10 +369,12 @@ void SEMO_Mesh_Builder::checkQualities(){
 			Vz.push_back((*this).points[i].z);
 		}
 		
+		double VSn;
+		vector<double> cellCentroid;
 		geometric.calcUnitNormals_Area3dPolygon(
 			face.points.size(), Vx,Vy,Vz,
 			face.unitNormals, face.area,
-			face.x, face.y, face.z );
+			face.x, face.y, face.z, VSn, cellCentroid );
 			
 		vector<double> orthogonality(3,0.0); 
 		orthogonality[0] = face.unitNormals[0] - cellToFaceNvec[0];
@@ -552,6 +554,7 @@ void SEMO_Mesh_Builder::setFaceTypes(){
 void SEMO_Mesh_Builder::buildLists(){
 
 	(*this).listPoints.clear();
+	(*this).listFaces.clear();
 	(*this).listCells.clear();
 	(*this).listInternalFaces.clear();
 	(*this).listBoundaryFaces.clear();
@@ -1217,3 +1220,207 @@ void SEMO_Mesh_Builder::informations(){
     }
 	MPI_Barrier(MPI_COMM_WORLD);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+void SEMO_Mesh_Builder::cellsGlobal(){
+	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
+	
+	// SEMO_MPI_Builder mpi;
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+
+	int ncells = mesh.cells.size();
+	vector<int> procNcells(size,0);
+	MPI_Allgather(&ncells,1,MPI_INT,procNcells.data(),1,MPI_INT,MPI_COMM_WORLD);
+	
+	int myStart=0;
+	for(int i=0; i<rank; ++i){
+		myStart += procNcells[i];
+	}
+	
+	
+	
+	int ncellTot;
+	MPI_Allreduce(&ncells, &ncellTot,1,MPI_INTEGER,MPI_SUM,MPI_COMM_WORLD);
+	vector<int> procStart(size,0);
+	MPI_Allgather(&myStart,1,MPI_INT,procStart.data(),1,MPI_INT,MPI_COMM_WORLD);
+	
+	mesh.startCellGlobal = myStart;
+	mesh.startProcCellGlobal.resize(size+1,0);
+	for(int i=0; i<size; ++i){
+		mesh.startProcCellGlobal[i] = procStart[i];
+	}
+	mesh.ncellsTotal = ncellTot;
+	mesh.startProcCellGlobal[size] = ncellTot;
+	
+	vector<int> neighbProcNo;
+	vector<int> ownerNo;
+	vector<int> neighbNo;
+	
+	for(auto& boundary : mesh.boundary){
+		if(boundary.neighbProcNo != -1){
+			int str=boundary.startFace;
+			int end=str+boundary.nFaces;
+			for(int i=str; i<end; ++i){
+				neighbProcNo.push_back(boundary.neighbProcNo);
+				ownerNo.push_back(mesh.faces[i].owner);
+				// cout << mesh.faces[i].owner << endl;
+			}
+		}
+	}
+	
+	if(size>1){
+		
+		neighbNo.clear();
+		neighbNo.resize(mesh.displsProcFaces[size-1] + mesh.countsProcFaces[size-1],0.0);
+		
+		MPI_Alltoallv( ownerNo.data(), mesh.countsProcFaces.data(), mesh.displsProcFaces.data(), MPI_INT, 
+					   neighbNo.data(), mesh.countsProcFaces.data(), mesh.displsProcFaces.data(), MPI_INT, 
+					   MPI_COMM_WORLD);
+
+		// SEMO_MPI_Builder mpi;
+		
+		// mpi.setProcsFaceDatas(
+					// ownerNo, neighbNo,
+					// mesh.countsProcFaces, mesh.countsProcFaces, 
+					// mesh.displsProcFaces, mesh.displsProcFaces);
+	
+	}
+	
+	mesh.neighbProcNo.resize(neighbProcNo.size(),0);
+	for(int i=0; i<neighbProcNo.size(); ++i){
+		mesh.neighbProcNo[i] = neighbProcNo[i];
+	}
+	
+	mesh.procNeighbCellNo.resize(neighbNo.size(),0);
+	for(int i=0; i<neighbNo.size(); ++i){
+		mesh.procNeighbCellNo[i] = neighbNo[i];
+	}
+	
+	
+	
+	
+	
+	
+	// temporary COO format
+	int strRow = mesh.startCellGlobal;
+	vector<int> COO_row(mesh.cells.size(),0);
+	vector<int> COO_col(mesh.cells.size(),0);
+	vector<int> COO_iface;
+	vector<string> COO_iface_LR;
+	for(int i=0; i<mesh.cells.size(); ++i){
+		COO_row[i] = strRow + i;
+		COO_col[i] = strRow + i;
+	}
+	for(int i=0, proc_num=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			COO_row.push_back(strRow + face.owner);
+			COO_col.push_back(strRow + face.neighbour);
+			
+			COO_iface_LR.push_back("LR");
+			COO_iface.push_back(i);
+			
+			COO_row.push_back(strRow + face.neighbour);
+			COO_col.push_back(strRow + face.owner);
+			
+			COO_iface_LR.push_back("RL");
+			COO_iface.push_back(i);
+		}
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			int strNeigbRow_Glo = mesh.startProcCellGlobal[mesh.neighbProcNo[proc_num]];
+			int idNeigbCell_Loc = mesh.procNeighbCellNo[proc_num];
+			
+			COO_row.push_back(strRow + face.owner);
+			COO_col.push_back(strNeigbRow_Glo + idNeigbCell_Loc);
+			
+			COO_iface_LR.push_back("LR");
+			COO_iface.push_back(i);
+			
+			++proc_num;
+		}
+	}
+	
+	// save CSR format
+    //compute number of non-zero entries per row of A 
+	int n_row = mesh.cells.size();
+	int nnz = COO_row.size();
+	
+	mesh.non_zeros = nnz;
+	
+	mesh.CRS_ptr.clear();
+	mesh.CRS_col.clear();
+	mesh.CRS_col_ptr_dig.clear();
+	mesh.CRS_col_ptr_LR.clear();
+	mesh.CRS_col_ptr_RL.clear();
+	
+	mesh.CRS_col.resize(nnz,0);
+	mesh.CRS_ptr.resize(n_row+1,0);
+	mesh.CRS_col_ptr_dig.resize(mesh.cells.size(),-1);
+	mesh.CRS_col_ptr_LR.resize(mesh.faces.size(),-1);
+	mesh.CRS_col_ptr_RL.resize(mesh.faces.size(),-1);
+
+    for (int n = 0; n < nnz; n++){            
+        mesh.CRS_ptr[COO_row[n]-strRow]++;
+    }
+
+    //cumsum the nnz per row to get ptr[]
+    for(int i = 0, cumsum = 0; i < n_row; i++){     
+        int temp = mesh.CRS_ptr[i];
+        mesh.CRS_ptr[i] = cumsum;
+        cumsum += temp;
+    }
+    mesh.CRS_ptr[n_row] = nnz; 
+
+    //write col,val into col,val
+    for(int n = 0; n < nnz; n++){
+        int row  = COO_row[n] - strRow;
+        int dest = mesh.CRS_ptr[row];
+
+        mesh.CRS_col[dest] = COO_col[n];
+        // val[dest] = A_vals[n];
+		
+		if(n<n_row){
+			mesh.CRS_col_ptr_dig[n] = dest;
+		}
+		else{
+			int iface = COO_iface[n-n_row];
+			
+			if(COO_iface_LR[n-n_row] == "LR"){
+				mesh.CRS_col_ptr_LR[iface] = dest;
+			}
+			else{
+				mesh.CRS_col_ptr_RL[iface] = dest;
+			}
+			
+		}
+
+        mesh.CRS_ptr[row]++;
+    }
+
+    for(int i = 0, last = 0; i <= n_row; i++){
+        int temp = mesh.CRS_ptr[i];
+        mesh.CRS_ptr[i]  = last;
+        last = temp;
+    }
+	
+	
+}
+
+
+

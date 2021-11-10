@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 		cellXYZ[i][1] /= (double)mesh.cells[i].points.size();
 		cellXYZ[i][2] /= (double)mesh.cells[i].points.size();
 		
-		cell.var.resize(6,0.0);
+		cell.var.resize(controls.nTotalCellVar,0.0);
 	}
 	
 	
@@ -186,6 +186,103 @@ int main(int argc, char* argv[]) {
 		}
 		// cout << "BBBBBBBB" << endl;
 	}
+	else if(type.back() == "cylinderToCell"){
+		for(int i=0; i<mesh.cells.size(); ++i){
+			SEMO_Cell& cell = mesh.cells[i];
+			
+			double radius = values[9];
+			double deValue1 = values[0];
+			double deValue2 = values[1];
+			double deValue3 = values[2];
+			double value1 = values[10];
+			double value2 = values[11];
+			double value3 = values[12];
+			
+			double pVec[3];
+			double vec0[3];
+			double vec1[3];
+			
+			pVec[0] = values[6]-values[3];
+			pVec[1] = values[7]-values[4];
+			pVec[2] = values[8]-values[5];
+			
+			vec0[0] = cellXYZ[i][0]-values[3];
+			vec0[1] = cellXYZ[i][1]-values[4];
+			vec0[2] = cellXYZ[i][2]-values[5];
+			
+			vec1[0] = cellXYZ[i][0]-values[6];
+			vec1[1] = cellXYZ[i][1]-values[7];
+			vec1[2] = cellXYZ[i][2]-values[8];
+			
+			double pVecMag = sqrt(pow(pVec[0],2.0)+pow(pVec[1],2.0)+pow(pVec[2],2.0));
+			double vec0Mag = sqrt(pow(vec0[0],2.0)+pow(vec0[1],2.0)+pow(vec0[2],2.0));
+			double vec1Mag = sqrt(pow(vec1[0],2.0)+pow(vec1[1],2.0)+pow(vec1[2],2.0));
+			
+			double cosVec0 = (vec0[0]*pVec[0]+vec0[1]*pVec[1]+vec0[2]*pVec[2])/pVecMag/(vec0Mag+1.e-200);
+			double cosVec1 = -(vec1[0]*pVec[0]+vec1[1]*pVec[1]+vec1[2]*pVec[2])/pVecMag/(vec1Mag+1.e-200);
+			
+			double unitPVec[3];
+			unitPVec[0] = pVec[0]/(pVecMag);
+			unitPVec[1] = pVec[1]/(pVecMag);
+			unitPVec[2] = pVec[2]/(pVecMag);
+			
+			bool boolInternal = true;
+			if(cosVec0 <= 0.0 || cosVec1 <= 0.0) boolInternal = false;
+			
+			// cout << cosVec0 << " " << cosVec1 << endl;
+			
+			if(boolInternal){
+				double distance = 
+				sqrt( pow(vec0Mag,2.0)-pow(unitPVec[0]*vec0[0]+unitPVec[1]*vec0[1]+unitPVec[2]*vec0[2] , 2.0) );
+				
+				if(distance >= radius) boolInternal = false;
+			}
+			
+			if(boolInternal){
+			
+				cell.var[1] = value1;
+				cell.var[2] = value2;
+				cell.var[3] = value3;
+			}
+			else{
+				cell.var[1] = deValue1;
+				cell.var[2] = deValue2;
+				cell.var[3] = deValue3;
+			}
+		}
+	}
+	else if(type.back() == "sphereToCell"){
+		for(int i=0; i<mesh.cells.size(); ++i){
+			SEMO_Cell& cell = mesh.cells[i];
+			
+			double radius = values[6];
+			double deValue1 = values[0];
+			double deValue2 = values[1];
+			double deValue3 = values[2];
+			double value1 = values[7];
+			double value2 = values[8];
+			double value3 = values[9];
+			
+			double origin0[3];
+			origin0[0] = cellXYZ[i][0]-values[3];
+			origin0[1] = cellXYZ[i][1]-values[4];
+			origin0[2] = cellXYZ[i][2]-values[5];
+			
+			bool boolInternal = true;
+			if(pow(origin0[0],2.0)+pow(origin0[1],2.0)+pow(origin0[2],2.0) > pow(radius,2.0)) boolInternal = false;
+			
+			if(boolInternal){
+				cell.var[1] = value1;
+				cell.var[2] = value2;
+				cell.var[3] = value3;
+			}
+			else{
+				cell.var[1] = deValue1;
+				cell.var[2] = deValue2;
+				cell.var[3] = deValue3;
+			}
+		}
+	}
 		
 	initialConditionSetting("./constant/temperature", type, values);
 	
@@ -214,10 +311,12 @@ int main(int argc, char* argv[]) {
 	string speciesFileName = "./constant/" + species[0].name;
 	initialConditionSetting(speciesFileName, type, values);
 	
+	
 	// cout << "BBB" << endl;
 	if(type.back() == "fixedValue"){
 		for(auto& cell : mesh.cells){
-			cell.var[5] = values[0];
+			cell.var[controls.MF[0]] = values[0];
+			cell.var[controls.VF[0]] = values[0];
 		}
 	}
 	else if(type.back() == "boxToCell"){
@@ -233,7 +332,8 @@ int main(int argc, char* argv[]) {
 			(cellXYZ[i][1] >= values[2] && cellXYZ[i][1] <= values[5]) &&
 			(cellXYZ[i][2] >= values[3] && cellXYZ[i][2] <= values[6]) ){
 				// cout << values[7] << endl;
-				cell.var[5] = values[7];
+				cell.var[controls.MF[0]] = values[7];
+				cell.var[controls.VF[0]] = values[7];
 					// cout.precision(20);
 				// cout << "YES " << cellXYZ[i][1] << endl;
 			}
@@ -242,7 +342,8 @@ int main(int argc, char* argv[]) {
 					// cout.precision(20);
 					// cout << "NO " << cellXYZ[i][1] << endl;
 				// }
-				cell.var[5] = values[0];
+				cell.var[controls.MF[0]] = values[0];
+				cell.var[controls.VF[0]] = values[0];
 			}
 		}
 	}
@@ -295,15 +396,73 @@ int main(int argc, char* argv[]) {
 			}
 			
 			if(boolInternal){
-				cell.var[5] = value;
+				cell.var[controls.MF[0]] = value;
+				cell.var[controls.VF[0]] = value;
 			}
 			else{
-				cell.var[5] = deValue;
+				cell.var[controls.MF[0]] = deValue;
+				cell.var[controls.VF[0]] = deValue;
+			}
+		}
+	}
+	else if(type.back() == "sphereToCell"){
+		for(int i=0; i<mesh.cells.size(); ++i){
+			SEMO_Cell& cell = mesh.cells[i];
+			
+			double radius = values[4];
+			double deValue = values[0];
+			double value = values[5];
+			
+			double origin0[3];
+			origin0[0] = cellXYZ[i][0]-values[1];
+			origin0[1] = cellXYZ[i][1]-values[2];
+			origin0[2] = cellXYZ[i][2]-values[3];
+			
+			bool boolInternal = true;
+			if(pow(origin0[0],2.0)+pow(origin0[1],2.0)+pow(origin0[2],2.0) > pow(radius,2.0)) boolInternal = false;
+			
+			if(boolInternal){
+				cell.var[controls.MF[0]] = value;
+				cell.var[controls.VF[0]] = value;
+			}
+			else{
+				cell.var[controls.MF[0]] = deValue;
+				cell.var[controls.VF[0]] = deValue;
 			}
 		}
 	}
 	
 	
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// SEMO_Cell& cell = mesh.cells[i];
+			
+			// double radius = values[4];
+			// double deValue = values[0];
+			// double value = values[5];
+			
+			// radius = 0.005;
+			
+			// double origin0[3];
+			// origin0[0] = cellXYZ[i][0]-0.0;
+			// origin0[1] = cellXYZ[i][1]-0.025;
+			// origin0[2] = cellXYZ[i][2]-0.0;
+			
+			// bool boolInternal = false;
+			// if(pow(origin0[0],2.0)+pow(origin0[1],2.0)+pow(origin0[2],2.0) <= pow(radius,2.0)) boolInternal = true;
+			
+			// origin0[0] = cellXYZ[i][0]-0.0085;
+			// origin0[1] = cellXYZ[i][1]-0.01;
+			// origin0[2] = cellXYZ[i][2]-0.0;
+			// if(pow(origin0[0],2.0)+pow(origin0[1],2.0)+pow(origin0[2],2.0) <= pow(radius,2.0)) boolInternal = true;
+			
+			// if(boolInternal){
+				// cell.var[5] = value;
+			// }
+			// else{
+				// cell.var[5] = deValue;
+			// }
+			
+		// }
 
 	// SEMO_Utility_Math math;
 	// SEMO_Mesh_Geometric geometric;
@@ -459,6 +618,40 @@ void initialConditionSetting(string file,
 					value.push_back(radiusVal);
 					value.push_back(cylinderVal);
 				}
+				else if(type.back() == "sphereToCell"){
+					istringstream defaultVal(read[line+1]);
+					istringstream points(read[line+2]);
+					istringstream radius(read[line+3]);
+					istringstream sphereValue(read[line+4]);
+					double dDefaultVal;
+					double xyzOrigin[3];
+					double radiusVal;
+					double sphereVal;
+					defaultVal >> dummy >> dDefaultVal;
+					
+					string dummy1, dummy2, dummy3;
+					points >> dummy >> dummy1 >> dummy2 >> dummy3;
+					
+					
+					dummy1.erase(dummy1.find("("),1); 
+					dummy3.erase(dummy3.find(")"),1); 
+					dummy3.erase(dummy3.find(";"),1);
+					// cout << dummy4 << dummy5 << dummy6 << endl;
+					
+					xyzOrigin[0] = stod(dummy1);
+					xyzOrigin[1] = stod(dummy2);
+					xyzOrigin[2] = stod(dummy3);
+					
+					radius >> dummy >> radiusVal;
+					sphereValue >> dummy >> sphereVal;
+					
+					value.push_back(dDefaultVal);
+					value.push_back(xyzOrigin[0]);
+					value.push_back(xyzOrigin[1]);
+					value.push_back(xyzOrigin[2]);
+					value.push_back(radiusVal);
+					value.push_back(sphereVal);
+				}
 				else {
 					cout << "| #Warning : not exist, type" << endl;
 				}
@@ -587,6 +780,116 @@ void initialConditionSettingVel(string file,
 					value.push_back(stod(dBoxValue2));
 					value.push_back(stod(dBoxValue3));
 				}
+				else if(type.back() == "cylinderToCell"){
+					istringstream defaultVal(read[line+1]);
+					istringstream points(read[line+2]);
+					istringstream radius(read[line+3]);
+					istringstream cylinderValue(read[line+4]);
+					double dDefaultVal;
+					string dDefaultVal1;
+					string dDefaultVal2;
+					string dDefaultVal3;
+					double xyzMin[3];
+					double xyzMax[3];
+					double radiusVal;
+					double cylinderVal;
+					string cylinderVal1;
+					string cylinderVal2;
+					string cylinderVal3;
+					// defaultVal >> dummy >> dDefaultVal;
+					defaultVal >> dummy >> dDefaultVal1 >> dDefaultVal2 >> dDefaultVal3 ;
+					// cout << dDefaultVal1 << endl;
+					dDefaultVal1.erase(dDefaultVal1.find("("),1); 
+					dDefaultVal3.erase(dDefaultVal3.find(")"),1); 
+					dDefaultVal3.erase(dDefaultVal3.find(";"),1);
+					// box >> dummy >> xyzMin[0] >> xyzMin[1] >> xyzMin[2] >> xyzMax[0] >> xyzMax[1] >> xyzMax[2];
+					
+					
+					string dummy1, dummy2, dummy3, dummy4, dummy5, dummy6;
+					points >> dummy >> dummy1 >> dummy2 >> dummy3 >> dummy4 >> dummy5 >> dummy6;
+					
+					
+					dummy1.erase(dummy1.find("("),1); 
+					dummy3.erase(dummy3.find(")"),1); 
+					dummy4.erase(dummy4.find("("),1);
+					dummy6.erase(dummy6.find(")"),1);
+					dummy6.erase(dummy6.find(";"),1);
+					// cout << dummy4 << dummy5 << dummy6 << endl;
+					
+					xyzMin[0] = stod(dummy1);
+					xyzMin[1] = stod(dummy2);
+					xyzMin[2] = stod(dummy3);
+					xyzMax[0] = stod(dummy4);
+					xyzMax[1] = stod(dummy5);
+					xyzMax[2] = stod(dummy6);
+					
+					// tmpdummy >> xyzMin[0] >> xyzMin[1] >> xyzMin[2] >> xyzMax[0] >> xyzMax[1] >> xyzMax[2];
+					
+					radius >> dummy >> radiusVal;
+					// cylinderValue >> dummy >> cylinderVal;
+					cylinderValue >> dummy >> cylinderVal1 >> cylinderVal2 >> cylinderVal3 ;
+					cylinderVal1.erase(cylinderVal1.find("("),1); 
+					cylinderVal3.erase(cylinderVal3.find(")"),1); 
+					cylinderVal3.erase(cylinderVal3.find(";"),1);
+					
+					value.push_back(stod(dDefaultVal1));
+					value.push_back(stod(dDefaultVal2));
+					value.push_back(stod(dDefaultVal3));
+					value.push_back(xyzMin[0]);
+					value.push_back(xyzMin[1]);
+					value.push_back(xyzMin[2]);
+					value.push_back(xyzMax[0]);
+					value.push_back(xyzMax[1]);
+					value.push_back(xyzMax[2]);
+					value.push_back(radiusVal);
+					value.push_back(stod(cylinderVal1));
+					value.push_back(stod(cylinderVal2));
+					value.push_back(stod(cylinderVal3));
+				}
+				else if(type.back() == "sphereToCell"){
+					istringstream defaultVal(read[line+1]);
+					istringstream points(read[line+2]);
+					istringstream radius(read[line+3]);
+					istringstream sphereValue(read[line+4]);
+					string dDefaultVal1,dDefaultVal2,dDefaultVal3;
+					double xyzOrigin[3];
+					double radiusVal;
+					string sphereVal1,sphereVal2,sphereVal3;
+					defaultVal >> dummy >> dDefaultVal1 >> dDefaultVal2 >> dDefaultVal3;
+					dDefaultVal1.erase(dDefaultVal1.find("("),1); 
+					dDefaultVal3.erase(dDefaultVal3.find(")"),1); 
+					dDefaultVal3.erase(dDefaultVal3.find(";"),1);
+					
+					string dummy1, dummy2, dummy3, dummy4, dummy5, dummy6;
+					points >> dummy >> dummy1 >> dummy2 >> dummy3;
+					
+					
+					dummy1.erase(dummy1.find("("),1); 
+					dummy3.erase(dummy3.find(")"),1); 
+					dummy6.erase(dummy3.find(";"),1);
+					// cout << dummy4 << dummy5 << dummy6 << endl;
+					
+					xyzOrigin[0] = stod(dummy1);
+					xyzOrigin[1] = stod(dummy2);
+					xyzOrigin[2] = stod(dummy3);
+					
+					radius >> dummy >> radiusVal;
+					sphereValue >> dummy >> sphereVal1 >> sphereVal2 >> sphereVal3 ;
+					sphereVal1.erase(sphereVal1.find("("),1); 
+					sphereVal3.erase(sphereVal3.find(")"),1); 
+					sphereVal3.erase(sphereVal3.find(";"),1);
+					
+					value.push_back(stod(dDefaultVal1));
+					value.push_back(stod(dDefaultVal2));
+					value.push_back(stod(dDefaultVal3));
+					value.push_back(xyzOrigin[0]);
+					value.push_back(xyzOrigin[1]);
+					value.push_back(xyzOrigin[2]);
+					value.push_back(radiusVal);
+					value.push_back(stod(sphereVal1));
+					value.push_back(stod(sphereVal2));
+					value.push_back(stod(sphereVal3));
+				}
 				else {
 					cout << "| #Warning : not exist, type" << endl;
 				}
@@ -695,7 +998,13 @@ void saveInitialField(string folder){
 	
 	
 	outputFile << "     <DataArray type=\"Float64\" Name=\"volumeFraction-" << species[0].name << "\" format=\"ascii\">" << endl;
-	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[5] << " ";
+	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.VF[0]] << " ";
+	outputFile << endl;
+	outputFile << "     </DataArray>" << endl;
+	
+	
+	outputFile << "     <DataArray type=\"Float64\" Name=\"massFraction-" << species[0].name << "\" format=\"ascii\">" << endl;
+	for(auto& cell : mesh.cells) outputFile << scientific << cell.var[controls.MF[0]] << " ";
 	outputFile << endl;
 	outputFile << "     </DataArray>" << endl;
 	

@@ -25,6 +25,12 @@ public:
 		SEMO_Mesh_Builder &in, 
 		SEMO_Controls_Builder &controls,
 		vector<SEMO_Species>& species);
+	
+	void particles(
+		string folder, 
+		SEMO_Mesh_Builder &in, 
+		SEMO_Controls_Builder &controls,
+		vector<SEMO_Species>& species);
 		
 	void vtu(string folder, int rank, SEMO_Mesh_Builder &in);
 	void vtuZlib(SEMO_Mesh_Builder &in, SEMO_Controls_Builder &controls);

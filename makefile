@@ -10,6 +10,8 @@ LIBINCLUDE = \
              -Ilib/Metis\
              -Ilib/Scotch\
              -Ilib/HYPRE/include\
+             -Ilib/amgcl\
+             -Ilib/boost\
              # -I/home/yyl/petsc/arch-linux-c-debug/include\
 
 LIBRARIES = \
@@ -47,11 +49,20 @@ SOURCES = src/mesh/build.cpp\
 	      src/solvers/build.cpp\
 	      src/solvers/pressureBased.cpp\
 	      src/solvers/densityBased.cpp\
+	      src/solvers/compCoupled.cpp\
+	      src/solvers/compressible/massfrac.cpp\
+	      src/solvers/compressible/pressure.cpp\
+	      src/solvers/compressible/momentum.cpp\
+	      src/solvers/compressible/energy.cpp\
+	      src/solvers/compressible/flows.cpp\
+	      src/solvers/compressible/coupled.cpp\
 	      src/solvers/reconIncom.cpp\
 	      src/solvers/reconComp.cpp\
+	      src/solvers/eqCoupled.cpp\
 	      src/solvers/eqMomentum.cpp\
 	      src/solvers/eqPressure.cpp\
 	      src/solvers/eqVolfrac.cpp\
+	      src/solvers/solveAMGCL.cpp\
 	      src/solvers/solvePETSc.cpp\
 	      src/solvers/solveHYPRE.cpp\
 	      src/solvers/timestep.cpp\
@@ -70,6 +81,7 @@ SOURCES = src/mesh/build.cpp\
 	      src/mesh/polyAMR.cpp\
 	      src/mesh/polyRefine.cpp\
 	      src/mesh/polyUnrefine.cpp\
+	      src/mesh/reorder.cpp\
 
 OBJECTS = src/main.o $(SOURCES:.cpp=.o)
 
@@ -92,6 +104,11 @@ OBJECTS_IncomPressure = src/main/incompressible/pressureBased.o $(SOURCES:.cpp=.
 EXE_CompHybrid = CompHybrid
 
 OBJECTS_CompHybrid = src/main/compressible/hybridBased.o $(SOURCES:.cpp=.o)
+
+# comp coupled based
+EXE_CompCoupled = CompCoupled
+
+OBJECTS_CompCoupled = src/main/compressible/mainCoupled.o $(SOURCES:.cpp=.o)
 
 # partitioning
 EXE_PARTITION = Partition
@@ -178,7 +195,7 @@ OBJECTS_ExtractData = src/utility/extractData.o $(SOURCES:.cpp=.o)
 COTEXT  = "\033[1;31m Compiling\033[0m\033[1m $< \033[0m"
 
 # all : $(EXE)
-all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
+all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_CompCoupled) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
 # all : $(EXE_LOAD)
 
 $(EXE) : $(OBJECTS)
@@ -200,6 +217,10 @@ $(EXE_IncomPressure) : $(OBJECTS_IncomPressure)
 $(EXE_CompHybrid) : $(OBJECTS_CompHybrid)
 	@$(CCOMPLR) -o $@ $(OBJECTS_CompHybrid) $(LIBRARIES)
 	@echo -e "\033[1;31m Comp_hybrid CODE compile/link complete \033[0m" | tee -a make.log
+
+$(EXE_CompCoupled) : $(OBJECTS_CompCoupled)
+	@$(CCOMPLR) -o $@ $(OBJECTS_CompCoupled) $(LIBRARIES)
+	@echo -e "\033[1;31m Comp_Coupled CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_PARTITION) : $(OBJECTS_PARTITION)
 	@$(CCOMPLR) -o $@ $(OBJECTS_PARTITION) $(LIBRARIES)
@@ -231,4 +252,4 @@ $(EXE_ExtractData) : $(OBJECTS_ExtractData)
 
 clean:
 	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log
-	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_MapField) $(OBJECTS_MeshAMR) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData) make.log *.o
+	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_MapField) $(OBJECTS_MeshAMR) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData) $(EXE_CompCoupled) make.log *.o

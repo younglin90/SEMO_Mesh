@@ -1,10 +1,13 @@
 //============================================
-// Pressure conditions
+// volume fraction - 0 conditions
 //============================================
 initialField
 {
-	type	fixedValue;
-	value	100000.0;
+	type			cylinderToCell;
+	defaultValue	1.0;
+	points	(0.5 0.5 -1.0) (0.5 0.5 1.0);
+	radius 		0.25
+	cylinderValue	0.0;
 }
 
 
@@ -13,8 +16,8 @@ boundaryField
 {
 	suboutlet
 	{
-		type	fixedValue;
-		value	100000.0;
+		type	inletOutlet;
+		value	1.0;
 	}
 
 	invwall
@@ -26,15 +29,16 @@ boundaryField
 	{
 		type	zeroGradient;
 	}
-	
+
 	gasinlet
 	{
-		type	zeroGradient;
+		type	fixedValue;
+		value	0.0;
 	}
 
 	liqinlet
 	{
-		type	zeroGradient;
+		type	fixedValue;
+		value	1.0;
 	}
-	
 }

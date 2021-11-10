@@ -1,6 +1,7 @@
 #include "build.h"
 #include <cmath>
 #include <array>
+#include <tuple>
 
 
 
@@ -395,13 +396,11 @@ void SEMO_Solvers_Builder::calcCellEOSMF(
 		double dhdt=0.0;
 		for(int ns=0; ns<nSp; ++ns){
 			Ht += MF[ns]*Hti[ns];
-			drdp += VF[ns]*drhodPi[ns];
-			drdt += VF[ns]*drhodTi[ns];
+			drdp += rho*rho*(MF[ns]/rhoi[ns]/rhoi[ns]*drhodPi[ns]);
+			drdt += rho*rho*(MF[ns]/rhoi[ns]/rhoi[ns]*drhodTi[ns]);
 			dhdp += MF[ns]*dhdPi[ns];
 			dhdt += MF[ns]*dhdTi[ns];
 		}
-
-
 
 
 		for(int ns=0; ns<nSp; ++ns){
@@ -418,7 +417,7 @@ void SEMO_Solvers_Builder::calcCellEOSMF(
 		
 		for(int ns=0; ns<nSp-1; ++ns){
 			cell.var[controls.dRhoDMF[ns]] = -rho*rho*(1.0/rhoi[ns]-1.0/rhoi[nSp-1]);
-			cell.var[controls.dHtDMF[ns]] = dhdTi[ns] - dhdTi[nSp-1];
+			cell.var[controls.dHtDMF[ns]] = Hti[ns] - Hti[nSp-1];
 		}
 		
 		cell.var[controls.C] = drdp + 1.0/rho*drdt/dhdt*(1.0-rho*dhdp);
@@ -616,6 +615,97 @@ void SEMO_Solvers_Builder::getValuesFromEOSMF(
 }
 
 
+
+
+void SEMO_Solvers_Builder::getValuesFromEOSMF(
+	vector<SEMO_Species>& species,
+	double& P, double& U, double& V, double& W, double& T, vector<double>& MF, 
+	vector<double>& VF, double& rho, double& C, double& Ht,
+	double& drdp, double& dhdp,
+	double& drdt, double& dhdt,
+	vector<double>& drdMF, vector<double>& dhdMF){
+
+	int nSp = MF.size();
+	
+	vector<double> rhoi(nSp,0.0);
+	vector<double> Ci(nSp,0.0);
+	vector<double> Hti(nSp,0.0);
+	vector<double> drhodPi(nSp,0.0);
+	vector<double> drhodTi(nSp,0.0);
+	vector<double> dhdPi(nSp,0.0);
+	vector<double> dhdTi(nSp,0.0);
+
+	for(int ns=0; ns<nSp; ++ns){
+		if( species[ns].rhoType == "const" ){
+			rhoi[ns] = species[ns].rho;
+			Ci[ns] = 340.0;
+			Hti[ns] = 10000.0;
+			drhodPi[ns] = 1.0e+8;
+			drhodTi[ns] = 1.0e+8;
+			dhdPi[ns] = 1.0e+8;
+			dhdTi[ns] = 1.0e+8;
+		}
+		else if( species[ns].rhoType == "Ideal" ){
+			this->eosIdeal(
+				species[ns],
+				P, U, V, W, T,
+				rhoi[ns], Ci[ns], Hti[ns],
+				drhodPi[ns], drhodTi[ns], dhdPi[ns], dhdTi[ns]);
+		}
+		else if( species[ns].rhoType == "NASG" ){
+			this->eosNASG(
+				species[ns],
+				P, U, V, W, T,
+				rhoi[ns], Ci[ns], Hti[ns],
+				drhodPi[ns], drhodTi[ns], dhdPi[ns], dhdTi[ns]);
+		}
+			
+	}
+	
+	rho = 0.0;
+	for(int ns=0; ns<nSp; ++ns){
+		rho += MF[ns]/rhoi[ns];
+	}
+	rho = 1.0/rho;
+	
+	
+	// mass fraction
+	VF.resize(nSp,0.0);
+	double tmp1=0.0;
+	for(int ns=0; ns<nSp-1; ++ns){
+		VF[ns] = MF[ns]*rho/rhoi[ns];
+		
+		VF[ns] = max(0.0,min(1.0,VF[ns]));
+		
+		tmp1 += VF[ns];
+	}
+	VF[nSp-1] = max(0.0,min(1.0,1.0 - tmp1));
+	
+	Ht=0.0;
+	drdp=0.0;
+	drdt=0.0;
+	dhdp=0.0;
+	dhdt=0.0;
+	drdMF.clear();
+	dhdMF.clear();
+	for(int ns=0; ns<nSp; ++ns){
+		Ht += MF[ns]*Hti[ns];
+		drdp += rho*rho*(MF[ns]/rhoi[ns]/rhoi[ns]*drhodPi[ns]);
+		drdt += rho*rho*(MF[ns]/rhoi[ns]/rhoi[ns]*drhodTi[ns]);
+		dhdp += MF[ns]*dhdPi[ns];
+		dhdt += MF[ns]*dhdTi[ns];
+		
+		drdMF.push_back( -rho*rho*(1.0/rhoi[ns]-1.0/rhoi[nSp-1]) );
+		dhdMF.push_back( Hti[ns]-Hti[nSp-1] );
+	}
+	
+	C = drdp + 1.0/rho*drdt/dhdt*(1.0-rho*dhdp);
+	C = sqrt( 1.0 / C );
+	
+	// return tuple(VF, rho, C, Ht, drdp, dhdp, drdt, dhdt, drdMF, dhdMF);
+	
+
+}
 
 
 

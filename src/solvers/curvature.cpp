@@ -16,6 +16,7 @@ void SEMO_Solvers_Builder::calcCurvature(
 	
 	SEMO_MPI_Builder mpi;
 	
+	SEMO_Utility_Math math;
 	
 	
 	vector<double> smoothAi;
@@ -27,6 +28,9 @@ void SEMO_Solvers_Builder::calcCurvature(
 		smoothAi.push_back(mesh.cells[i].var[cn]);
 		
 	}
+	
+	// smoothAi.assign(mesh.cells[i].var[cn].begin(), mesh.cells[i].var[cn].begin());
+	
 	
 	//================================================
 	// smoothing Ai
@@ -42,11 +46,15 @@ void SEMO_Solvers_Builder::calcCurvature(
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
+			double wCL = face.wC;
+			// double wCL = 0.5;
+			double wCR = 1.0 - wCL;
+			
 			if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 				double AiF = 
-					face.wC*smoothAi[face.owner] +
-					(1.0-face.wC)*smoothAi[face.neighbour];
+					wCL*smoothAi[face.owner] +
+					wCR*smoothAi[face.neighbour];
 				
 				AiUp[face.owner] += AiF*face.area;
 				AiUp[face.neighbour] += AiF*face.area;
@@ -97,9 +105,13 @@ void SEMO_Solvers_Builder::calcCurvature(
 			int num=0;
 			for(int i=0; i<mesh.faces.size(); ++i){
 				auto& face = mesh.faces[i];
+			
+				double wCL = face.wC;
+				// double wCL = 0.5;
+				double wCR = 1.0 - wCL;
 				
 				if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
-					double AiF = face.wC*smoothAi[face.owner]+(1.0-face.wC)*recvValues[num];
+					double AiF = wCL*smoothAi[face.owner]+wCR*recvValues[num];
 					
 					AiUp[face.owner] += AiF*face.area;
 				
@@ -123,73 +135,86 @@ void SEMO_Solvers_Builder::calcCurvature(
 	// calc gauss-green gradient
 	vector<vector<double>> gradAi(mesh.cells.size(),vector<double>(3,0.0));
 	
-	for(int i=0; i<mesh.faces.size(); ++i){
-		auto& face = mesh.faces[i];
-		if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			
-			double varF = face.wC*smoothAi[face.owner]+(1.0-face.wC)*smoothAi[face.neighbour];
-			
-			for(int j=0; j<3; ++j){
-				gradAi[face.owner][j] += 
-					varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
-				gradAi[face.neighbour][j] -= 
-					varF*face.unitNormals[j]*face.area/mesh.cells[face.neighbour].volume;
-			}
-		}
-	}
-
-	// boundary
-	for(auto& boundary : mesh.boundary){
-		
-		if(boundary.neighbProcNo == -1){
-			
-			int str = boundary.startFace;
-			int end = str + boundary.nFaces;
-			
-			for(int i=str; i<end; ++i){
-				auto& face = mesh.faces[i];
-				
-				double varF = smoothAi[face.owner];
-				for(int j=0; j<3; ++j){
-					gradAi[face.owner][j] += 
-						varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
-				}
-				
-			}
-		}
-	}
 	
-	if(size>1){
-		// processor faces
-		vector<double> sendValues;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				sendValues.push_back(smoothAi[face.owner]);
-			}
-		}
-		vector<double> recvValues;
-		mpi.setProcsFaceDatas(
-					sendValues, recvValues,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		int num=0;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
-				double varF = face.wC*smoothAi[face.owner]+(1.0-face.wC)*recvValues[num];
-				
-				for(int j=0; j<3; ++j){
-					gradAi[face.owner][j] += 
-						varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
-				}
-				++num;
-			}
-		}
+	// math.calcGaussGreen(mesh, cn, smoothAi, gradAi);
+	math.calcLeastSquare2nd(mesh, cn, smoothAi, gradAi);
+	
+	// for(int i=0; i<mesh.faces.size(); ++i){
+		// auto& face = mesh.faces[i];
+	
+		// double wCL = face.wC;
+		// // double wCL = 0.5;
+		// double wCR = 1.0 - wCL;
 		
-	}
+		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			
+			// double varF = wCL*smoothAi[face.owner]+wCR*smoothAi[face.neighbour];
+			
+			// for(int j=0; j<3; ++j){
+				// gradAi[face.owner][j] += 
+					// varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
+				// gradAi[face.neighbour][j] -= 
+					// varF*face.unitNormals[j]*face.area/mesh.cells[face.neighbour].volume;
+			// }
+		// }
+	// }
+
+	// // boundary
+	// for(auto& boundary : mesh.boundary){
+		
+		// if(boundary.neighbProcNo == -1){
+			
+			// int str = boundary.startFace;
+			// int end = str + boundary.nFaces;
+			
+			// for(int i=str; i<end; ++i){
+				// auto& face = mesh.faces[i];
+				
+				// double varF = smoothAi[face.owner];
+				// for(int j=0; j<3; ++j){
+					// gradAi[face.owner][j] += 
+						// varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
+				// }
+				
+			// }
+		// }
+	// }
+	
+	// if(size>1){
+		// // processor faces
+		// vector<double> sendValues;
+		// for(int i=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
+			
+			// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				// sendValues.push_back(smoothAi[face.owner]);
+			// }
+		// }
+		// vector<double> recvValues;
+		// mpi.setProcsFaceDatas(
+					// sendValues, recvValues,
+					// mesh.countsProcFaces, mesh.countsProcFaces, 
+					// mesh.displsProcFaces, mesh.displsProcFaces);
+		// int num=0;
+		// for(int i=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
+		
+			// double wCL = face.wC;
+			// // double wCL = 0.5;
+			// double wCR = 1.0 - wCL;
+			
+			// if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
+				// double varF = wCL*smoothAi[face.owner]+wCR*recvValues[num];
+				
+				// for(int j=0; j<3; ++j){
+					// gradAi[face.owner][j] += 
+						// varF*face.unitNormals[j]*face.area/mesh.cells[face.owner].volume;
+				// }
+				// ++num;
+			// }
+		// }
+		
+	// }
 	
 
 
@@ -218,12 +243,17 @@ void SEMO_Solvers_Builder::calcCurvature(
 	
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
+		
+		double wCL = face.wC;
+		// double wCL = 0.5;
+		double wCR = 1.0 - wCL;
+			
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			double varF[3];
-			varF[0] = face.wC*surfNormalVec[face.owner][0]+(1.0-face.wC)*surfNormalVec[face.neighbour][0];
-			varF[1] = face.wC*surfNormalVec[face.owner][1]+(1.0-face.wC)*surfNormalVec[face.neighbour][1];
-			varF[2] = face.wC*surfNormalVec[face.owner][2]+(1.0-face.wC)*surfNormalVec[face.neighbour][2];
+			varF[0] = wCL*surfNormalVec[face.owner][0]+wCR*surfNormalVec[face.neighbour][0];
+			varF[1] = wCL*surfNormalVec[face.owner][1]+wCR*surfNormalVec[face.neighbour][1];
+			varF[2] = wCL*surfNormalVec[face.owner][2]+wCR*surfNormalVec[face.neighbour][2];
 			
 			for(int j=0; j<3; ++j){
 				kappa[face.owner] += 
@@ -285,11 +315,15 @@ void SEMO_Solvers_Builder::calcCurvature(
 		for(int i=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
+			double wCL = face.wC;
+			// double wCL = 0.5;
+			double wCR = 1.0 - wCL;
+			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
 				double varF[3];
-				varF[0] = face.wC*surfNormalVec[face.owner][0]+(1.0-face.wC)*recvValues0[num];
-				varF[1] = face.wC*surfNormalVec[face.owner][1]+(1.0-face.wC)*recvValues1[num];
-				varF[2] = face.wC*surfNormalVec[face.owner][2]+(1.0-face.wC)*recvValues2[num];
+				varF[0] = wCL*surfNormalVec[face.owner][0]+wCR*recvValues0[num];
+				varF[1] = wCL*surfNormalVec[face.owner][1]+wCR*recvValues1[num];
+				varF[2] = wCL*surfNormalVec[face.owner][2]+wCR*recvValues2[num];
 				
 				for(int j=0; j<3; ++j){
 					kappa[face.owner] += 

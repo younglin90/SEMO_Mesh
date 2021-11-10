@@ -103,7 +103,6 @@ int main(int argc, char* argv[]) {
 	vector<int> idBlockCell(mesh.cells.size(),0);
 
 	// cout << "PARMETIS" << endl;
-	
 	parMETIS_Graph_Partition(nBlocks, idBlockCell);
 	// parMETIS_Mesh_Partition(nBlocks, idBlockCell);
 

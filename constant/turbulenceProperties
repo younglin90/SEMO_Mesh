@@ -1,13 +1,20 @@
 
-simulationType = LES
+simulationType = laminar
 
 LES
 {
-	LESModel = smagorinsky
+	LESModel = WALE
+	turbulence = on
+	printCoeffs = on
+	delta = smooth
+
 }
 
 
 RANS
 {
 	RANSModel = kEpsilon
+	turbulence = on
+	printCoeffs = on
+
 }

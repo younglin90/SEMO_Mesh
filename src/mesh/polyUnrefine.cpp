@@ -530,10 +530,12 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// }
 	
 	
-
+	// MPI_Barrier(MPI_COMM_WORLD);
 	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
 	if(rank==0) cout << "| execute AMR - Unrefine " << endl;
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 0-0" << endl;
 	
 	SEMO_Mesh_Geometric geometric;
 	
@@ -546,6 +548,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
     std::uniform_real_distribution<double> distr(0.0, 1.0);
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 0-1" << endl;
 
 	// SEMO_Utility_Math math;
 	// vector<vector<double>> gradVF;
@@ -596,6 +600,10 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	}
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 1" << endl;
+	
+	
 		// boolCellUnrefine[0] = true;
 		// boolCellUnrefine[1] = true;
 		// boolCellUnrefine[2] = true;
@@ -625,6 +633,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	extractGroupCellListsCanUnrefine(mesh, groupCellListsCanUnrefine);
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 2" << endl;
 	
 	//====================================================
 	
@@ -647,6 +657,10 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// }
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 3" << endl;
+	
+	
 	std::fill(boolCellUnrefine.begin(), boolCellUnrefine.end(), false);
 	vector<int> groupCells_id(mesh.cells.size(),-1);
 	for(int i=0; i<groupCellsUnrefine.size(); ++i){
@@ -665,6 +679,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	this->mpiRefines(mesh, boolCellUnrefine, cUnrefine_recv);
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 4" << endl;
 	
 	// for(int i=0; i<groupCellsUnrefine.size(); ++i){
 		// // int sumGroup = 0;
@@ -1155,6 +1171,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 5" << endl;
 	// cout << rank << " : 222222222" << endl;
 	
 	
@@ -1309,6 +1327,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 6" << endl;
 	
 	
 	
@@ -1400,6 +1420,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	}
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 7" << endl;
 
 	
 	// proc_total_num = 0;
@@ -1514,6 +1536,11 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		
 	}
 	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 8" << endl;
+	
+	
 	// cout << rank << " prco_total_num = " << proc_total_num << endl;
 	
 	
@@ -1526,7 +1553,13 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		}), mesh.points.end());
 		
 		
-	mesh.points.shrink_to_fit();
+	// mesh.points.shrink_to_fit();
+	// std::vector<SEMO_Point>().swap(mesh.points);
+	
+	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 9" << endl;
 	
 	
 	//====================================================
@@ -1956,6 +1989,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 10" << endl;
 	
 	
 	if(nBC!=mesh.boundary.size()){
@@ -1974,6 +2009,8 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 11" << endl;
 	
 	int orgFacesSize = mesh.faces.size();
 	for(int i=orgFacesSize-1; i>saveI; --i){
@@ -1982,8 +2019,15 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	// mesh.faces.erase(mesh.faces.begin()+saveI, mesh.faces.end());
 	
+	// cout << rank << " : 11-1" << endl;
 	
-	mesh.faces.shrink_to_fit();
+	// mesh.faces.shrink_to_fit();
+	// std::vector<SEMO_Face>().swap(mesh.faces);
+	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 12" << endl;
+	
 	
 	
 	// proc_num = 0;
@@ -2027,6 +2071,12 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	}
 	int maxBDsize = mesh.boundary.size()-1;
 	mesh.boundary[maxBDsize].nFaces = mesh.faces.size()-mesh.boundary[maxBDsize].startFace;
+	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 13" << endl;
+	
+	
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// for(auto& boundary : mesh.boundary){
@@ -2148,13 +2198,18 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 		
 	}
 	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// cout << rank << " : 14" << endl;
+	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// cout << rank << " : 888888888" << endl;
 	
 	for(int i=totalCellNum; i<orgCellSize; ++i){
 		mesh.cells.pop_back();
 	}
-	mesh.cells.shrink_to_fit();
+	// mesh.cells.shrink_to_fit();
+	// std::vector<SEMO_Cell>().swap(mesh.cells);
 	
 	
 	// MPI_Barrier(MPI_COMM_WORLD);

@@ -11,25 +11,34 @@ initialField
 
 boundaryField
 {
+	suboutlet
+	{
+		type	zeroGradient;
+	}
+
+
 	invwall
 	{
 		type	zeroGradient;
 	}
+
 
 	viswall
 	{
 		type	zeroGradient;
 	}
 
-	subinlet
+	
+	gasinlet
 	{
 		type	fixedValue;
 		value	300.0;
 	}
 
-	suboutlet
+	liqinlet
 	{
-		type	zeroGradient;
+		type	fixedValue;
+		value	300.0;
 	}
 	
 }

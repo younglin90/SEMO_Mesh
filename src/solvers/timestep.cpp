@@ -250,3 +250,67 @@ void SEMO_Solvers_Builder::calcCorantNumberForPrint(
 
 	
 }
+
+
+
+
+
+
+double SEMO_Solvers_Builder::calcTimeStepFromCorantNumber(
+	SEMO_Mesh_Builder& mesh,
+	SEMO_Controls_Builder& controls,
+	vector<SEMO_Species>& species){
+		
+		
+	double corantNum = controls.maxCo;
+	
+	
+	double minDt=1000000.0;
+	for(auto& cell : mesh.cells){
+		
+		double maxA=0.0;
+		double minA=1000000.0;
+		for(auto& j : cell.faces){
+			maxA = max(maxA, mesh.faces[j].area);
+			minA = min(minA, mesh.faces[j].area);
+		}
+		
+		double magVel = 
+			sqrt(cell.var[controls.U]*cell.var[controls.U] +
+			     cell.var[controls.V]*cell.var[controls.V] +
+				 cell.var[controls.W]*cell.var[controls.W]);
+		
+		double convTime = cell.volume / maxA / (magVel+1.e-200);
+		minDt = min(minDt,convTime);
+		
+		double viscTime = 0.5 * minA
+			/ ( cell.var[controls.mu] + 1.e-200 ) * cell.var[controls.Rho];
+		minDt = min(minDt,viscTime);
+		
+		double gravMag = 
+			sqrt(pow(controls.gravityAcceleration[0],2.0) +
+                 pow(controls.gravityAcceleration[1],2.0) +
+                 pow(controls.gravityAcceleration[2],2.0));
+		double gravTime = sqrt( pow(cell.volume,0.333) / (gravMag+1.e-200) );
+		minDt = min(minDt,gravTime);
+		
+		
+		double surfTensCoeff = species[0].sigma;
+		double surfTensTime = 
+			pow(pow(cell.volume,0.333),1.5)*sqrt(1001.0/(4.0*3.14*surfTensCoeff));
+		minDt = min(minDt,surfTensTime);
+		
+	}
+	
+
+	double minDtReduced;
+    MPI_Allreduce(&minDt, &minDtReduced, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+	
+	// cout << minDtReduced << endl;
+	
+	controls.timeStep = corantNum * minDtReduced;
+	
+	if(controls.timeStep>controls.maxTimeStep) controls.timeStep = controls.maxTimeStep;
+
+	return corantNum;
+}

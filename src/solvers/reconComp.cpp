@@ -315,10 +315,181 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFace(
 	
 	
 	// rho, C, Ht from EOS
-	this->calcOtherDataFromEOS(mesh, controls, species);
+	// this->calcOtherDataFromEOS(mesh, controls, species);
+	this->calcOtherDataFromEOSMF(mesh, controls, species);
 	
 	
 }
+
+
+
+
+void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithVfMSTACS(
+	SEMO_Mesh_Builder& mesh,
+	SEMO_Controls_Builder& controls,
+	vector<SEMO_Species>& species){
+	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
+
+
+
+	// calc recon. zero order
+	this->reconZeroOrder(mesh, controls, species);
+	
+	
+	
+	// calc gradient
+	SEMO_Utility_Math math;
+	
+	vector<vector<double>> gradMF;
+	
+	// math.calcGaussGreen(mesh, controls.MF[0], controls.fMF[0], gradMF);
+	math.calcLeastSquare2nd(mesh, controls.MF[0], controls.fMF[0], gradMF);
+	
+	
+
+	// processor faces
+	if(size>1){
+		vector<double> phi_send0, phi_recv0;
+		vector<double> phi_send1, phi_recv1;
+		vector<double> phi_send2, phi_recv2;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				phi_send0.push_back(gradMF[face.owner][0]);
+				phi_send1.push_back(gradMF[face.owner][1]);
+				phi_send2.push_back(gradMF[face.owner][2]);
+			}
+		}
+		
+		SEMO_MPI_Builder mpi;
+		
+		mpi.setProcsFaceDatas(
+					phi_send0, phi_recv0,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatas(
+					phi_send1, phi_recv1,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		mpi.setProcsFaceDatas(
+					phi_send2, phi_recv2,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+					
+		int proc_num=0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				vector<double> tmp;
+				tmp.push_back(phi_recv0[proc_num]);
+				tmp.push_back(phi_recv1[proc_num]);
+				tmp.push_back(phi_recv2[proc_num]);
+				gradMF.push_back(tmp);
+				++proc_num;
+			}
+		}
+	}
+	
+	
+	
+	// rho, C, Ht from EOS
+	// this->calcOtherDataFromEOS(mesh, controls, species);
+	this->calcOtherDataFromEOSMF(mesh, controls, species);
+	
+	
+	
+	
+	
+	// NVD, MSTACS
+	for(auto& face : mesh.faces){
+		face.varL[controls.fMF_HO[0]] = face.varL[controls.fMF[0]];
+		face.varR[controls.fMF_HO[0]] = face.varR[controls.fMF[0]];
+	}
+	
+	this->calcMSTACS(mesh, controls, controls.MF[0], controls.fMF[0], gradMF, controls.fMF_HO[0]);
+	
+	// for(auto& face : mesh.faces){
+		// face.varL[controls.fMF_HO[0]] = max(1.e-8,min(1.0-1.e-8,face.varL[controls.fMF_HO[0]]));
+		// face.varR[controls.fMF_HO[0]] = max(1.e-8,min(1.0-1.e-8,face.varR[controls.fMF_HO[0]]));
+	// }
+	 
+	
+	
+	
+	
+	double dummy;
+	for(auto& face : mesh.faces){
+		
+		vector<double> massFractions;
+		vector<double> volumeFractions(controls.nSp,0.0);
+		vector<double> dummyVec(controls.nSp,0.0);
+		// vector<double> dHtDMF(controls.nSp,0.0);
+		double MFnSp = 0.0;
+		for(int ns=0; ns<controls.nSp-1; ++ns){
+			massFractions.push_back(face.varL[controls.fMF_HO[ns]]);
+			MFnSp += face.varL[controls.fMF_HO[ns]];
+		}
+		massFractions.push_back(1.0 - MFnSp);
+		
+		
+		this->getValuesFromEOSMF(
+			species,
+			face.varL[controls.fP], 
+			face.varL[controls.fU], face.varL[controls.fV], face.varL[controls.fW], 
+			face.varL[controls.fT], massFractions,
+			volumeFractions, face.varL[controls.fRho_HO], dummy, face.varL[controls.fHt_HO],
+			dummy, dummy, 
+			dummy, dummy,
+			dummyVec, dummyVec );
+			
+			
+		// for(int ns=0; ns<controls.nSp-1; ++ns){
+			// face.varL[controls.fVF[ns]] = volumeFractions[ns];
+			// face.varL[controls.fdRhoDMF[ns]] = dRhoDMF[ns];
+			// face.varL[controls.fdHtDMF[ns]] = dHtDMF[ns];
+		// }
+
+
+		massFractions.clear();
+		MFnSp = 0.0;
+		for(int ns=0; ns<controls.nSp-1; ++ns){
+			massFractions.push_back(face.varR[controls.fMF_HO[ns]]);
+			MFnSp += face.varR[controls.fMF_HO[ns]];
+		}
+		massFractions.push_back(1.0 - MFnSp);
+		
+		
+		
+		this->getValuesFromEOSMF(
+			species,
+			face.varR[controls.fP], 
+			face.varR[controls.fU], face.varR[controls.fV], face.varR[controls.fW], 
+			face.varR[controls.fT], massFractions,
+			volumeFractions, face.varR[controls.fRho_HO], dummy, face.varR[controls.fHt_HO],
+			dummy, dummy, 
+			dummy, dummy,
+			dummyVec, dummyVec );
+			
+		// for(int ns=0; ns<controls.nSp-1; ++ns){
+			// face.varR[controls.fVF[ns]] = volumeFractions[ns];
+			// face.varR[controls.fdRhoDMF[ns]] = dRhoDMF[ns];
+			// face.varR[controls.fdHtDMF[ns]] = dHtDMF[ns];
+		// }
+		
+	}
+
+	
+}
+
+
+
+//=========================================
+
+
 
 
 
@@ -596,7 +767,7 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithRecon(
 	
 	
 	// NVD, MSTACS
-	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF);
+	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF, controls.fVF[0]);
 	
 	
 	// rho, C, Ht from EOS
@@ -683,7 +854,7 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceForSegregatedWithVfMSTACS(
 	
 	
 	// NVD, MSTACS
-	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF);
+	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF, controls.fVF[0]);
 	
 	
 	// rho, C, Ht from EOS
@@ -693,91 +864,6 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceForSegregatedWithVfMSTACS(
 }
 
 
-
-
-void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithVfMSTACS(
-	SEMO_Mesh_Builder& mesh,
-	SEMO_Controls_Builder& controls,
-	vector<SEMO_Species>& species){
-	
-    int rank = MPI::COMM_WORLD.Get_rank(); 
-    int size = MPI::COMM_WORLD.Get_size();
-
-
-
-	// calc recon. zero order
-	this->reconZeroOrder(mesh, controls, species);
-	
-	
-	
-
-	
-	// calc gradient
-	SEMO_Utility_Math math;
-	
-	vector<vector<double>> gradVF;
-	
-	math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	// math.calcGGLSQ(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	// math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	
-	
-
-	// processor faces
-	if(size>1){
-		vector<double> phi_send0, phi_recv0;
-		vector<double> phi_send1, phi_recv1;
-		vector<double> phi_send2, phi_recv2;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				phi_send0.push_back(gradVF[face.owner][0]);
-				phi_send1.push_back(gradVF[face.owner][1]);
-				phi_send2.push_back(gradVF[face.owner][2]);
-			}
-		}
-		
-		SEMO_MPI_Builder mpi;
-		
-		mpi.setProcsFaceDatas(
-					phi_send0, phi_recv0,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					phi_send1, phi_recv1,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					phi_send2, phi_recv2,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-					
-		int proc_num=0;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				vector<double> tmp;
-				tmp.push_back(phi_recv0[proc_num]);
-				tmp.push_back(phi_recv1[proc_num]);
-				tmp.push_back(phi_recv2[proc_num]);
-				gradVF.push_back(tmp);
-				++proc_num;
-			}
-		}
-	}
-	
-	
-	// NVD, MSTACS
-	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF);
-	
-	
-	// rho, C, Ht from EOS
-	this->calcOtherDataFromEOS(mesh, controls, species);
-	
-	
-}
 
 
 
@@ -1230,7 +1316,9 @@ void SEMO_Solvers_Builder::calcOtherDataFromEOSMF(
 	for(auto& face : mesh.faces){
 		
 		vector<double> massFractions;
-		vector<double> volumeFractions;
+		vector<double> volumeFractions(controls.nSp,0.0);
+		vector<double> dRhoDMF(controls.nSp,0.0);
+		vector<double> dHtDMF(controls.nSp,0.0);
 		double MFnSp = 0.0;
 		for(int ns=0; ns<controls.nSp-1; ++ns){
 			massFractions.push_back(face.varL[controls.fMF[ns]]);
@@ -1238,21 +1326,26 @@ void SEMO_Solvers_Builder::calcOtherDataFromEOSMF(
 		}
 		massFractions.push_back(1.0 - MFnSp);
 		
+		
 		this->getValuesFromEOSMF(
 			species,
 			face.varL[controls.fP], 
 			face.varL[controls.fU], face.varL[controls.fV], face.varL[controls.fW], 
-			face.varL[controls.fT], massFractions, 
-			face.varL[controls.fRho], face.varL[controls.fC], face.varL[controls.fHt],
-			volumeFractions );
+			face.varL[controls.fT], massFractions,
+			volumeFractions, face.varL[controls.fRho], face.varL[controls.fC], face.varL[controls.fHt],
+			face.varL[controls.fdRhoDP], face.varL[controls.fdHtDP], 
+			face.varL[controls.fdRhoDT], face.varL[controls.fdHtDT],
+			dRhoDMF, dHtDMF );
+			
 			
 		for(int ns=0; ns<controls.nSp-1; ++ns){
 			face.varL[controls.fVF[ns]] = volumeFractions[ns];
+			face.varL[controls.fdRhoDMF[ns]] = dRhoDMF[ns];
+			face.varL[controls.fdHtDMF[ns]] = dHtDMF[ns];
 		}
 
 
 		massFractions.clear();
-		volumeFractions.clear();
 		MFnSp = 0.0;
 		for(int ns=0; ns<controls.nSp-1; ++ns){
 			massFractions.push_back(face.varR[controls.fMF[ns]]);
@@ -1260,16 +1353,22 @@ void SEMO_Solvers_Builder::calcOtherDataFromEOSMF(
 		}
 		massFractions.push_back(1.0 - MFnSp);
 		
+		
+		
 		this->getValuesFromEOSMF(
 			species,
 			face.varR[controls.fP], 
 			face.varR[controls.fU], face.varR[controls.fV], face.varR[controls.fW], 
-			face.varR[controls.fT], massFractions, 
-			face.varR[controls.fRho], face.varR[controls.fC], face.varR[controls.fHt],
-			volumeFractions );
+			face.varR[controls.fT], massFractions,
+			volumeFractions, face.varR[controls.fRho], face.varR[controls.fC], face.varR[controls.fHt],
+			face.varR[controls.fdRhoDP], face.varR[controls.fdHtDP], 
+			face.varR[controls.fdRhoDT], face.varR[controls.fdHtDT],
+			dRhoDMF, dHtDMF );
 			
 		for(int ns=0; ns<controls.nSp-1; ++ns){
 			face.varR[controls.fVF[ns]] = volumeFractions[ns];
+			face.varR[controls.fdRhoDMF[ns]] = dRhoDMF[ns];
+			face.varR[controls.fdHtDMF[ns]] = dHtDMF[ns];
 		}
 		
 	}

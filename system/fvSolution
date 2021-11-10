@@ -1,62 +1,61 @@
  
-
 solvers
 {
 	P
 	{
-		solver = gcr
-		tolerance = 1.e-7
-		relTol = 1.e-7
-		preconditioner = gamg
-		maxIter = 20
+		solver = cg
+		tolerance = 1.e-100
+		relTol = 0.0
+		preconditioner = mg
+		maxIter = 100
 		
-		solverFinal = gcr
-		toleranceFinal = 1.e-7
-		relTolFinal = 1.e-7
-		preconditionerFinal = gamg
-		maxIterFinal = 20
+		solverFinal = cg
+		toleranceFinal = 1.e-100
+		relTolFinal = 0.0
+		preconditionerFinal = mg
+		maxIterFinal = 100
 		
 	}
 	
 	U
 	{
-		solver = tfqmr
-		tolerance = 1.e-7
-		relTol = 1.e-7
+		solver = cg
+		tolerance = 1.e-100
+		relTol = 0.0
 		preconditioner = mg
-		maxIter = 50
+		maxIter = 100
 		
-		solverFinal = tfqmr
-		toleranceFinal = 1.e-7
+		solverFinal = cg
+		toleranceFinal = 1.e-100
 		relTolFinal = 0.0
 		preconditionerFinal = mg
-		maxIterFinal = 50
+		maxIterFinal = 100
 		
 	}
 	
 	VF
 	{
-		solver = gmres
-		tolerance = 1.e-7
-		relTol = 1.e-7
-		preconditioner = jacobi
-		maxIter = 20
+		solver = cg
+		tolerance = 1.e-100
+		relTol = 0.0
+		preconditioner = mg
+		maxIter = 50
 		
-		solverFinal = gmres
-		toleranceFinal = 1.e-7
+		solverFinal = cg
+		toleranceFinal = 1.e-100
 		relTolFinal = 0.0
-		preconditionerFinal = jacobi
-		maxIterFinal = 50
+		preconditionerFinal = mg
+		maxIterFinal = 100
 	}
 	
 }
 
 PIMPLE
 {
-	nCorrectors = 2
+	nCorrectors = 3
 	nMomentumEq = 1
 	nPressureEq = 1
-	nSpeciesEq = 0
+	nSpeciesEq = 2
 }
  
 relaxationFactors
@@ -65,7 +64,7 @@ relaxationFactors
     {
 		U
 		{
-			default = 0.3
+			default = 0.5
 			adjustRF = no
 			adjustSteps = (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.1)
@@ -76,15 +75,15 @@ relaxationFactors
     {
 		P
 		{
-			default = 0.1
+			default = 0.9
 			adjustRF = no
-			adjustSteps = (0 3 7 16)
+			adjustSteps 1 (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.3)
 		}
 		
 		U
 		{
-			default = 0.5				
+			default = 0.9
 			adjustRF = no
 			adjustSteps = (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.1)
@@ -95,7 +94,7 @@ relaxationFactors
     {
 		VF
 		{
-			default = 0.8
+			default = 0.9
 			adjustRF = no
 			adjustSteps = (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.3)
@@ -106,10 +105,10 @@ relaxationFactors
 
 dualTime
 {
-	nPseudo = 50
+	nPseudo = 5
 	pseudoCo = 0.1
-	Uco = 0.3
-	Lch = 0.5
+	Uco = 0.1
+	Lch = 0.1
 }
 
 relaxationFactorsDualTime
@@ -125,7 +124,7 @@ relaxationFactorsDualTime
 	
 	U
 	{
-		default = 1.0
+		default = 0.1
 		adjustRF = no
 		adjustSteps = (0 3 7 16)
 		adjustValues = (0.01 0.05 0.1 0.1)
@@ -133,7 +132,7 @@ relaxationFactorsDualTime
 	
 	T
 	{
-		default = 1.0
+		default = 0.5
 		adjustRF = no
 		adjustSteps = (0 3 7 16)
 		adjustValues = (0.01 0.05 0.1 0.1)
@@ -141,7 +140,7 @@ relaxationFactorsDualTime
 	
 	MF
 	{
-		default = 1.0
+		default = 0.1
 		adjustRF = no
 		adjustSteps = (0 3 7 16)
 		adjustValues = (0.01 0.05 0.1 0.3)
@@ -152,18 +151,18 @@ relaxationFactorsDualTime
 
 limiter
 {
-    maxP = 1.e+10
-    minP = 1.e-200
+    maxP = 1.e15
+    minP = 1.e-1
 	
-    maxU = 1.e+8
-    minU = -1.e+8
+    maxU = 1.e15
+    minU = -1.e15
 	
-    maxV = 1.e+8
-    minV = -1.e+8
+    maxV = 1.e15
+    minV = -1.e15
 	
-    maxW = 1.e+8
-    minW = -1.e+8
+    maxW = 1.e15
+    minW = -1.e15
 	
-    maxT = 1.e+8
-    minT = 1.e-200
+    maxT = 1.e8
+    minT = 1.e-5
 }

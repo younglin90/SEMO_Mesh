@@ -8,13 +8,108 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	SEMO_Controls_Builder& controls,
 	vector<SEMO_Species>& species
 	){
-	
+		
 	int rank = MPI::COMM_WORLD.Get_rank();
+	
+	// cout << endl;
+	// cout << "start" << endl;
+	
+	// vector<double> resiVar(5,0.0);
+	// vector<int> A_rows(5,0);
+	// vector<int> A_cols(5,0);
+	// vector<double> A_vals(5,0.0);
+	// vector<double> B(5,0.0);
+	
+	// if(rank==0){
+		// A_rows.resize(9);
+		// A_cols.resize(9);
+		// A_vals.resize(9);
+		// resiVar.resize(3);
+		// B.resize(3);
+		
+		// A_rows[0] = 0; A_cols[0] = 0; A_vals[0] = 7.0;
+		// A_rows[1] = 0; A_cols[1] = 2; A_vals[1] = 1.0;
+		// A_rows[2] = 0; A_cols[2] = 5; A_vals[2] = 2.0;
+		// A_rows[3] = 0; A_cols[3] = 6; A_vals[3] = 7.0;
+		// A_rows[4] = 1; A_cols[4] = 1; A_vals[4] = -4.0;
+		// A_rows[5] = 1; A_cols[5] = 2; A_vals[5] = 8.0;
+		// A_rows[6] = 1; A_cols[6] = 4; A_vals[6] = 2.0;
+		// A_rows[7] = 2; A_cols[7] = 2; A_vals[7] = 1.0;
+		// A_rows[8] = 2; A_cols[8] = 7; A_vals[8] = 5.0;
+		
+		// B[0] = 1.0;
+		// B[1] = 1.0;
+		// B[2] = 1.0;
+	// }
+	// else if(rank==1){
+		// A_rows.resize(3);
+		// A_cols.resize(3);
+		// A_vals.resize(3);
+		// resiVar.resize(2);
+		// B.resize(2);
+		
+		// A_rows[0] = 3; A_cols[0] = 3; A_vals[0] = 7.0;
+		// A_rows[1] = 3; A_cols[1] = 6; A_vals[1] = 9.0;
+		// A_rows[2] = 4; A_cols[2] = 1; A_vals[2] = -4.0;
+		
+		// B[0] = 1.0;
+		// B[1] = 1.0;
+	// }
+	// else if(rank==2){
+		// A_rows.resize(5);
+		// A_cols.resize(5);
+		// A_vals.resize(5);
+		// resiVar.resize(2);
+		// B.resize(2);
+		
+		// A_rows[0] = 5; A_cols[0] = 2; A_vals[0] = 7.0;
+		// A_rows[1] = 5; A_cols[1] = 5; A_vals[1] = 3.0;
+		// A_rows[2] = 5; A_cols[2] = 7; A_vals[2] = 8.0;
+		// A_rows[3] = 6; A_cols[3] = 1; A_vals[3] = 1.0;
+		// A_rows[4] = 6; A_cols[4] = 6; A_vals[4] = 11.0;
+		
+		// B[0] = 1.0;
+		// B[1] = 1.0;
+	// }
+	// else if(rank==3){
+		// A_rows.resize(3);
+		// A_cols.resize(3);
+		// A_vals.resize(3);
+		// resiVar.resize(1);
+		// B.resize(1);
+		
+		// A_rows[0] = 7; A_cols[0] = 2; A_vals[0] = -3.0;
+		// A_rows[1] = 7; A_cols[1] = 6; A_vals[1] = 2.0;
+		// A_rows[2] = 7; A_cols[2] = 7; A_vals[2] = 5.0;
+		
+		// B[0] = 1.0;
+	// }
+	
+	// solveAMGCL(mesh, resiVar, A_rows, A_cols, A_vals, B,
+		// 5, 20,
+		// "lgmres", 1.e-8, 1.e-6, "aa", 5);
+		
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	
+	
 	
 	
 	if( controls.iterReal == 0 ){
 		this->calcIncomCellEOSVF(mesh, controls, species);
 		this->calcCellTransport(mesh, controls, species);
+		// Un
+		for(auto& face : mesh.faces){
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				face.var[controls.Un] =  0.5*(mesh.cells[face.owner].var[controls.U]*face.unitNormals[0]);
+				face.var[controls.Un] += 0.5*(mesh.cells[face.neighbour].var[controls.U]*face.unitNormals[0]);
+				face.var[controls.Un] += 0.5*(mesh.cells[face.owner].var[controls.V]*face.unitNormals[1]);
+				face.var[controls.Un] += 0.5*(mesh.cells[face.neighbour].var[controls.V]*face.unitNormals[1]);
+				face.var[controls.Un] += 0.5*(mesh.cells[face.owner].var[controls.W]*face.unitNormals[2]);
+				face.var[controls.Un] += 0.5*(mesh.cells[face.neighbour].var[controls.W]*face.unitNormals[2]);
+			}
+		}
 	}
 	
 	if( controls.iterReal == 0 ){
@@ -69,89 +164,52 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	
 	
 	
+	
+	
+	// controls.iterVof = 0;
+	// // controls.iterVofMax = 10;
+	// double saveTimeStep = controls.timeStep;
+	// controls.timeStep = 1.e-4;
+	// int iterVofMax = saveTimeStep / controls.timeStep;
+	// // while(controls.iterVof<controls.iterVofMax){
+	// while(controls.iterVof<iterVofMax){
+		// for(auto& cell : mesh.cells){
+			// for(int i=0; i<controls.nSp-1; ++i){
+				// cell.var[controls.oldVF[i]] = cell.var[controls.VF[i]];
+				// cell.var[controls.oldMF[i]] = cell.var[controls.MF[i]];
+			// }
+		// }
+		
+		// // this->setIncomValuesLeftRightFace(mesh, controls, species);
+		// // this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
+		// this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
+		// // this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
+		
+		// double normVF = this->calcVolfracExplicitEq(mesh, controls);
+		
+		
+		// this->calcIncomCellEOSVF(mesh, controls, species);
+		// this->calcCellTransport(mesh, controls, species);
+		
+		// if(rank==0) {
+			// cout << "|  └ VOF step = " << controls.iterVof << " | " << normVF << endl;
+		// }
+		// cout.precision(3);
+		
+		// ++controls.iterVof;
+	// }
+	// controls.timeStep = saveTimeStep;
+	
+	
+	
+	
+	
 	vector<double> norm0(controls.nEq,0.0);
 	vector<double> normNM(controls.nEq,0.0);
+	vector<double> norm(2,0.0);
 	
-	controls.iterPBs = 0;
-	while(controls.iterPBs<controls.iterPBsMax){
-		
-		
-		
-		this->calcUnderRelaxationFactors(controls);
-		
-		vector<double> residualsM(controls.nEq,0.0);
-		vector<double> residualsP(controls.nEq,0.0);
-		vector<double> residualsVF(controls.nEq,0.0);
-		
-		vector<double> linAD(mesh.cells.size(),0.0);
-		vector<double> linAOD(mesh.cells.size(),0.0);
-		vector<double> linAFL(mesh.faces.size(),0.0);
-		vector<double> linAFR(mesh.faces.size(),0.0);
-	
-		controls.iterMom = 0;
-		while(controls.iterMom<controls.iterMomMax){
-			double tmppreVelURF = controls.momVelURF;
-			if(
-			controls.iterPBsMax == 1 &&
-			controls.iterMom == controls.iterMomMax-1
-			){
-				controls.momVelURF = 1.0;
-			}
-			
-			// this->setIncomValuesLeftRightFace(mesh, controls, species);
-			this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
-			// this->setCompValuesLeftRightFace(mesh, controls, species);
-			
-			this->calcMomentumEqs(mesh, controls, species, linAD, linAOD, linAFL, linAFR, residualsM);
-			
-			controls.momVelURF = tmppreVelURF;
-			
-			++controls.iterMom;
-			
-		}
-		
 
-
-		controls.iterPre = 0;
-		while(controls.iterPre<controls.iterPreMax){
-			double tmpprePreURF = controls.prePreURF;
-			double tmppreVelURF = controls.preVelURF;
-			if(
-			controls.iterPBsMax == 1 &&
-			controls.iterPre == controls.iterPreMax-1
-			){
-				controls.prePreURF = 1.0;
-				controls.preVelURF = 1.0;
-			}
-			
-			this->setIncomValuesLeftRightFace(mesh, controls, species);
-			// this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
-			// this->setCompValuesLeftRightFace(mesh, controls, species);
-			
-			residualsP.clear();
-			residualsP.resize(controls.nEq,0.0);
-			
-			
-			this->calcPressureEq(mesh, controls, linAD, linAOD, linAFL, linAFR, residualsP);
-			
-			
-			// vector<double> norm;
-			// this->calcNormResiduals(mesh, controls, residualsP, norm);
-			// for(int i=0; i<controls.nEq; ++i){
-				// cout << scientific << norm[i] << " | ";
-			// }
-			// cout.unsetf(ios::scientific);
-			// cout << endl;
-			
-			
-			controls.prePreURF = tmpprePreURF;
-			controls.preVelURF = tmppreVelURF;
-			
-			++controls.iterPre;
-		}
-		
-		
-		// if(controls.iterPBs == controls.iterPBsMax-1){
+	// for(int iterVFs=0; iterVFs<controls.iterPBsMax; ++iterVFs){
 		controls.iterVof = 0;
 		while(controls.iterVof<controls.iterVofMax){
 			
@@ -160,51 +218,286 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 			this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
 			// this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
 			
-			this->calcVolfracEq(mesh, controls, linAD, linAOD, linAFL, linAFR, residualsVF);
+			norm[1] = this->calcVolfracEq(mesh, controls);
 			
 			
 			this->calcIncomCellEOSVF(mesh, controls, species);
 			this->calcCellTransport(mesh, controls, species);
+
+			vector<double> norm_global(2,0.0);
+			MPI_Allreduce(norm.data(), norm_global.data(), 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+			if(rank==0) {
+				double dClock = clock() - controls.startClock;
+				dClock /= CLOCKS_PER_SEC;
+				cout << "|  └ VF step = " << controls.iterVof << " | ";
+				cout.precision(3);
+				cout << scientific << norm_global[1] << " | ";
+				cout.unsetf(ios::scientific);
+				cout << dClock << " s | ";
+				cout << endl;
+				
+			}
 			
 			++controls.iterVof;
+			
 		}
+		
+	// }
+	
+	
+	
+
+	
+	controls.iterPBs = 0;
+	while(controls.iterPBs<controls.iterPBsMax){
+		
+		
+		this->calcUnderRelaxationFactors(controls);
+		
+		
+		//####################################################
+		// // volume fraction
+		// for(int iterVFs=0; iterVFs<1; ++iterVFs){
+			// controls.iterVof = 0;
+			// while(controls.iterVof<controls.iterVofMax){
+				
+				// // if(rank==0) cout << "|========== volume fraction" << endl;
+				// // this->setIncomValuesLeftRightFace(mesh, controls, species);
+				// // this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
+				// this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
+				// // this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
+				
+				// norm[1] = this->calcVolfracEq(mesh, controls);
+				
+				
+				// this->calcIncomCellEOSVF(mesh, controls, species);
+				// this->calcCellTransport(mesh, controls, species);
+				
+				// ++controls.iterVof;
+			
+				// vector<double> norm_global(2,0.0);
+				// MPI_Allreduce(norm.data(), norm_global.data(), 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+				// if(rank==0) {
+					// double dClock = clock() - controls.startClock;
+					// dClock /= CLOCKS_PER_SEC;
+					// cout << "|  └ VF step = " << iterVFs << " | ";
+					// cout.precision(3);
+					// cout << scientific << norm_global[1] << " | ";
+					// cout.unsetf(ios::scientific);
+					// cout << dClock << " s | ";
+					// cout << endl;
+					
+				// }
+			// }
+			
 		// }
 		
+ 
+ 
+ 
+		// this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
+		// norm[1] = this->calcVolfracEq(mesh, controls);
+		// this->calcIncomCellEOSVF(mesh, controls, species);
+		// this->calcCellTransport(mesh, controls, species);
 		
-		vector<double> residuals(controls.nEq,0.0);
-		for(int i=0; i<controls.nEq; ++i){
-			residuals[i] += residualsM[i];
-			residuals[i] += residualsP[i];
-			residuals[i] += residualsVF[i];
+		
+		
+		// momentum
+		// if(rank==0) cout << "|========== momentum" << endl;
+		this->setIncomValuesLeftRightFace(mesh, controls, species);
+		norm[0] = this->calcMomentumEqs(mesh, controls, species);
+		
+		
+		
+		// pressure
+		controls.iterPre = 0;
+		while(controls.iterPre<controls.iterPreMax){
+			// if(rank==0) cout << "|========== pressure" << endl;
+			
+			this->setIncomValuesLeftRightFace(mesh, controls, species);
+			norm[1] = this->calcPressureEq(mesh, controls, 2);
+			
+			++controls.iterPre;
 		}
-
-		vector<double> norm;
-		this->calcNormResiduals(mesh, controls, residuals, norm);
 		
+		
+		
+		
+		// // coupled
+		// // if(rank==0) cout << "|========== coupled" << endl;
+		// this->setIncomValuesLeftRightFace(mesh, controls, species);
+		// norm[0] = this->calcCoupledEq(mesh, controls, species);
+		
+
+
+
+		vector<double> norm_global(2,0.0);
+		MPI_Allreduce(norm.data(), norm_global.data(), 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 		if(rank==0) {
 			double dClock = clock() - controls.startClock;
 			dClock /= CLOCKS_PER_SEC;
-			cout << "|  └ PIMPLE step = " << controls.iterPBs << " | ";
+			cout << "|  └ Coupled step = " << controls.iterPBs << " | ";
 			cout.precision(3);
-			for(int i=0; i<controls.nEq; ++i){
-				// if(controls.iterPBs==0) norm0[i] = norm[i];
-				// cout << scientific << abs(norm[i] - normNM[i])/(norm0[i]+1.e-200) << " | ";
-				// normNM[i] = norm[i];
-				if(controls.iterPBs==0) norm0[i] = norm[i];
+			cout << scientific << norm_global[0] << " | ";
+			cout << scientific << norm_global[1] << " | ";
+			// for(int i=0; i<norm.size(); ++i){
+				// // // if(controls.iterPBs==0) norm0[i] = norm[i];
+				// // // cout << scientific << abs(norm[i] - normNM[i])/(norm0[i]+1.e-200) << " | ";
+				// // // normNM[i] = norm[i];
+				// // if(controls.iterPBs==0) norm0[i] = norm[i];
 				
-				if(controls.iterPBsMax==1){
-					cout << scientific << norm[i] << " | ";
-				}
-				else{
-					// cout << scientific << norm[i]/(norm0[i]+1.e-200) << " | ";
-					cout << scientific << norm[i] << " | ";
-				}
-			}
+				// // if(controls.iterPBsMax==1){
+					// // cout << scientific << norm[i] << " | ";
+				// // }
+				// // else{
+					// // // cout << scientific << norm[i]/(norm0[i]+1.e-200) << " | ";
+					// // cout << scientific << norm[i] << " | ";
+				// // }
+				
+				// cout << scientific << norm_global[i] << " | ";
+			// }
 			cout.unsetf(ios::scientific);
 			cout << dClock << " s | ";
 			cout << endl;
 			
 		}
+		
+		//####################################################
+		
+		
+
+		// //####################################################
+		// vector<double> residualsM(controls.nEq,0.0);
+		// vector<double> residualsP(controls.nEq,0.0);
+		// vector<double> residualsVF(controls.nEq,0.0);
+		
+		// vector<double> linAD(mesh.cells.size(),0.0);
+		// vector<double> linAOD(mesh.cells.size(),0.0);
+		// vector<double> linAFL(mesh.faces.size(),0.0);
+		// vector<double> linAFR(mesh.faces.size(),0.0);
+		
+	
+		// controls.iterMom = 0;
+		// while(controls.iterMom<controls.iterMomMax){
+			// double tmppreVelURF = controls.momVelURF;
+			// if(
+			// controls.iterPBsMax == 1 &&
+			// controls.iterMom == controls.iterMomMax-1
+			// ){
+				// controls.momVelURF = 1.0;
+			// }
+			
+			// // this->setIncomValuesLeftRightFace(mesh, controls, species);
+			// this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
+			// // this->setCompValuesLeftRightFace(mesh, controls, species);
+			
+			// norm[1] = this->calcMomentumEqs(mesh, controls, species, linAD, linAOD, linAFL, linAFR, residualsM);
+			
+			// controls.momVelURF = tmppreVelURF;
+			
+			// ++controls.iterMom;
+			
+		// }
+		
+
+
+		// controls.iterPre = 0;
+		// while(controls.iterPre<controls.iterPreMax){
+			// double tmpprePreURF = controls.prePreURF;
+			// double tmppreVelURF = controls.preVelURF;
+			// if(
+			// controls.iterPBsMax == 1 &&
+			// controls.iterPre == controls.iterPreMax-1
+			// ){
+				// controls.prePreURF = 1.0;
+				// controls.preVelURF = 1.0;
+			// }
+			
+			// this->setIncomValuesLeftRightFace(mesh, controls, species);
+			// // this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
+			// // this->setCompValuesLeftRightFace(mesh, controls, species);
+			
+			// residualsP.clear();
+			// residualsP.resize(controls.nEq,0.0);
+			
+			
+			// norm[0] = this->calcPressureEq(mesh, controls, linAD, linAOD, linAFL, linAFR, residualsP);
+			
+			
+			// // vector<double> norm;
+			// // this->calcNormResiduals(mesh, controls, residualsP, norm);
+			// // for(int i=0; i<controls.nEq; ++i){
+				// // cout << scientific << norm[i] << " | ";
+			// // }
+			// // cout.unsetf(ios::scientific);
+			// // cout << endl;
+			
+			
+			// controls.prePreURF = tmpprePreURF;
+			// controls.preVelURF = tmppreVelURF;
+			
+			// ++controls.iterPre;
+		// }
+		
+		
+		// // if(controls.iterPBs == controls.iterPBsMax-1){
+		// controls.iterVof = 0;
+		// while(controls.iterVof<controls.iterVofMax){
+			
+			// // this->setIncomValuesLeftRightFace(mesh, controls, species);
+			// // this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
+			// this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
+			// // this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
+			
+			// this->calcVolfracEq(mesh, controls, linAD, linAOD, linAFL, linAFR, residualsVF);
+			
+			
+			// this->calcIncomCellEOSVF(mesh, controls, species);
+			// this->calcCellTransport(mesh, controls, species);
+			
+			// ++controls.iterVof;
+		// }
+		// // }
+		
+		
+		// vector<double> residuals(controls.nEq,0.0);
+		// for(int i=0; i<controls.nEq; ++i){
+			// residuals[i] += residualsM[i];
+			// residuals[i] += residualsP[i];
+			// residuals[i] += residualsVF[i];
+		// }
+
+		// vector<double> norm;
+		// this->calcNormResiduals(mesh, controls, residuals, norm);
+		// if(rank==0) {
+			// double dClock = clock() - controls.startClock;
+			// dClock /= CLOCKS_PER_SEC;
+			// cout << "|  └ PIMPLE step = " << controls.iterPBs << " | ";
+			// cout.precision(3);
+			// for(int i=0; i<norm.size(); ++i){
+				// // if(controls.iterPBs==0) norm0[i] = norm[i];
+				// // cout << scientific << abs(norm[i] - normNM[i])/(norm0[i]+1.e-200) << " | ";
+				// // normNM[i] = norm[i];
+				// if(controls.iterPBs==0) norm0[i] = norm[i];
+				
+				// if(controls.iterPBsMax==1){
+					// cout << scientific << norm[i] << " | ";
+				// }
+				// else{
+					// // cout << scientific << norm[i]/(norm0[i]+1.e-200) << " | ";
+					// cout << scientific << norm[i] << " | ";
+				// }
+				
+			// }
+			// cout.unsetf(ios::scientific);
+			// cout << dClock << " s | ";
+			// cout << endl;
+			
+		// }
+		// //####################################################
+		
+		
+		
 		
 		
 		++controls.iterPBs;
@@ -226,6 +519,16 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 		++controls.iterTotal;
 		
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	// double maxPressure = 0.0;
 	// // int iiiiisave = 0;

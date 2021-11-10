@@ -10,10 +10,17 @@ using namespace std;
 
 class SEMO_Mesh_Geometric{
 	public:
+		// void calcUnitNormals_Area3dPolygon(
+			// int n, vector<long double> Vx, vector<long double> Vy, vector<long double> Vz,
+			// vector<double>& unitNormals, double& area,
+			// double& x, double& y, double& z,
+			// double& VSn, vector<double>& cellCentroid );
+			
 		void calcUnitNormals_Area3dPolygon(
 			int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
 			vector<double>& unitNormals, double& area,
-			double& x, double& y, double& z );
+			double& x, double& y, double& z,
+			double& VSn, vector<double>& cellCentroid );
 		
 		void calcUnitNormals_ArbitraryPolyhedral(
 			int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
@@ -31,7 +38,17 @@ class SEMO_Mesh_Geometric{
 			int n, 
 			vector<double> Vx, vector<double> Vy, vector<double> Vz,
 			double Nx, double Ny, double Nz );
-		
+			
+
+		bool isInsidePolygon(
+			vector<double> Vx, vector<double> Vy, vector<double> Vz,
+			double Vx_tar, double Vy_tar, double Vz_tar,
+			double maxAng, double eps);
+
+		bool isInsidePolyhedron(
+			vector<double> Fx, vector<double> Fy, vector<double> Fz,
+			vector<double> Nx, vector<double> Ny, vector<double> Nz,
+			double Vx_tar, double Vy_tar, double Vz_tar);
 		
 		double calcVolumePolyhedron(){
 			

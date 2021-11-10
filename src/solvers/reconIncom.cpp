@@ -24,36 +24,36 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFace(
 	SEMO_Utility_Math math;
 	
 	
-	vector<vector<double>> gradP;
-	// // math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
-	math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	// vector<vector<double>> gradP;
+	// // // math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
 	
 	
 	
-	// double underCoeff = 0.4;
-	double underCoeff = 0.9;
-	// double underCoeff = 1.0;
-	// boundary faces treatment : pressure
-	for(auto& boundary : mesh.boundary){
+	// // double underCoeff = 0.4;
+	// double underCoeff = 0.9;
+	// // double underCoeff = 1.0;
+	// // boundary faces treatment : pressure
+	// for(auto& boundary : mesh.boundary){
 		
-		if(boundary.neighbProcNo != -1) continue;
+		// if(boundary.neighbProcNo != -1) continue;
 		
-		int str = boundary.startFace;
-		int end = str + boundary.nFaces;
+		// int str = boundary.startFace;
+		// int end = str + boundary.nFaces;
 		
-		if( boundary.type[controls.P] == "zeroGradient" ){
-		// if( boundary.type[controls.U] == "noSlip" ){
-			for(int i=str; i<end; ++i){
-				SEMO_Face& face = mesh.faces[i];
-				face.varL[controls.fP] = mesh.cells[face.owner].var[controls.P];
-				face.varL[controls.fP] += underCoeff*
-				 ( (gradP[face.owner][0])*face.distCells[0]
-				  +(gradP[face.owner][1])*face.distCells[1]
-				  +(gradP[face.owner][2])*face.distCells[2] );
-				face.varR[controls.fP] = face.varL[controls.fP];
-			}
-		}
-	}
+		// if( boundary.type[controls.P] == "zeroGradient" ){
+		// // if( boundary.type[controls.U] == "noSlip" ){
+			// for(int i=str; i<end; ++i){
+				// SEMO_Face& face = mesh.faces[i];
+				// face.varL[controls.fP] = mesh.cells[face.owner].var[controls.P];
+				// face.varL[controls.fP] += underCoeff*
+				 // ( (gradP[face.owner][0])*face.distCells[0]
+				  // +(gradP[face.owner][1])*face.distCells[1]
+				  // +(gradP[face.owner][2])*face.distCells[2] );
+				// face.varR[controls.fP] = face.varL[controls.fP];
+			// }
+		// }
+	// }
 	
 	
 	// rho, C, Ht from EOS
@@ -363,9 +363,9 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFaceWithVfMSTACS(
 	
 	vector<vector<double>> gradVF;
 	
-	math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	// math.calcGGLSQ(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	// math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	
 	
 
@@ -416,7 +416,7 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFaceWithVfMSTACS(
 	
 	
 	// NVD, MSTACS
-	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF);
+	this->calcMSTACS(mesh, controls, controls.VF[0], controls.fVF[0], gradVF, controls.fVF[0]);
 	
 	
 	

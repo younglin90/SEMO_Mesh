@@ -420,6 +420,9 @@ void load_vtu(SEMO_Mesh_Builder &mesh, string folder){
 
 
 	// mesh.saveFile("vtu");
+	
+	
+	// mesh.cellsGlobal();
 		
 	
 	

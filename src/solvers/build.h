@@ -43,6 +43,11 @@ class SEMO_Solvers_Builder{
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species);
 			
+		void compressibleCoupled(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
 		// reconstructions
 		void setIncomValuesLeftRightFace(
 			SEMO_Mesh_Builder& mesh,
@@ -122,7 +127,17 @@ class SEMO_Solvers_Builder{
 			vector<SEMO_Species>& species);
 			
 		// pressure based
-		void calcMomentumEqs(
+		double calcCoupledEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcMomentumEqs(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcMomentumEqs(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species,
@@ -132,7 +147,12 @@ class SEMO_Solvers_Builder{
 			vector<double>& linAFR,
 			vector<double>& residuals);
 			
-		void calcPressureEq(
+		double calcPressureEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			int iterNonOrthogonality);
+	
+		double calcPressureEq(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			vector<double>& linAD,
@@ -141,7 +161,11 @@ class SEMO_Solvers_Builder{
 			vector<double>& linAFR,
 			vector<double>& residuals);
 			
-		void calcVolfracEq(
+		double calcVolfracEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls);
+			
+		double calcVolfracEq(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			vector<double>& linAD,
@@ -149,12 +173,109 @@ class SEMO_Solvers_Builder{
 			vector<double>& linAFL,
 			vector<double>& linAFR,
 			vector<double>& residuals);
+			
+		double calcVolfracExplicitEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls);
+			
+			
+		// compressible
+		double calcCompMassfracEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcCompMomentumEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcCompPressureEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcCompEnergyEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcCompFlowsEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		double calcCompCoupledEq(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
+			
+		//=====
+			
+		void solveAMGCL_Flows(
+			SEMO_Mesh_Builder& mesh,
+			int B_n,
+			vector<double>& A_vals, 
+			vector<double>& B_vals,
+			vector<double>& resiVar);
+
+			
+		void solveAMGCL(
+			string equation,
+			SEMO_Mesh_Builder& mesh,
+			int B_n, 
+			vector<int>& A_rows, vector<int>& A_cols, vector<double>& A_vals, 
+			vector<double>& B_vals,
+			vector<double>& resiVar);
+			
+		void solveAMGCL(
+			string equation,
+			SEMO_Mesh_Builder& mesh,
+			int B_n, 
+			vector<int>& A_rows, vector<int>& A_cols, vector<double>& A_vals, 
+			vector<double>& B0_vals, vector<double>& B1_vals, vector<double>& B2_vals,
+			vector<double>& resiVar0, vector<double>& resiVar1, vector<double>& resiVar2);
+			
+		void solveAMGCL_VF(
+			SEMO_Mesh_Builder& mesh,
+			int B_n, 
+			vector<int>& A_rows, vector<int>& A_cols, vector<double>& A_vals, 
+			vector<double>& B_vals,
+			vector<double>& resiVar);
+			
+			
+		void solvePETSc_Test_Coupled(
+			SEMO_Mesh_Builder& mesh,
+			vector<double>& resiVar, 
+			vector<int>& A_rows, vector<int>& A_cols, vector<double>& A_vals, 
+			vector<double>& B_vals,
+			int ncells, int ncellTot,
+			string solver, double tolerance, double relTol, string preconditioner,
+			int maxIter);
+			
+		void solvePETSc_Coupled(
+			SEMO_Mesh_Builder& mesh,
+			vector<double>& resiVar, 
+			vector<int>& A_rows, vector<int>& A_cols, vector<double>& A_vals, 
+			vector<double>& B_vals,
+			int ncells, int ncellTot,
+			string solver, double tolerance, double relTol, string preconditioner,
+			int maxIter);
 			
 		void solvePETSc(
 			SEMO_Mesh_Builder& mesh,
 			vector<double>& resiVar, 
 			vector<double>& linA, vector<double>& linAL, vector<double>& linAR, 
 			vector<double>& linB, 
+			string solver, double tolerance, double relTol, string preconditioner,
+			int maxIter);
+			
+		void solveHypre_Test_Coupled(
+			SEMO_Mesh_Builder& mesh,
+			vector<double>& resiVar, 
+			vector<int>& A_rows, vector<int>& A_cols, vector<double>& A_vals, 
+			vector<double>& B_vals,
+			int ncells, int ncellTot,
 			string solver, double tolerance, double relTol, string preconditioner,
 			int maxIter);
 			
@@ -182,6 +303,11 @@ class SEMO_Solvers_Builder{
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			double& corantNum);
+
+		double calcTimeStepFromCorantNumber(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
 			
 		void calcRHS(
 			SEMO_Mesh_Builder& mesh,
@@ -351,6 +477,15 @@ class SEMO_Solvers_Builder{
 			double& rho, double& C, double& Ht,
 			vector<double>& VF);
 			
+		void getValuesFromEOSMF(
+			vector<SEMO_Species>& species,
+			double& P, double& U, double& V, double& W, double& T, vector<double>& MF, 
+			vector<double>& VF, double& rho, double& C, double& Ht,
+			double& drdp, double& dhdp,
+			double& drdt, double& dhdt,
+			vector<double>& drdMF, vector<double>& dhdMF);
+			
+			
 		void eosIdeal(
 			SEMO_Species& species,
 			double& P, double& U, double& V, double& W, double& T,
@@ -454,7 +589,8 @@ class SEMO_Solvers_Builder{
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			int cn, int fn,
-			vector<vector<double>>& inpDX);
+			vector<vector<double>>& inpDX,
+			int fn_out);
 			
 			
 			

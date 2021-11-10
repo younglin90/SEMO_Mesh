@@ -68,8 +68,17 @@ class SEMO_Face{
 		int group;
 		vector<double> unitNormals;
 		double area;
+		
 		double wC;
 		double wVC;
+		double magPN;
+		double alphaF;
+		vector<double> unitNomalsPN;
+		vector<double> vecSkewness;
+		vector<double> vecPdP;
+		vector<double> vecNdN;
+		vector<double> vecPN;
+		
 		int owner, neighbour;
 		vector<int> points;
 		double x, y, z;
@@ -78,6 +87,8 @@ class SEMO_Face{
 		vector<double> var;
 		vector<double> varL;
 		vector<double> varR;
+		
+		vector<int> stencil;
 		
 		
 	private:
@@ -171,6 +182,8 @@ class SEMO_Mesh_Builder{
 		void buildLists();
 		void checkLists();
 		
+		void cellsGlobal(); 
+		
 		void connectCelltoFaces();
 		void connectCelltoPoints();
 		
@@ -193,6 +206,10 @@ class SEMO_Mesh_Builder{
 		void setCountsProcFaces();
 		void setDisplsProcFaces();
 		
+		
+		void reorder();
+		
+		
 		// mesh datas
 		vector<SEMO_Point> points;
 		vector<SEMO_Face> faces;
@@ -208,6 +225,21 @@ class SEMO_Mesh_Builder{
 		
 		vector<int> countsProcFaces;
 		vector<int> displsProcFaces;
+		
+		// global
+		int startCellGlobal;
+		vector<int> neighbProcNo;
+		vector<int> startProcCellGlobal;
+		vector<int> procNeighbCellNo;
+		int ncellsTotal;
+		
+		// CRS format
+		int non_zeros;
+		vector<int> CRS_ptr;
+		vector<int> CRS_col;
+		vector<int> CRS_col_ptr_dig;
+		vector<int> CRS_col_ptr_LR;
+		vector<int> CRS_col_ptr_RL;
 		
 		// SEMO_MPI_Builder mpi;
 		

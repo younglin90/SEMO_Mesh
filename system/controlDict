@@ -1,15 +1,17 @@
 
 application = incomPBased
  
-startFrom = 0
+startFrom = 0.103649
  
 stopAt = 10.0
  
-timeStep = 1.e-5
- 
-saveInterval = 1
+timeStep = 5.e-5
+adjustTimeStep = yes
+maxCo = 0.2
+maxTimeStep = 1.e-3
 
-saveControl = timeStep
+saveControl = runTime
+saveInterval = 0.01
 
 saveFormat = ascii
  
@@ -17,12 +19,6 @@ saveCompression = off
  
 timeFormat = general
 
-writePrecision = 5
-
-adjustTimeStep = no
-
-maxCo = 1
+writePrecision = 8
 
 maxVfCo = 1
-
-maxTimeStep = 1

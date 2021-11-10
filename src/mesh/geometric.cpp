@@ -6,58 +6,193 @@
 // #include <numeric>
 using namespace std;
 
-#include "geometric.h"  
+#include "geometric.h"
+
 
 /*
-https://thebuildingcoder.typepad.com/blog/2008/12/3d-polygon-areas.html
+new, 2021-10-15
+http://paulbourke.net/geometry/polygonmesh/
 */
 void SEMO_Mesh_Geometric::calcUnitNormals_Area3dPolygon(
 	int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
 	vector<double>& unitNormals, double& area,
-	double& x, double& y, double& z ){
+	double& x, double& y, double& z,
+	double& VSn, vector<double>& cellCentroid ){
 		
-	double sumArea = 0.0;
-	unitNormals.clear();
-	unitNormals.resize(3,0.0);
-	x = 0.0;  y = 0.0; z = 0.0;
-	for(int i = 0; i < n; ++i ) {
-		double vect_A[3];
-		double vect_B[3];
+	double x_tmp = 0.0;  double y_tmp = 0.0; double z_tmp = 0.0;
+	double Vx0_old = 0.0;  double Vy0_old = 0.0; double Vz0_old = 0.0;
+	vector<double> unitNormals_tmp(3,0.0);
+	vector<double> cellCentroid_tmp(3,0.0);
+	double area_tmp = 0.0;
+	double VSn_tmp = 0.0;
+	
+	double x_avg, y_avg, z_avg;
+	x_avg = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)Vx.size();
+	y_avg = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)Vy.size();
+	z_avg = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)Vz.size();
+	
+	for(int two=0; two<5; ++two){
 		
-		vect_A[0] = Vx[i]-Vx[0];
-		vect_A[1] = Vy[i]-Vy[0];
-		vect_A[2] = Vz[i]-Vz[0];
+		unitNormals_tmp[0] = 0.0;
+		unitNormals_tmp[1] = 0.0;
+		unitNormals_tmp[2] = 0.0;
 		
-		int ne = i+1;
-		if(i==n-1) ne = 0;
-		vect_B[0] = Vx[ne]-Vx[0];
-		vect_B[1] = Vy[ne]-Vy[0];
-		vect_B[2] = Vz[ne]-Vz[0];
-	  
-		double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
-		double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
-		double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
+		cellCentroid_tmp[0] = 0.0;
+		cellCentroid_tmp[1] = 0.0;
+		cellCentroid_tmp[2] = 0.0;
+		
+		area_tmp = 0.0;
+		VSn_tmp = 0.0;
+		double VSn_x = 0.0; double VSn_y = 0.0; double VSn_z = 0.0;
+		double Vx0 = 0.0; double Vy0 = 0.0; double Vz0 = 0.0;
+		
+		if(two==0){
+			// Vx0 = Vx[0]; Vy0 = Vy[0]; Vz0 = Vz[0];
+			
+			Vx0 = x_avg; Vy0 = y_avg; Vz0 = z_avg;
+		}
+		else{
+			Vx0 = Vx0_old + 1.0*(x_tmp-Vx0_old); 
+			Vy0 = Vy0_old + 1.0*(y_tmp-Vy0_old); 
+			Vz0 = Vz0_old + 1.0*(z_tmp-Vz0_old); 
+		}
+		Vx0_old = Vx0; Vy0_old = Vy0; Vz0_old = Vz0;
+			// Vx0 = 0; Vy0 = 0; Vz0 = 0;
+			// Vx0 = Vx[0]; Vy0 = Vy[0]; Vz0 = Vz[0];
+			// Vx0 = Vx.back(); Vy0 = Vy.back(); Vz0 = Vz.back();
+			
+		x_tmp = 0.0;  y_tmp = 0.0; z_tmp = 0.0;
+		
+		double totArea = 0.0;
+		
+		for(int i = 0; i < n; ++i ) {
+			int b=i;
+			int c=i+1;
+			if(i==n-1) c=0;
+			
+			double vect_A[3];
+			double vect_B[3];
+			
+			vect_A[0] = Vx[b]-Vx0; vect_A[1] = Vy[b]-Vy0; vect_A[2] = Vz[b]-Vz0;
+			vect_B[0] = Vx[c]-Vx0; vect_B[1] = Vy[c]-Vy0; vect_B[2] = Vz[c]-Vz0;
+			// vect_A[0] = Vx[b]; vect_A[1] = Vy[b]; vect_A[2] = Vz[b];
+			// vect_B[0] = Vx[c]; vect_B[1] = Vy[c]; vect_B[2] = Vz[c];
+		  
+			double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
+			double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
+			double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
 
-		unitNormals[0] += Nx_tmp;
-		unitNormals[1] += Ny_tmp;
-		unitNormals[2] += Nz_tmp;
+			unitNormals_tmp[0] += Nx_tmp;
+			unitNormals_tmp[1] += Ny_tmp;
+			unitNormals_tmp[2] += Nz_tmp;
+			
+			double tmp_area = sqrtl(Nx_tmp*Nx_tmp+Ny_tmp*Ny_tmp+Nz_tmp*Nz_tmp);
+			// double tmp_area = pow(Nx_tmp*Nx_tmp+Ny_tmp*Ny_tmp+Nz_tmp*Nz_tmp,0.5);
+			double rx = (Vx0+Vx[b]+Vx[c]) / 3.0;
+			double ry = (Vy0+Vy[b]+Vy[c]) / 3.0;
+			double rz = (Vz0+Vz[b]+Vz[c]) / 3.0;
+			x_tmp += rx*tmp_area; y_tmp += ry*tmp_area; z_tmp += rz*tmp_area;
+			
+			totArea += tmp_area;
+			
+			VSn_tmp += Vx0*Nx_tmp; VSn_tmp += Vy0*Ny_tmp; VSn_tmp += Vz0*Nz_tmp;
+			
+			cellCentroid_tmp[0] += 2.0*Nx_tmp*(
+				(Vx0+Vx[b])*(Vx0+Vx[b]) + (Vx[b]+Vx[c])*(Vx[b]+Vx[c]) + (Vx[c]+Vx0)*(Vx[c]+Vx0));
+			cellCentroid_tmp[1] += 2.0*Ny_tmp*(
+				(Vy0+Vy[b])*(Vy0+Vy[b]) + (Vy[b]+Vy[c])*(Vy[b]+Vy[c]) + (Vy[c]+Vy0)*(Vy[c]+Vy0));
+			cellCentroid_tmp[2] += 2.0*Nz_tmp*(
+				(Vz0+Vz[b])*(Vz0+Vz[b]) + (Vz[b]+Vz[c])*(Vz[b]+Vz[c]) + (Vz[c]+Vz0)*(Vz[c]+Vz0));
+			
+			
+			// VSn_tmp += Vx0*2.0*Nx_tmp / 3.0; 
+			// VSn_tmp += Vy0*2.0*Ny_tmp / 3.0; 
+			// VSn_tmp += Vz0*2.0*Nz_tmp / 3.0;
+			
+			// cellCentroid_tmp[0] += Vx0*2.0*Nx_tmp * 0.25*(Vx0+Vx[b]+Vx[c]) / 3.0;
+			// cellCentroid_tmp[1] += Vy0*2.0*Ny_tmp * 0.25*(Vy0+Vy[b]+Vy[c]) / 3.0;
+			// cellCentroid_tmp[2] += Vz0*2.0*Nz_tmp * 0.25*(Vz0+Vz[b]+Vz[c]) / 3.0;
+			
+		}
+		
+		
+		
 
-		double area_tmp = sqrt(Nx_tmp*Nx_tmp + Ny_tmp*Ny_tmp + Nz_tmp*Nz_tmp);
-		sumArea += area_tmp;
-		x += area_tmp*(Vx[0]+Vx[i]+Vx[ne])/3.0;
-		y += area_tmp*(Vy[0]+Vy[i]+Vy[ne])/3.0;
-		z += area_tmp*(Vz[0]+Vz[i]+Vz[ne])/3.0;
+		// Vx0 = Vx[0]; Vy0 = Vy[0]; Vz0 = Vz[0];
+			
+		// x_tmp = 0.0;  y_tmp = 0.0; z_tmp = 0.0;
+		
+		// for(int i = 2; i < n; ++i ) {
+			// int b=i-1;
+			// int c=i;
+			
+			// double vect_A[3];
+			// double vect_B[3];
+			
+			// vect_A[0] = Vx[b]-Vx0; vect_A[1] = Vy[b]-Vy0; vect_A[2] = Vz[b]-Vz0;
+			// vect_B[0] = Vx[c]-Vx0; vect_B[1] = Vy[c]-Vy0; vect_B[2] = Vz[c]-Vz0;
+		  
+			// double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
+			// double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
+			// double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
+
+			// unitNormals_tmp[0] += Nx_tmp;
+			// unitNormals_tmp[1] += Ny_tmp;
+			// unitNormals_tmp[2] += Nz_tmp;
+			
+			// double tmp_area = sqrtl(Nx_tmp*Nx_tmp+Ny_tmp*Ny_tmp+Nz_tmp*Nz_tmp);
+			// // double tmp_area = pow(Nx_tmp*Nx_tmp+Ny_tmp*Ny_tmp+Nz_tmp*Nz_tmp,0.5);
+			// double rx = (Vx0+Vx[b]+Vx[c]) / 3.0;
+			// double ry = (Vy0+Vy[b]+Vy[c]) / 3.0;
+			// double rz = (Vz0+Vz[b]+Vz[c]) / 3.0;
+			// x_tmp += rx*tmp_area; y_tmp += ry*tmp_area; z_tmp += rz*tmp_area;
+			
+			// VSn_tmp += Vx0*Nx_tmp; VSn_tmp += Vy0*Ny_tmp; VSn_tmp += Vz0*Nz_tmp;
+			
+			// cellCentroid_tmp[0] += 2.0*Nx_tmp*(
+				// (Vx0+Vx[b])*(Vx0+Vx[b]) + (Vx[b]+Vx[c])*(Vx[b]+Vx[c]) + (Vx[c]+Vx0)*(Vx[c]+Vx0));
+			// cellCentroid_tmp[1] += 2.0*Ny_tmp*(
+				// (Vy0+Vy[b])*(Vy0+Vy[b]) + (Vy[b]+Vy[c])*(Vy[b]+Vy[c]) + (Vy[c]+Vy0)*(Vy[c]+Vy0));
+			// cellCentroid_tmp[2] += 2.0*Nz_tmp*(
+				// (Vz0+Vz[b])*(Vz0+Vz[b]) + (Vz[b]+Vz[c])*(Vz[b]+Vz[c]) + (Vz[c]+Vz0)*(Vz[c]+Vz0));
+			
+		// }
+		
+		
+		
+		// VSn = VSn_x + VSn_y + VSn_z;
+		
+		double mag_unitNormals = sqrtl(
+			unitNormals_tmp[0]*unitNormals_tmp[0]+
+			unitNormals_tmp[1]*unitNormals_tmp[1]+
+			unitNormals_tmp[2]*unitNormals_tmp[2]);
+		unitNormals_tmp[0] /= mag_unitNormals;
+		unitNormals_tmp[1] /= mag_unitNormals;
+		unitNormals_tmp[2] /= mag_unitNormals;
+		
+		area_tmp = mag_unitNormals;
+		
+		x_tmp /= totArea;
+		y_tmp /= totArea;
+		z_tmp /= totArea;
+	
 	}
 	
-	x /= sumArea;
-	y /= sumArea;
-	z /= sumArea;
+	unitNormals.clear();
+	unitNormals.resize(3,0.0);
+	cellCentroid.clear();
+	cellCentroid.resize(3,0.0);
 	
-	unitNormals[0] /= sumArea;
-	unitNormals[1] /= sumArea;
-	unitNormals[2] /= sumArea;
+	for(int i=0; i<3; ++i){
+		unitNormals[i] = unitNormals_tmp[i];
+		cellCentroid[i] = cellCentroid_tmp[i];
+	}
 	
-	area = sumArea;
+	area = area_tmp;
+	
+	VSn = VSn_tmp;
+		
+	x = x_tmp; y = y_tmp; z = z_tmp;
 	
 	if(area < std::numeric_limits<double>::min()) {
 		cerr << endl;
@@ -67,6 +202,173 @@ void SEMO_Mesh_Geometric::calcUnitNormals_Area3dPolygon(
 	}
 	
 }
+
+
+
+
+
+// void SEMO_Mesh_Geometric::calcUnitNormals_Area3dPolygon(
+	// int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
+	// vector<double>& unitNormals, double& area,
+	// double& x, double& y, double& z,
+	// double& VSn, vector<double>& cellCentroid ){
+		
+	// for(int two=0; two<1; ++two){
+		
+		// unitNormals.clear();
+		// unitNormals.resize(3,0.0);
+		// cellCentroid.clear();
+		// cellCentroid.resize(3,0.0);
+		// area = 0.0;
+		// double VSn_x = 0.0; double VSn_y = 0.0; double VSn_z = 0.0;
+		// double Vx0 = 0.0;
+		// double Vy0 = 0.0;
+		// double Vz0 = 0.0;
+		// if(two==0){
+			// // Vx0 = Vx[0]; Vy0 = Vy[0]; Vz0 = Vz[0];
+			// double x_avg, y_avg, z_avg;
+			// x_avg = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)Vx.size();
+			// y_avg = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)Vx.size();
+			// z_avg = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)Vx.size();
+			
+			// Vx0 = x_avg; Vy0 = y_avg; Vz0 = z_avg;
+		// }
+		// else{
+			// Vx0 = x; Vy0 = y; Vz0 = z;
+		// }
+		// VSn = 0.0;
+		// x = 0.0;  y = 0.0; z = 0.0;
+		
+		// for(int i = 0; i < n; ++i ) {
+			// int b=i;
+			// int c=i+1;
+			// if(i==n-1) c=0;
+			
+			// double vect_A[3];
+			// double vect_B[3];
+			
+			// vect_A[0] = Vx[b]-Vx0; vect_A[1] = Vy[b]-Vy0; vect_A[2] = Vz[b]-Vz0;
+			// vect_B[0] = Vx[c]-Vx0; vect_B[1] = Vy[c]-Vy0; vect_B[2] = Vz[c]-Vz0;
+			// // vect_A[0] = Vx[b]; vect_A[1] = Vy[b]; vect_A[2] = Vz[b];
+			// // vect_B[0] = Vx[c]; vect_B[1] = Vy[c]; vect_B[2] = Vz[c];
+		  
+			// double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
+			// double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
+			// double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
+
+			// unitNormals[0] += Nx_tmp;
+			// unitNormals[1] += Ny_tmp;
+			// unitNormals[2] += Nz_tmp;
+			
+			// double tmp_area = sqrt(Nx_tmp*Nx_tmp+Ny_tmp*Ny_tmp+Nz_tmp*Nz_tmp);
+			// double rx = (Vx0+Vx[b]+Vx[c])/ 3.0;
+			// double ry = (Vy0+Vy[b]+Vy[c])/ 3.0;
+			// double rz = (Vz0+Vz[b]+Vz[c])/ 3.0;
+			// x += rx*tmp_area; y += ry*tmp_area; z += rz*tmp_area;
+			
+			// VSn += Vx0*Nx_tmp;
+			// VSn += Vy0*Ny_tmp;
+			// VSn += Vz0*Nz_tmp;
+			// // VSn_x += Vx[a]*Nx_tmp; VSn_y += Vy[a]*Ny_tmp; VSn_z += Vz[a]*Nz_tmp;
+			// // area += tmp_area;
+			
+			// cellCentroid[0] += 2.0*Nx_tmp*(
+				// pow(Vx0+Vx[b],2.0) + pow(Vx[b]+Vx[c],2.0) + pow(Vx[c]+Vx0,2.0));
+			// cellCentroid[1] += 2.0*Ny_tmp*(
+				// pow(Vy0+Vy[b],2.0) + pow(Vy[b]+Vy[c],2.0) + pow(Vy[c]+Vy0,2.0));
+			// cellCentroid[2] += 2.0*Nz_tmp*(
+				// pow(Vz0+Vz[b],2.0) + pow(Vz[b]+Vz[c],2.0) + pow(Vz[c]+Vz0,2.0));
+			
+		// }
+		
+		// // VSn = VSn_x + VSn_y + VSn_z;
+		
+		// double mag_unitNormals = sqrt(
+			// unitNormals[0]*unitNormals[0]+
+			// unitNormals[1]*unitNormals[1]+
+			// unitNormals[2]*unitNormals[2]);
+		// unitNormals[0] /= mag_unitNormals;
+		// unitNormals[1] /= mag_unitNormals;
+		// unitNormals[2] /= mag_unitNormals;
+		
+		// area = mag_unitNormals;
+		
+		// x /= area;
+		// y /= area;
+		// z /= area;
+	
+	// }
+	
+	// if(area < std::numeric_limits<double>::min()) {
+		// cerr << endl;
+		// cerr << "#error, from calcArea3dPolygon, area = " << area <<  " < cpu_min_val " << endl;
+		// cerr << endl;
+		// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	// }
+	
+// }
+
+  
+
+// /*
+// https://thebuildingcoder.typepad.com/blog/2008/12/3d-polygon-areas.html
+// */
+// void SEMO_Mesh_Geometric::calcUnitNormals_Area3dPolygon(
+	// int n, vector<double> Vx, vector<double> Vy, vector<double> Vz,
+	// vector<double>& unitNormals, double& area,
+	// double& x, double& y, double& z ){
+		
+	// double sumArea = 0.0;
+	// unitNormals.clear();
+	// unitNormals.resize(3,0.0);
+	// x = 0.0;  y = 0.0; z = 0.0;
+	// for(int i = 0; i < n; ++i ) {
+		// double vect_A[3];
+		// double vect_B[3];
+		
+		// vect_A[0] = Vx[i]-Vx[0];
+		// vect_A[1] = Vy[i]-Vy[0];
+		// vect_A[2] = Vz[i]-Vz[0];
+		
+		// int ne = i+1;
+		// if(i==n-1) ne = 0;
+		// vect_B[0] = Vx[ne]-Vx[0];
+		// vect_B[1] = Vy[ne]-Vy[0];
+		// vect_B[2] = Vz[ne]-Vz[0];
+	  
+		// double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
+		// double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
+		// double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
+
+		// unitNormals[0] += Nx_tmp;
+		// unitNormals[1] += Ny_tmp;
+		// unitNormals[2] += Nz_tmp;
+
+		// double area_tmp = sqrt(Nx_tmp*Nx_tmp + Ny_tmp*Ny_tmp + Nz_tmp*Nz_tmp);
+		// sumArea += area_tmp;
+		// x += area_tmp*(Vx[0]+Vx[i]+Vx[ne])/3.0;
+		// y += area_tmp*(Vy[0]+Vy[i]+Vy[ne])/3.0;
+		// z += area_tmp*(Vz[0]+Vz[i]+Vz[ne])/3.0;
+	// }
+	
+	// x /= sumArea;
+	// y /= sumArea;
+	// z /= sumArea;
+	
+	// unitNormals[0] /= sumArea;
+	// unitNormals[1] /= sumArea;
+	// unitNormals[2] /= sumArea;
+	
+	// area = sumArea;
+	
+	// if(area < std::numeric_limits<double>::min()) {
+		// cerr << endl;
+		// cerr << "#error, from calcArea3dPolygon, area = " << area <<  " < cpu_min_val " << endl;
+		// cerr << endl;
+		// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	// }
+	
+// }
 
 /* 
 Gradient Calculation Methods on ArbitraryPolyhedral Unstructured Meshes for Cell-CenteredCFD Solvers
@@ -365,6 +667,128 @@ double SEMO_Mesh_Geometric::calcArea3dPolygon(
 
 
 
+
+bool SEMO_Mesh_Geometric::isInsidePolygon(
+vector<double> Vx, vector<double> Vy, vector<double> Vz,
+double Vx_tar, double Vy_tar, double Vz_tar,
+double maxAng, double eps
+) {
+
+	int n = Vx.size();
+	double degree = 0.0;
+	bool clockwise_x = true;
+	bool clockwise_y = true;
+	bool clockwise_z = true;
+	for (int i = 0; i < n; ++i) {
+		int a = i;
+		int b = i + 1;
+		if (i == n - 1) b = 0;
+
+		vector<double> ta(3, 0.0);
+		vector<double> tb(3, 0.0);
+		ta[0] = Vx[a] - Vx_tar;
+		ta[1] = Vy[a] - Vy_tar;
+		ta[2] = Vz[a] - Vz_tar;
+		double mag_ta = sqrt(ta[0] * ta[0] + ta[1] * ta[1] + ta[2] * ta[2]);
+
+		tb[0] = Vx[b] - Vx_tar;
+		tb[1] = Vy[b] - Vy_tar;
+		tb[2] = Vz[b] - Vz_tar;
+		double mag_tb = sqrt(tb[0] * tb[0] + tb[1] * tb[1] + tb[2] * tb[2]);
+
+		vector<double> cross(3, 0.0);
+		cross[0] = (ta[1] * tb[2] - ta[2] * tb[1]) / mag_ta / mag_tb;
+		cross[1] = (ta[2] * tb[0] - ta[0] * tb[2]) / mag_ta / mag_tb;
+		cross[2] = (ta[0] * tb[1] - ta[1] * tb[0]) / mag_ta / mag_tb;
+		if (cross[0] < eps && cross[0] > 0.0) cross[0] = eps;
+		if (cross[1] < eps && cross[1] > 0.0) cross[1] = eps;
+		if (cross[2] < eps && cross[2] > 0.0) cross[2] = eps;
+
+		if (cross[0] < 0.0 && cross[0] > -eps) cross[0] = eps;
+		if (cross[1] < 0.0 && cross[1] > -eps) cross[1] = eps;
+		if (cross[2] < 0.0 && cross[2] > -eps) cross[2] = eps;
+
+		double dist_a_b = sqrt(pow(Vx[a]- Vx[b],2.0)+ pow(Vy[a] - Vy[b], 2.0)+ pow(Vz[a] - Vz[b], 2.0));
+		double dist_a_t = sqrt(pow(ta[0], 2.0) + pow(ta[1], 2.0) + pow(ta[2], 2.0));
+		double dist_b_t = sqrt(pow(tb[0], 2.0) + pow(tb[1], 2.0) + pow(tb[2], 2.0));
+
+		bool clockwise = false;
+		if (i == 0) {
+			clockwise_x = cross[0] < 0;
+			clockwise_y = cross[1] < 0;
+			clockwise_z = cross[2] < 0;
+			clockwise = true;
+		}
+		else {
+			if (
+				clockwise_x == (cross[0] < 0) &&
+				clockwise_y == (cross[1] < 0) &&
+				clockwise_z == (cross[2] < 0)) {
+				clockwise = true;
+			}
+			else {
+				clockwise = false;
+			}
+		}
+		
+		if (clockwise) {
+			degree += acos(
+				(dist_a_t * dist_a_t + dist_b_t * dist_b_t - dist_a_b * dist_a_b) 
+				/ (2.0 * dist_a_t * dist_b_t));
+		}
+		else {
+			degree -= acos(
+				(dist_a_t * dist_a_t + dist_b_t * dist_b_t - dist_a_b * dist_a_b) 
+				/ (2.0 * dist_a_t * dist_b_t));
+		}
+
+	}
+
+	degree = degree * 180.0/3.141592;
+	if (abs(degree - 360.0) <= maxAng) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+
+bool SEMO_Mesh_Geometric::isInsidePolyhedron(
+	vector<double> Fx, vector<double> Fy, vector<double> Fz,
+	vector<double> Nx, vector<double> Ny, vector<double> Nz,
+	double Vx_tar, double Vy_tar, double Vz_tar
+) {
+
+	int n = Fx.size();
+	for (int i = 0; i < n; ++i) {
+
+		vector<double> Vec(3, 0.0);
+
+		Vec[0] = Fx[i] - Vx_tar;
+		Vec[1] = Fy[i] - Vy_tar;
+		Vec[2] = Fz[i] - Vz_tar;
+		double mag = sqrt(Vec[0] * Vec[0] + Vec[1] * Vec[1] + Vec[2] * Vec[2]);
+
+		double direction = Vec[0] * Nx[i] + Vec[1] * Ny[i] + Vec[2] * Nz[i];
+		direction /= mag;
+		if (direction < -0.9) {
+			// cout << direction << endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+
+
+
+
+
 void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	
 	int rank = MPI::COMM_WORLD.Get_rank();
@@ -373,6 +797,15 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	if(rank==0){
 		cout << "┌────────────────────────────────────────────────────" << endl;
 		cout << "| execute geometric (face normal vectors, face area, face center, cell volume) ... ";
+	}
+	
+	
+	// polyhedron cell volume (Green-Gauss Theorem.)
+	for(auto& cell : mesh.cells){
+		cell.volume = 0.0;
+		cell.x = 0.0;
+		cell.y = 0.0;
+		cell.z = 0.0;
 	}
 	
 	// polygon face normal vectors & polygon face area
@@ -386,14 +819,42 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 			Vz.push_back(mesh.points[iPoint].z);
 		}
 		
+		double VSn=0.0;
+		vector<double> cellCentroid;
+		
 		this->calcUnitNormals_Area3dPolygon(
 			face.points.size(), Vx,Vy,Vz,
 			face.unitNormals, face.area,
-			face.x, face.y, face.z );
+			face.x, face.y, face.z,
+			VSn, cellCentroid);
 			
-		// face.x = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)face.points.size();
-		// face.y = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)face.points.size();
-		// face.z = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)face.points.size();
+		mesh.cells[face.owner].volume += VSn / 3.0;
+		// mesh.cells[face.owner].volume += VSn;
+		mesh.cells[face.owner].x += cellCentroid[0];
+		mesh.cells[face.owner].y += cellCentroid[1];
+		mesh.cells[face.owner].z += cellCentroid[2];
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			mesh.cells[face.neighbour].volume -= VSn / 3.0;
+			// mesh.cells[face.neighbour].volume -= VSn;
+			mesh.cells[face.neighbour].x -= cellCentroid[0];
+			mesh.cells[face.neighbour].y -= cellCentroid[1];
+			mesh.cells[face.neighbour].z -= cellCentroid[2];
+		}
+			
+		// double x_avg, y_avg, z_avg;
+		// x_avg = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)face.points.size();
+		// y_avg = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)face.points.size();
+		// z_avg = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)face.points.size();
+		
+		// face.x = x_avg; face.y = y_avg; face.z = z_avg;
+		
+		// if(abs(x_avg-face.x)+abs(y_avg-face.y)+abs(z_avg-face.z)>1.e-3){
+			// cout << endl;
+			// cout << Vx.size() << endl;
+			// cout << x_avg << " " << y_avg << " " << z_avg << " " << endl;
+			// cout << face.x << " " << face.y << " " << face.z << " " << endl;
+			// // abs(x_avg-face.x)+abs(y_avg-face.y)+abs(z_avg-face.z) << endl;
+		// }
 		
 		// this->calcUnitNormals_ArbitraryPolyhedral(
 			// face.points.size(), Vx,Vy,Vz,
@@ -410,38 +871,262 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	}
 	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
-	
-	// polyhedron cell volume (Green-Gauss Theorem.)
 	for(auto& cell : mesh.cells){
-		cell.volume = 0.0;
-		cell.x = 0.0;
-		cell.y = 0.0;
-		cell.z = 0.0;
-	}
-	for(auto& face : mesh.faces){
-		double rn = face.x*face.unitNormals[0] + face.y*face.unitNormals[1] + face.z*face.unitNormals[2];
-		double vol_tmp = rn*face.area/3.0;
+		cell.x *= 1.0/(24.0*2.0*cell.volume);
+		cell.y *= 1.0/(24.0*2.0*cell.volume);
+		cell.z *= 1.0/(24.0*2.0*cell.volume);
 		
-		mesh.cells[face.owner].volume += vol_tmp;
+		// cell.x /= cell.volume;
+		// cell.y /= cell.volume;
+		// cell.z /= cell.volume;
 		
-		mesh.cells[face.owner].x += face.x*3.0/4.0 * vol_tmp;
-		mesh.cells[face.owner].y += face.y*3.0/4.0 * vol_tmp;
-		mesh.cells[face.owner].z += face.z*3.0/4.0 * vol_tmp;
-		
-		if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			mesh.cells[face.neighbour].volume -= vol_tmp;
-			
-			mesh.cells[face.neighbour].x -= face.x*3.0/4.0 * vol_tmp;
-			mesh.cells[face.neighbour].y -= face.y*3.0/4.0 * vol_tmp;
-			mesh.cells[face.neighbour].z -= face.z*3.0/4.0 * vol_tmp;
+		vector<double> Vx, Vy, Vz;
+		for(auto iPoint : cell.points){
+			Vx.push_back(mesh.points[iPoint].x);
+			Vy.push_back(mesh.points[iPoint].y);
+			Vz.push_back(mesh.points[iPoint].z);
 		}
 		
+		// double volume = 0.0;
+		// vector<double> ABv(3,0.0);
+		// vector<double> ACv(3,0.0);
+		// vector<double> ADv(3,0.0);
+		// ABv[0] = Vx[1] - Vx[0];
+		// ABv[1] = Vy[1] - Vy[0];
+		// ABv[2] = Vz[1] - Vz[0];
+		
+		// ACv[0] = Vx[2] - Vx[0];
+		// ACv[1] = Vy[2] - Vy[0];
+		// ACv[2] = Vz[2] - Vz[0];
+		
+		// ADv[0] = Vx[3] - Vx[0];
+		// ADv[1] = Vy[3] - Vy[0];
+		// ADv[2] = Vz[3] - Vz[0];
+		
+		// double Nx_tmp = ( ABv[1] * ACv[2] - ABv[2] * ACv[1] );
+		// double Ny_tmp = ( ABv[2] * ACv[0] - ABv[0] * ACv[2] );
+		// double Nz_tmp = ( ABv[0] * ACv[1] - ABv[1] * ACv[0] );
+		
+		// double aaaa = Nx_tmp*ADv[0] + Ny_tmp*ADv[1] + Nz_tmp*ADv[2];
+		// aaaa = 1.0/6.0*abs(aaaa);
+		
+		
+		// if(Vx.size() == 4 && abs(aaaa-cell.volume) > 1.e-12*aaaa){
+			// cout << endl;
+			// cout << "volume error : " << aaaa << " " << cell.volume << endl;
+		// }
+		
+		// double x_avg, y_avg, z_avg;
+		// x_avg = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)cell.points.size();
+		// y_avg = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)cell.points.size();
+		// z_avg = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)cell.points.size();
+		
+		// cell.x = x_avg; cell.y = y_avg; cell.z = z_avg;
+		
+		// if(abs(x_avg-cell.x)+abs(y_avg-cell.y)+abs(z_avg-cell.z)>1.e-5){
+			// cout << endl;
+			// cout << x_avg << " " << y_avg << " " << z_avg << " " << endl;
+			// cout << cell.x << " " << cell.y << " " << cell.z << " " << endl;
+		// }
 	}
+	
+	
+	
+	
+	
+	// for(auto& cell : mesh.cells){
+		
+		// vector<double> Vx, Vy, Vz;
+		// for(auto iPoint : cell.points){
+			// Vx.push_back(mesh.points[iPoint].x);
+			// Vy.push_back(mesh.points[iPoint].y);
+			// Vz.push_back(mesh.points[iPoint].z);
+		// }
+		
+		// double x_avg, y_avg, z_avg;
+		// x_avg = accumulate(Vx.begin(), Vx.end(), 0.0) / (double)cell.points.size();
+		// y_avg = accumulate(Vy.begin(), Vy.end(), 0.0) / (double)cell.points.size();
+		// z_avg = accumulate(Vz.begin(), Vz.end(), 0.0) / (double)cell.points.size();
+		
+		// double cellVol = 0.0;
+		// double cellX = 0.0;
+		// double cellY = 0.0;
+		// double cellZ = 0.0;
+		
+		// for(auto& iFace : cell.faces){
+			// auto& face = mesh.faces[iFace];
+			
+			// vector<double> fVx, fVy, fVz;
+			// for(auto& iPoint : face.points){
+				// fVx.push_back(mesh.points[iPoint].x);
+				// fVy.push_back(mesh.points[iPoint].y);
+				// fVz.push_back(mesh.points[iPoint].z);
+			// }
+			
+			// double fx_avg, fy_avg, fz_avg;
+			// fx_avg = accumulate(fVx.begin(), fVx.end(), 0.0) / (double)fVx.size();
+			// fy_avg = accumulate(fVy.begin(), fVy.end(), 0.0) / (double)fVy.size();
+			// fz_avg = accumulate(fVz.begin(), fVz.end(), 0.0) / (double)fVz.size();
+			
+			// vector<double> faceNormals(3,0.0);
+			// double faceArea = 0.0;
+			// double faceX = 0.0;
+			// double faceY = 0.0;
+			// double faceZ = 0.0;
+			
+			// int n = fVx.size();
+			// for(int i = 0; i < n; ++i ) {
+				// int b=i;
+				// int c=i+1;
+				// if(i==n-1) c=0;
+				
+				// double vect_A[3];
+				// double vect_B[3];
+				
+				// vect_A[0] = fVx[b]-fx_avg; vect_A[1] = fVy[b]-fy_avg; vect_A[2] = fVz[b]-fz_avg;
+				// vect_B[0] = fVx[c]-fx_avg; vect_B[1] = fVy[c]-fy_avg; vect_B[2] = fVz[c]-fz_avg;
+			  
+				// double Nx_tmp = 0.5*( vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1] );
+				// double Ny_tmp = 0.5*( vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2] );
+				// double Nz_tmp = 0.5*( vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0] );
+				
+				// double dV = 0.0;
+				// dV += Nx_tmp*(fx_avg-x_avg)/3.0;
+				// dV += Ny_tmp*(fy_avg-y_avg)/3.0;
+				// dV += Nz_tmp*(fz_avg-z_avg)/3.0;
+				// dV = abs(dV);
+				
+				// double dX = dV*0.25*(fVx[b]+fVx[c]+fx_avg+x_avg);
+				// double dY = dV*0.25*(fVy[b]+fVy[c]+fy_avg+y_avg);
+				// double dZ = dV*0.25*(fVz[b]+fVz[c]+fz_avg+z_avg);
+				
+				// cellVol += dV;
+				// cellX += dX;
+				// cellY += dY;
+				// cellZ += dZ;
+				
+				// double dArea = sqrt(Nx_tmp*Nx_tmp+Ny_tmp*Ny_tmp+Nz_tmp*Nz_tmp);
+				
+				// faceNormals[0] += Nx_tmp;
+				// faceNormals[1] += Ny_tmp;
+				// faceNormals[2] += Nz_tmp;
+				// faceArea += dArea;
+				// faceX += dArea*(fVx[b]+fVx[c]+fx_avg)/3.0;
+				// faceY += dArea*(fVy[b]+fVy[c]+fy_avg)/3.0;
+				// faceZ += dArea*(fVz[b]+fVz[c]+fz_avg)/3.0;
+				
+			// }
+		
+			// faceX /= faceArea;
+			// faceY /= faceArea;
+			// faceZ /= faceArea;
+			
+			// double mag_unitNormal = sqrt(
+				// faceNormals[0]*faceNormals[0] +
+				// faceNormals[1]*faceNormals[1] +
+				// faceNormals[2]*faceNormals[2]);
+				
+			// face.unitNormals[0] = faceNormals[0]/mag_unitNormal;
+			// face.unitNormals[1] = faceNormals[1]/mag_unitNormal;
+			// face.unitNormals[2] = faceNormals[2]/mag_unitNormal;
+			
+			// face.area = mag_unitNormal;
+			// face.x = faceX;
+			// face.y = faceY;
+			// face.z = faceZ;
+		
+		// }
+		
+		// cellX /= cellVol;
+		// cellY /= cellVol;
+		// cellZ /= cellVol;
+		
+		// cell.volume = cellVol;
+		// cell.x = cellX;
+		// cell.y = cellY;
+		// cell.z = cellZ;
+		
+		
+		// // cell.x = x_avg; cell.y = y_avg; cell.z = z_avg;
+	// }
+	
+	
+	
+	
+	
+	
+	
+	int num_wrong_face_centroid = 0;
+	int num_wrong_cell_centroid = 0;
+	int id_ = 0;
+	for(auto& face : mesh.faces){
+		
+		vector<double> Vx, Vy, Vz;
+		for(auto iPoint : face.points){
+			Vx.push_back(mesh.points[iPoint].x);
+			Vy.push_back(mesh.points[iPoint].y);
+			Vz.push_back(mesh.points[iPoint].z);
+		}
+
+		if( isInsidePolygon(Vx, Vy, Vz, face.x, face.y,face.z, 180.0, 1.e-8) == false ){
+			++num_wrong_face_centroid;
+			// cout << endl;
+			// cout << " Face Centroid is NOT inside polygon face, id = " << id_ << endl;
+			// for(int j=0; j<Vx.size(); ++j){
+				// cout << " face points = " << Vx[j] << " " << Vy[j] << " " << Vz[j] << " " << endl;
+			// }
+			// cout << " face centroid = " << face.x << " " << face.y << " " << face.z << " " << endl;
+		}
+		++id_;
+	}
+	
+	id_ = 0;
 	for(auto& cell : mesh.cells){
-		cell.x /= cell.volume;
-		cell.y /= cell.volume;
-		cell.z /= cell.volume;
+
+		vector<double> Fx, Fy, Fz;
+		vector<double> Nx, Ny, Nz;
+		for(auto iFace : cell.faces){
+			auto& face = mesh.faces[iFace];
+			Fx.push_back(face.x);
+			Fy.push_back(face.y);
+			Fz.push_back(face.z);
+			
+			if(face.owner == id_){
+				Nx.push_back(face.unitNormals[0]);
+				Ny.push_back(face.unitNormals[1]);
+				Nz.push_back(face.unitNormals[2]);
+			}
+			else{
+				Nx.push_back(-face.unitNormals[0]);
+				Ny.push_back(-face.unitNormals[1]);
+				Nz.push_back(-face.unitNormals[2]);
+			}
+		}
+
+		if( isInsidePolyhedron(Fx, Fy, Fz, Nx, Ny, Nz, cell.x, cell.y,cell.z) == false ){
+			++num_wrong_cell_centroid;
+			// cout << endl;
+			// cout << " Cell Centroid is NOT inside polyhedron cell, id = " << id_ << endl;
+			// for(int j=0; j<Fx.size(); ++j){
+				// cout << " face centroid = " << Fx[j] << " " << Fy[j] << " " << Fz[j] << " " << endl;
+			// }
+			// for(int j=0; j<Nx.size(); ++j){
+				// cout << " face normal vector = " << Nx[j] << " " << Ny[j] << " " << Nz[j] << " " << endl;
+			// }
+			// cout << " cell centroid = " << cell.x << " " << cell.y << " " << cell.z << " " << endl;
+		}
+		++id_;
 	}
+
+	int num_wrong_face_centroid_global;
+	int num_wrong_cell_centroid_global;
+	MPI_Allreduce(&num_wrong_face_centroid, &num_wrong_face_centroid_global, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&num_wrong_cell_centroid, &num_wrong_cell_centroid_global, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	if(rank==0) cout << endl;
+	if(rank==0) cout << "| # of Wrong face centroid = " << num_wrong_face_centroid_global << endl;
+	if(rank==0) cout << "| # of Wrong cell centroid = " << num_wrong_cell_centroid_global << endl;
+	
+	
 	
 	
 	int tmp_icell = 0;
@@ -626,22 +1311,144 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 			double dzFN = face.z-mesh.cells[face.neighbour].z;
 			double dFN = sqrt(pow(dxFN,2.0)+pow(dyFN,2.0)+pow(dzFN,2.0));
 			
+			double dxPN = mesh.cells[face.neighbour].x-mesh.cells[face.owner].x;
+			double dyPN = mesh.cells[face.neighbour].y-mesh.cells[face.owner].y;
+			double dzPN = mesh.cells[face.neighbour].z-mesh.cells[face.owner].z;
+			double dPN = sqrt(pow(dxPN,2.0)+pow(dyPN,2.0)+pow(dzPN,2.0));
+			
+			// at openfoam 
+			double dFP_of = abs(
+				dxFP*face.unitNormals[0] +
+				dyFP*face.unitNormals[1] +
+				dzFP*face.unitNormals[2]);
+			double dFN_of = abs(
+				dxFN*face.unitNormals[0] +
+				dyFN*face.unitNormals[1] +
+				dzFN*face.unitNormals[2]);
+				
+			// if( dFN_of > 0.3*(dFP_of+dFN_of) && dFN_of < 0.7*(dFP_of+dFN_of) ){
+				// dFP = dFP_of;
+				// dFN = dFN_of;
+			// }
+			
 			face.wC = dFN/(dFP+dFN);
 			
-		}
-		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 			
-			// double dxFP = face.x-mesh.cells[face.owner].x;
-			// double dyFP = face.y-mesh.cells[face.owner].y;
-			// double dzFP = face.z-mesh.cells[face.owner].z;
-			// double dFP = sqrt(pow(dxFP,2.0)+pow(dyFP,2.0)+pow(dzFP,2.0));
+			// face.wC = abs( dxFN*dxPN/dPN + dyFN*dyPN/dPN + dzFN*dzPN/dPN ) / ( dPN );
+			// if( face.wC < 0.1 || face.wC > 0.9 ){
+				// // cout << face.wC << endl;
+				// face.wC = dFN_of/(dFP_of+dFN_of);
+			// }
 			
-			// face.wC = dFP;
+			
+			
+			
+			// // CFD book
+			// double mag_a = min(dFP_of, dFN_of);
+			// face.magPN = 2.0 * mag_a;
+			
+			// original
+			double mag_a = dPN;
+			face.magPN = dPN;
+			face.unitNomalsPN.resize(3,0.0);
+			face.unitNomalsPN[0] = dxPN/dPN;
+			face.unitNomalsPN[1] = dyPN/dPN;
+			face.unitNomalsPN[2] = dzPN/dPN;
+			double alphaF = 0.0;
+			alphaF += face.unitNormals[0]*face.unitNomalsPN[0];
+			alphaF += face.unitNormals[1]*face.unitNomalsPN[1];
+			alphaF += face.unitNormals[2]*face.unitNomalsPN[2];
+			face.alphaF = 1.0/abs(alphaF);
+			
+			// skewness
+			double D_plane = -(
+				face.unitNormals[0]*face.x+
+				face.unitNormals[1]*face.y+
+				face.unitNormals[2]*face.z);
+			double u_line = 
+				(face.unitNormals[0]*mesh.cells[face.owner].x+
+				 face.unitNormals[1]*mesh.cells[face.owner].y+
+				 face.unitNormals[2]*mesh.cells[face.owner].z+
+				 D_plane) /
+				(face.unitNormals[0]*(mesh.cells[face.owner].x-mesh.cells[face.neighbour].x)+
+				 face.unitNormals[1]*(mesh.cells[face.owner].y-mesh.cells[face.neighbour].y)+
+				 face.unitNormals[2]*(mesh.cells[face.owner].z-mesh.cells[face.neighbour].z));
+			face.vecSkewness.resize(3,0.0);
+			face.vecSkewness[0] = mesh.cells[face.owner].x-u_line*(mesh.cells[face.owner].x-mesh.cells[face.neighbour].x);
+			face.vecSkewness[1] = mesh.cells[face.owner].y-u_line*(mesh.cells[face.owner].y-mesh.cells[face.neighbour].y);
+			face.vecSkewness[2] = mesh.cells[face.owner].z-u_line*(mesh.cells[face.owner].z-mesh.cells[face.neighbour].z);
+			face.vecSkewness[0] = face.x-face.vecSkewness[0];
+			face.vecSkewness[1] = face.y-face.vecSkewness[1];
+			face.vecSkewness[2] = face.z-face.vecSkewness[2];
+			
+			
+			
+			vector<double> Pd(3,0.0);
+			Pd[0] = face.x - mag_a * face.unitNormals[0];
+			Pd[1] = face.y - mag_a * face.unitNormals[1];
+			Pd[2] = face.z - mag_a * face.unitNormals[2];
+			vector<double> Nd(3,0.0);
+			Nd[0] = face.x + mag_a * face.unitNormals[0];
+			Nd[1] = face.y + mag_a * face.unitNormals[1];
+			Nd[2] = face.z + mag_a * face.unitNormals[2];
+			
+			face.vecPdP.resize(3,0.0);
+			face.vecPdP[0] = Pd[0] - mesh.cells[face.owner].x;
+			face.vecPdP[1] = Pd[1] - mesh.cells[face.owner].y;
+			face.vecPdP[2] = Pd[2] - mesh.cells[face.owner].z;
+			face.vecNdN.resize(3,0.0);
+			face.vecNdN[0] = Nd[0] - mesh.cells[face.neighbour].x;
+			face.vecNdN[1] = Nd[1] - mesh.cells[face.neighbour].y;
+			face.vecNdN[2] = Nd[2] - mesh.cells[face.neighbour].z;
+			
+			
+			face.vecPN.resize(3,0.0);
+			face.vecPN[0] = mesh.cells[face.neighbour].x - mesh.cells[face.owner].x;
+			face.vecPN[1] = mesh.cells[face.neighbour].y - mesh.cells[face.owner].y;
+			face.vecPN[2] = mesh.cells[face.neighbour].z - mesh.cells[face.owner].z;
+			
+			
 		}
 		else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
 			face.wVC = 0.5;
 			
 			face.wC = 0.5;
+			
+			
+			double dxFP = face.x-mesh.cells[face.owner].x;
+			double dyFP = face.y-mesh.cells[face.owner].y;
+			double dzFP = face.z-mesh.cells[face.owner].z;
+			
+			double dFP_of = abs(
+				dxFP*face.unitNormals[0] +
+				dyFP*face.unitNormals[1] +
+				dzFP*face.unitNormals[2]);
+				
+			double mag_a = dFP_of;
+			face.magPN = 2.0 * mag_a;
+			
+			vector<double> dP(3,0.0);
+			dP[0] = face.x - mag_a * face.unitNormals[0];
+			dP[1] = face.y - mag_a * face.unitNormals[1];
+			dP[2] = face.z - mag_a * face.unitNormals[2];
+			
+			face.vecPdP.resize(3,0.0);
+			face.vecPdP[0] = dP[0] - mesh.cells[face.owner].x;
+			face.vecPdP[1] = dP[1] - mesh.cells[face.owner].y;
+			face.vecPdP[2] = dP[2] - mesh.cells[face.owner].z;
+			face.vecNdN.resize(3,0.0);
+			face.vecNdN[0] = -face.vecPdP[0];
+			face.vecNdN[1] = -face.vecPdP[1];
+			face.vecNdN[2] = -face.vecPdP[2];
+			
+			
+			face.vecPN.resize(3,0.0);
+			face.vecPN[0] = 2.0 * dxFP;
+			face.vecPN[1] = 2.0 * dyFP;
+			face.vecPN[2] = 2.0 * dzFP;
+			
+				
+			
 		}
 		
 		// face.wC = 0.5;
@@ -711,18 +1518,150 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				double dyFN = face.y-*iter1;
 				double dzFN = face.z-*iter2;
 				double dFN = sqrt(pow(dxFN,2.0)+pow(dyFN,2.0)+pow(dzFN,2.0));
+			
+				double dxPN = *iter0-mesh.cells[face.owner].x;
+				double dyPN = *iter1-mesh.cells[face.owner].y;
+				double dzPN = *iter2-mesh.cells[face.owner].z;
+				double dPN = sqrt(pow(dxPN,2.0)+pow(dyPN,2.0)+pow(dzPN,2.0));
+				
+				// at openfoam 
+				double dFP_of = abs(
+					dxFP*face.unitNormals[0] +
+					dyFP*face.unitNormals[1] +
+					dzFP*face.unitNormals[2]);
+				double dFN_of = abs(
+					dxFN*face.unitNormals[0] +
+					dyFN*face.unitNormals[1] +
+					dzFN*face.unitNormals[2]);
+					
+				// if( dFN_of > 0.3*(dFP_of+dFN_of) && dFN_of < 0.7*(dFP_of+dFN_of) ){
+					// dFP = dFP_of;
+					// dFN = dFN_of;
+				// }
 				
 				face.wC = dFN/(dFP+dFN);
+				
+					
+				// face.wC = abs( dxFN*dxPN + dyFN*dyPN + dzFN*dzPN ) / ( dxPN*dxPN + dyPN*dyPN + dzPN*dzPN );
+				// if( face.wC < 0.1 || face.wC > 0.9 ){
+					// face.wC = dFN_of/(dFP_of+dFN_of);
+				// }
+				
+				// if( face.wC < 0.4 ) face.wC = 0.4;
+				// if( face.wC > 0.6 ) face.wC = 0.6;
+				
+				
+				
+			
+				// // CFD book
+				// double mag_a = min(dFP_of, dFN_of);
+				// face.magPN = 2.0 * mag_a;
+				
+				// original
+				// face.magPN = dPN;
+				double mag_a = dPN;
+				face.magPN = dPN;
+				face.unitNomalsPN.resize(3,0.0);
+				face.unitNomalsPN[0] = dxPN/dPN;
+				face.unitNomalsPN[1] = dyPN/dPN;
+				face.unitNomalsPN[2] = dzPN/dPN;
+				double alphaF = 0.0;
+				alphaF += face.unitNormals[0]*face.unitNomalsPN[0];
+				alphaF += face.unitNormals[1]*face.unitNomalsPN[1];
+				alphaF += face.unitNormals[2]*face.unitNomalsPN[2];
+				face.alphaF = 1.0/abs(alphaF);
+
+
+				double D_plane = -(
+					face.unitNormals[0]*face.x+
+					face.unitNormals[1]*face.y+
+					face.unitNormals[2]*face.z);
+				double u_line = 
+					(face.unitNormals[0]*mesh.cells[face.owner].x+
+					 face.unitNormals[1]*mesh.cells[face.owner].y+
+					 face.unitNormals[2]*mesh.cells[face.owner].z+
+					 D_plane) /
+					(face.unitNormals[0]*(mesh.cells[face.owner].x-*iter0)+
+					 face.unitNormals[1]*(mesh.cells[face.owner].y-*iter1)+
+					 face.unitNormals[2]*(mesh.cells[face.owner].z-*iter2));
+				face.vecSkewness.resize(3,0.0);
+				face.vecSkewness[0] = mesh.cells[face.owner].x-u_line*(mesh.cells[face.owner].x-*iter0);
+				face.vecSkewness[1] = mesh.cells[face.owner].y-u_line*(mesh.cells[face.owner].y-*iter1);
+				face.vecSkewness[2] = mesh.cells[face.owner].z-u_line*(mesh.cells[face.owner].z-*iter2);
+				face.vecSkewness[0] = face.x-face.vecSkewness[0];
+				face.vecSkewness[1] = face.y-face.vecSkewness[1];
+				face.vecSkewness[2] = face.z-face.vecSkewness[2];
+					
+				
+				vector<double> dP(3,0.0);
+				dP[0] = face.x - mag_a * face.unitNormals[0];
+				dP[1] = face.y - mag_a * face.unitNormals[1];
+				dP[2] = face.z - mag_a * face.unitNormals[2];
+				vector<double> dN(3,0.0);
+				dN[0] = face.x + mag_a * face.unitNormals[0];
+				dN[1] = face.y + mag_a * face.unitNormals[1];
+				dN[2] = face.z + mag_a * face.unitNormals[2];
+				
+				face.vecPdP.resize(3,0.0);
+				face.vecPdP[0] = dP[0] - mesh.cells[face.owner].x;
+				face.vecPdP[1] = dP[1] - mesh.cells[face.owner].y;
+				face.vecPdP[2] = dP[2] - mesh.cells[face.owner].z;
+				face.vecNdN.resize(3,0.0);
+				face.vecNdN[0] = dN[0] - *iter0;
+				face.vecNdN[1] = dN[1] - *iter1;
+				face.vecNdN[2] = dN[2] - *iter2;
+				
+				
+				face.vecPN.resize(3,0.0);
+				face.vecPN[0] = *iter0 - mesh.cells[face.owner].x;
+				face.vecPN[1] = *iter1 - mesh.cells[face.owner].y;
+				face.vecPN[2] = *iter2 - mesh.cells[face.owner].z;
+				
 				
 				++iter0;
 				++iter1;
 				++iter2;
 			}
+				
+				
+				// face.wC = 0.5;
+			
 		}
+		
+		
 		
 	}
 	
 	
+	
+	
+	
+	
+	
+	
+
+	// for(auto& face : mesh.faces){
+		// face.wC = 0.5;
+	// }
+	
+	
+	
+	
+	
+	
+	
+	
+
+	// for(auto& cell : mesh.cells){
+		// if( cell.x < 0.000465 && cell.x > 0.000462 &&
+		// cell.y < -0.0680 && cell.y > -0.0683  &&
+		// cell.z < 0.00179 && cell.z > 0.00176
+		// ){
+			
+			// cout << cell.x << " " << cell.y << " " << cell.z << " " << endl;
+		// }
+		
+	// }
 	
 	// for(auto& face : mesh.faces){
 		// if(face.wC > 0.6)
@@ -772,12 +1711,17 @@ void SEMO_Mesh_Geometric::setStencil(SEMO_Mesh_Builder& mesh){
 	for(auto& point : mesh.points){
 		point.stencil.clear();
 	}
+	for(auto& face : mesh.faces){
+		face.stencil.clear();
+	}
 	for(auto& cell : mesh.cells){
 		cell.stencil.clear();
 	}
 	
 	
 	
+	
+	// point stencils
 	for(int i=0; i<mesh.cells.size(); ++i){
 		
 		auto& cell = mesh.cells[i];
@@ -788,8 +1732,24 @@ void SEMO_Mesh_Geometric::setStencil(SEMO_Mesh_Builder& mesh){
 		
 	}
 	
+
+	// face stencils
+	for(int i=0; i<mesh.faces.size(); ++i){
+		
+		auto& face = mesh.faces[i];
+		
+		for(auto j : face.points){
+			for(auto k : mesh.points[j].stencil){
+				if ( std::find( face.stencil.begin(), face.stencil.end(), k ) 
+					  == face.stencil.end() ) {
+					face.stencil.push_back(k);
+				}
+			}
+		}
+	}
 	
 	
+	// cell stencils
 	for(int i=0; i<mesh.cells.size(); ++i){
 		
 		auto& cell = mesh.cells[i];

@@ -30,7 +30,6 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 	// gradient P
 	vector<vector<double>> gradP;
 	// math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
-	// math.calcLeastSquare(mesh, controls.P, controls.fP, gradP);
 	math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
 	
 	vector<double> gradPx_recv;
@@ -72,138 +71,44 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 	
 
 
-	// gradient U, V, W
-	vector<vector<double>> gradU;
-	vector<vector<double>> gradV;
-	vector<vector<double>> gradW;
-	// math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
-	// math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
-	// math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
-	// math.calcGGLSQ(mesh, controls.U, controls.fU, gradU);
-	// math.calcGGLSQ(mesh, controls.V, controls.fV, gradV);
-	// math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
-	// math.calcMGG(mesh, controls.U, controls.fU, 10, 1.e-8, gradU);
-	// math.calcMGG(mesh, controls.V, controls.fV, 10, 1.e-8, gradV);
-	// math.calcMGG(mesh, controls.W, controls.fW, 10, 1.e-8, gradW);
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
-	
-	vector<double> gradUx_recv, gradUy_recv, gradUz_recv;
-	vector<double> gradVx_recv, gradVy_recv, gradVz_recv;
-	vector<double> gradWx_recv, gradWy_recv, gradWz_recv;
-	if(size>1){
-		// processor faces
-		vector<double> gradUx_send, gradUy_send, gradUz_send;
-		vector<double> gradVx_send, gradVy_send, gradVz_send;
-		vector<double> gradWx_send, gradWy_send, gradWz_send;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				gradUx_send.push_back(gradU[face.owner][0]);
-				gradUy_send.push_back(gradU[face.owner][1]);
-				gradUz_send.push_back(gradU[face.owner][2]);
-				
-				gradVx_send.push_back(gradV[face.owner][0]);
-				gradVy_send.push_back(gradV[face.owner][1]);
-				gradVz_send.push_back(gradV[face.owner][2]);
-				
-				gradWx_send.push_back(gradW[face.owner][0]);
-				gradWy_send.push_back(gradW[face.owner][1]);
-				gradWz_send.push_back(gradW[face.owner][2]);
-			}
-		}
-		// SEMO_MPI_Builder mpi;
+	// F. Denner, 2013
+	vector<double> A_p_vals(mesh.cells.size(), 0.0);
+	proc_num=0;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
 		
-		mpi.setProcsFaceDatas(
-					gradUx_send, gradUx_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					gradUy_send, gradUy_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					gradUz_send, gradUz_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		gradUx_send.clear();
-		gradUy_send.clear();
-		gradUz_send.clear();
-					
-		mpi.setProcsFaceDatas(
-					gradVx_send, gradVx_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					gradVy_send, gradVy_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					gradVz_send, gradVz_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		gradVx_send.clear();
-		gradVy_send.clear();
-		gradVz_send.clear();
-					
-		mpi.setProcsFaceDatas(
-					gradWx_send, gradWx_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					gradWy_send, gradWy_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		mpi.setProcsFaceDatas(
-					gradWz_send, gradWz_recv,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
-		gradWx_send.clear();
-		gradWy_send.clear();
-		gradWz_send.clear();
-	}
-	
-	
-	// // F. Denner, 2013
-	// vector<double> A_p_vals(mesh.cells.size(), 0.0);
-	// proc_num=0;
-	// for(int i=0; i<mesh.faces.size(); ++i){
-		// auto& face = mesh.faces[i];
+		double wCL = face.wC;
+		// double wCL = face.wVC;
+		// double wCL = 0.5;
+		double wCR = 1.0-wCL;
 		
-		// double wCL = face.wC;
-		// // double wCL = face.wVC;
-		// // double wCL = 0.5;
-		// double wCR = 1.0-wCL;
-		
-		// double UnF = 
-		    // (wCL*face.varL[controls.fU]*face.unitNormals[0] +
-			 // wCL*face.varL[controls.fV]*face.unitNormals[1] +
-			 // wCL*face.varL[controls.fW]*face.unitNormals[2] +
-			 // wCR*face.varR[controls.fU]*face.unitNormals[0] +
-			 // wCR*face.varR[controls.fV]*face.unitNormals[1] +
-			 // wCR*face.varR[controls.fW]*face.unitNormals[2]);
+		double UnF = 
+		    (wCL*face.varL[controls.fU]*face.unitNormals[0] +
+			 wCL*face.varL[controls.fV]*face.unitNormals[1] +
+			 wCL*face.varL[controls.fW]*face.unitNormals[2] +
+			 wCR*face.varR[controls.fU]*face.unitNormals[0] +
+			 wCR*face.varR[controls.fV]*face.unitNormals[1] +
+			 wCR*face.varR[controls.fW]*face.unitNormals[2]);
 			 
-		// // if( UnF < std::numeric_limits<double>::min() ){
-			// // UnF = std::numeric_limits<double>::min();
-		// // }
-			 
-		// double weightL = (UnF > 0.0) ? 1.0 : 0.0;
-		// double weightR = 1.0 - weightL;
-		
-		// double RhoF = 
-			// weightL*face.varL[controls.fRho] +
-			// weightR*face.varR[controls.fRho];
-		
-		// A_p_vals[face.owner] += weightL * RhoF*UnF*face.area / mesh.cells[face.owner].volume;
-		
-		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			// A_p_vals[face.neighbour] -=  weightR * RhoF*UnF*face.area / mesh.cells[face.neighbour].volume;
+		// if( UnF < std::numeric_limits<double>::min() ){
+			// UnF = std::numeric_limits<double>::min();
 		// }
+			 
+		double weightL = (UnF > 0.0) ? 1.0 : 0.0;
+		double weightR = 1.0 - weightL;
+		
+		double RhoF = 
+			weightL*face.varL[controls.fRho] +
+			weightR*face.varR[controls.fRho];
+		
+		A_p_vals[face.owner] += weightL * RhoF*UnF*face.area / mesh.cells[face.owner].volume;
+		
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			A_p_vals[face.neighbour] -=  weightR * RhoF*UnF*face.area / mesh.cells[face.neighbour].volume;
+		}
 		
 		
-	// }
+	}
 	
 
 
@@ -221,15 +126,7 @@ double SEMO_Solvers_Builder::calcVolfracEq(
         int ijStart_local = B_n*(i) - 1;
         int ijStart_global = B_n*mesh.startCellGlobal + ijStart_local;
         int Astart = A_n*(i) - 1;
-        // int id = Astart;
-		
-		int id = 0;
-		int i_glo = 0;
-		int j_glo = 0;
-		int i_loc = i;
-		int str_glo = mesh.startCellGlobal*B_n;
-		int step_loc = mesh.cells.size();
-		int step_glo = mesh.ncellsTotal;
+        int id = Astart;
 		
 		double volume = cell.volume;
 		double timeStep = controls.timeStep;
@@ -239,12 +136,11 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		
 		
         // volume fraction
-        id = step_loc*(B_n*0+0) + i_loc; i_glo = str_glo + step_loc*0 + i_loc; j_glo = str_glo + step_loc*0 + i_loc;
-        A_rows[id] = i_glo; A_cols[id] = j_glo;
+        id += 1;
+        A_rows[id] = ijStart_global + 1; A_cols[id] = ijStart_global + 1;
         A_vals[id] = volume/timeStep;
 		
-		
-        B[step_loc*0 + i_loc] = -(VF - oldVF)*volume/timeStep;
+        B[ijStart_local + 1] = -(VF - oldVF)*volume/timeStep;
 		
 		
 	}
@@ -279,15 +175,10 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		distanceCells[1] = face.distCells[1];
 		distanceCells[2] = face.distCells[2];
 		
-		double wCL = face.wC;
+		// double wCL = face.wC;
 		// double wCL = face.wVC;
-		// double wCL = 0.5;
+		double wCL = 0.5;
 		double wCR = 1.0-wCL;
-		
-		double wCPL = wCL;
-		double wCPR = wCR;
-		// double wCPL = 0.5;
-		// double wCPR = 0.5;
 		
 		double UL = face.varL[controls.fU];
 		double VL = face.varL[controls.fV];
@@ -306,33 +197,56 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		double UnL = UL*nvec[0] + VL*nvec[1] + WL*nvec[2];
 		double UnR = UR*nvec[0] + VR*nvec[1] + WR*nvec[2];
 		
+		double dPN_e = nvec[0]*distanceCells[0] + nvec[1]*distanceCells[1] + nvec[2]*distanceCells[2];
+		
+		double dPN = sqrt(pow(distanceCells[0],2.0) + 
+						  pow(distanceCells[1],2.0) + 
+						  pow(distanceCells[2],2.0));
+				
+		// double nonOrtholimiter = 0.0;
+		double nonOrtholimiter = 1.0;
+		// double cosAlpha = dPN_e/dPN;
+		// if( cosAlpha < 0.766 && cosAlpha >= 0.5 ){
+			// nonOrtholimiter = 0.5;
+		// }
+		// else if( cosAlpha < 0.5 && cosAlpha >= 0.342 ){
+			// nonOrtholimiter = 0.333;
+		// }
+		// else if( cosAlpha < 0.342 ){
+			// nonOrtholimiter = 0.0;
+		// }
+		
+		vector<double> Ef(3,0.0);
+		Ef[0] = distanceCells[0]/dPN;
+		Ef[1] = distanceCells[1]/dPN;
+		Ef[2] = distanceCells[2]/dPN;
+		// // over-relaxed
+		// double over_Ef = Ef[0]*nvec[0] + Ef[1]*nvec[1] + Ef[2]*nvec[2];
+		// Ef[0] /= over_Ef; Ef[1] /= over_Ef; Ef[2] /= over_Ef;
+		// double magEf = sqrt(Ef[0]*Ef[0]+Ef[1]*Ef[1]+Ef[2]*Ef[2]);
+		// dPN /= magEf;
+		// // dPN = dPN_e;
+			
+		vector<double> Tf(3,0.0);
+		Tf[0] = nvec[0] - Ef[0];
+		Tf[1] = nvec[1] - Ef[1];
+		Tf[2] = nvec[2] - Ef[2];
+		
 		double UnF = wCL*UnL+wCR*UnR;
 		
-		double Rho_star = 1.0 / (wCPL/RhoL + wCPR/RhoR);
+		double Rho_star = 1.0 / (wCL/RhoL + wCR/RhoR);
 		double tmp1 = controls.timeStep / Rho_star;
-		// // F.Denner et al., 2013
-		// double d_F = 0.0;
-		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			// d_F += wCL*( A_p_vals[face.owner] + RhoL/controls.timeStep );
-			// d_F += wCR*( A_p_vals[face.neighbour] + RhoR/controls.timeStep );
-		// }
-		// else{
-			// d_F += wCL*( A_p_vals[face.owner] + RhoL/controls.timeStep );
-			// d_F += wCR*( A_p_vals_recv[proc_num] + RhoR/controls.timeStep );
-		// }
-		// tmp1 = 1.0/d_F;
-		
-		
-		double dPN = face.magPN;
-		// vector<double> Ef(3,0.0);
-		// Ef[0] = face.vecPN[0]/dPN;
-		// Ef[1] = face.vecPN[1]/dPN;
-		// Ef[2] = face.vecPN[2]/dPN;
-		// double alpha = nvec[0]*Ef[0] + nvec[1]*Ef[1] + nvec[2]*Ef[2];
-		double alpha = face.alphaF;
-		
-		
-		
+		// F.Denner et al., 2013
+		double d_F = 0.0;
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			d_F = wCL/(A_p_vals[face.owner]) + wCR/(A_p_vals[face.neighbour]);
+		}
+		else{
+			d_F = 1.0/(A_p_vals[face.owner]);
+		}
+		double d_F_hat = d_F / (2.0 + d_F / tmp1);
+		if(d_F>1.e9) d_F_hat = tmp1;
+		tmp1 = d_F_hat;
 		
 		double orgPL = mesh.cells[face.owner].var[controls.P];
 		double orgPR = 0.0;
@@ -341,26 +255,6 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		gradPL[1] = gradP[face.owner][1];
 		gradPL[2] = gradP[face.owner][2];
 		vector<double> gradPR(3,0.0);
-		// properties
-		double orgUL = mesh.cells[face.owner].var[controls.U];
-		double orgVL = mesh.cells[face.owner].var[controls.V];
-		double orgWL = mesh.cells[face.owner].var[controls.W];
-		double orgUR = 0.0;
-		double orgVR = 0.0;
-		double orgWR = 0.0;
-		vector<double> gradUL(3,0.0);
-		vector<double> gradVL(3,0.0);
-		vector<double> gradWL(3,0.0);
-		vector<double> gradUR(3,0.0);
-		vector<double> gradVR(3,0.0);
-		vector<double> gradWR(3,0.0);
-		
-		for(int ii=0; ii<3; ++ii){
-			gradUL[ii] = gradU[face.owner][ii];
-			gradVL[ii] = gradV[face.owner][ii];
-			gradWL[ii] = gradW[face.owner][ii];
-		}
-		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			orgPR = mesh.cells[face.neighbour].var[controls.P];
@@ -368,53 +262,46 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 			gradPR[1] = gradP[face.neighbour][1];
 			gradPR[2] = gradP[face.neighbour][2];
 			
-			orgUR = mesh.cells[face.neighbour].var[controls.U];
-			orgVR = mesh.cells[face.neighbour].var[controls.V];
-			orgWR = mesh.cells[face.neighbour].var[controls.W];
-			for(int ii=0; ii<3; ++ii){
-				gradUR[ii] = gradU[face.neighbour][ii];
-				gradVR[ii] = gradV[face.neighbour][ii];
-				gradWR[ii] = gradW[face.neighbour][ii];
-			}
 			
 		}
 		else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			
 			orgPR = PR;
 			gradPR[0] = gradPx_recv[proc_num];
 			gradPR[1] = gradPy_recv[proc_num];
 			gradPR[2] = gradPz_recv[proc_num];
 			
-			orgUR = UR;
-			orgVR = VR;
-			orgWR = WR;
-			gradUR[0] = gradUx_recv[proc_num]; gradUR[1] = gradUy_recv[proc_num]; gradUR[2] = gradUz_recv[proc_num];
-			gradVR[0] = gradVx_recv[proc_num]; gradVR[1] = gradVy_recv[proc_num]; gradVR[2] = gradVz_recv[proc_num];
-			gradWR[0] = gradWx_recv[proc_num]; gradWR[1] = gradWy_recv[proc_num]; gradWR[2] = gradWz_recv[proc_num];
-			
 		}
+		for(int ii=0; ii<3; ++ii){
+			UnF += tmp1 * Rho_star * wCL/RhoL*gradPL[ii]*nvec[ii];
+			UnF += tmp1 * Rho_star * wCR/RhoR*gradPR[ii]*nvec[ii];
+			// UnF += tmp1 * Rho_star * wCL/RhoL*gradPL[ii]*Ef[ii];
+			// UnF += tmp1 * Rho_star * wCR/RhoR*gradPR[ii]*Ef[ii];
+		}
+			
+		UnF -= tmp1*(orgPR-orgPL)/dPN;
 		
-
-		// // skewness correction
+		// // non-orthogonal, over-relaxed approach
 		// for(int ii=0; ii<3; ++ii){
-			// UnF += wCL * gradUL[ii]*face.vecSkewness[ii]*nvec[0];
-			// UnF += wCR * gradUR[ii]*face.vecSkewness[ii]*nvec[0];
-			
-			// UnF += wCL * gradVL[ii]*face.vecSkewness[ii]*nvec[1];
-			// UnF += wCR * gradVR[ii]*face.vecSkewness[ii]*nvec[1];
-			
-			// UnF += wCL * gradWL[ii]*face.vecSkewness[ii]*nvec[2];
-			// UnF += wCR * gradWR[ii]*face.vecSkewness[ii]*nvec[2];
+			// // UnF -= nonOrtholimiter * tmp1 * Rho_star * wCL/RhoL*gradPL[ii]*Tf[ii];
+			// // UnF -= nonOrtholimiter * tmp1 * Rho_star * wCR/RhoR*gradPR[ii]*Tf[ii];
+			// UnF -= nonOrtholimiter * tmp1 * wCL*gradPL[ii]*Tf[ii];
+			// UnF -= nonOrtholimiter * tmp1 * wCR*gradPR[ii]*Tf[ii];
 		// }
 		
-		// pressure correction (cell->face)
-		for(int ii=0; ii<3; ++ii){
-			UnF += alpha * tmp1 * Rho_star * wCPL/RhoL*gradPL[ii]*face.unitNomalsPN[ii];
-			UnF += alpha * tmp1 * Rho_star * wCPR/RhoR*gradPR[ii]*face.unitNomalsPN[ii];
-		}
-			
-		UnF -= alpha * tmp1*(orgPR-orgPL)/dPN;
-		// for(int ii=0; ii<3; ++ii){
-			// UnF -= tmp1 * (gradPR[ii]*face.vecNdN[ii] - gradPL[ii]*face.vecPdP[ii])/dPN;
+		
+		// // F.Denner et al., 2018
+		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			// UnF += face.var[controls.Un];
+			// UnF -= 0.5*mesh.cells[face.owner].var[controls.oldU]*nvec[0];
+			// UnF -= 0.5*mesh.cells[face.owner].var[controls.oldV]*nvec[1];
+			// UnF -= 0.5*mesh.cells[face.owner].var[controls.oldW]*nvec[2];
+			// UnF -= 0.5*mesh.cells[face.neighbour].var[controls.oldU]*nvec[0];
+			// UnF -= 0.5*mesh.cells[face.neighbour].var[controls.oldV]*nvec[1];
+			// UnF -= 0.5*mesh.cells[face.neighbour].var[controls.oldW]*nvec[2];
+			// if(controls.iterPBs+1==controls.iterPBsMax){
+				// face.var[controls.Un] = UnF;
+			// }
 		// }
 		
 		
@@ -424,53 +311,29 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		double VFF = weightL*VFL + weightR*VFR;
 		
 		
-		int str_glo_L = mesh.startCellGlobal*B_n;
-		int str_glo_R = mesh.startCellGlobal*B_n;
-		int step_loc_L = mesh.cells.size();
-		int step_loc_R = mesh.cells.size();
-		int i_loc_L = face.owner;
-		int i_loc_R = face.neighbour;
-		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-			str_glo_R = mesh.startProcCellGlobal[mesh.neighbProcNo[proc_num]]*B_n;
-			step_loc_R = mesh.startProcCellGlobal[mesh.neighbProcNo[proc_num]+1] - 
-			             mesh.startProcCellGlobal[mesh.neighbProcNo[proc_num]];
-			i_loc_R = mesh.procNeighbCellNo[proc_num];
-		}
-		
-		int id = -1;
-		int i_glo = -1;
-		int j_glo = -1;
-		double conv_flux = 0.0;
-		double diff_flux = 0.0;
-		
-		
+        int iL = A_n*(face.owner) - 1;
+        int iR = A_n*(face.neighbour) - 1;
+
+
         //------------------------
         // continuity
         // VF'
-		id = step_loc_L*(B_n*0+0) + i_loc_L; i_glo = str_glo_L + step_loc_L*0 + i_loc_L; j_glo = str_glo_R + step_loc_R*0 + i_loc_R;
-		A_vals[id] += ( weightL * UnF * area );
-		A_rows.push_back(i_glo); A_cols.push_back(j_glo);
-		A_vals.push_back(( weightR * UnF * area ));
-		
-		if( abs(A_vals.back()) < std::numeric_limits<double>::min() ){
-			A_rows.pop_back(); A_cols.pop_back(); A_vals.pop_back();
-		}
+        iL += 1; iR += 1;
 
-		if(face.getType() == SEMO_Types::INTERNAL_FACE) {
-			id = step_loc_R*(B_n*0+0) + i_loc_R; i_glo = str_glo_R + step_loc_R*0 + i_loc_R; j_glo = str_glo_L + step_loc_L*0 + i_loc_L;
-			A_vals[id] -= ( weightR * UnF * area );
-			A_rows.push_back(i_glo); A_cols.push_back(j_glo);
-			A_vals.push_back(-( weightL * UnF * area ));
-			
-			if( abs(A_vals.back()) < std::numeric_limits<double>::min() ){
-				A_rows.pop_back(); A_cols.pop_back(); A_vals.pop_back();
-			}
-		}
+        A_vals[iL] += ( weightL * UnF * area );
+        A_rows.push_back(ijStartL + 1); A_cols.push_back(ijStartR + 1);
+        A_vals.push_back(( weightR * UnF * area ));
+        
+        if(iR>-1) A_vals[iR] -= ( weightR * UnF * area );
+        if(iR>-1) A_rows.push_back(ijStartR + 1); if(iR>-1) A_cols.push_back(ijStartL + 1);
+        if(iR>-1) A_vals.push_back(-( weightL * UnF * area ));
+        
+		
         // ----------------------------
-        B[step_loc_L*0 + i_loc_L] -= ( VFF * UnF * area );
+        B[ijStartL_local + 1] -= ( VFF * UnF * area );
 
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			B[step_loc_R*0 + i_loc_R] += ( VFF * UnF * area );
+			B[ijStartR_local + 1] += ( VFF * UnF * area );
 		}
 		
 		
@@ -495,12 +358,12 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 			for(int i=str; i<end; ++i){
 				auto& face = mesh.faces[i];
 				
-				// int ijStartL_local = B_n*(face.owner) - 1;
-				// vector<int> id(B_n,0);
-				// id[0] = A_n*(face.owner) - 1;
-				// for(int j=1; j<B_n; ++j){
-					// id[j] = id[j-1] + 4;
-				// }
+				int ijStartL_local = B_n*(face.owner) - 1;
+				vector<int> id(B_n,0);
+				id[0] = A_n*(face.owner) - 1;
+				for(int j=1; j<B_n; ++j){
+					id[j] = id[j-1] + 4;
+				}
 
 				
 				double area = face.area;
@@ -545,18 +408,12 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 				}
 				
 				
-				int str_glo = mesh.startCellGlobal*B_n;
-				int step_loc = mesh.cells.size();
-				int step_glo = mesh.ncellsTotal;
-				int i_loc_L = face.owner;
-				int id=-1;
-				
 				// continuity
-				id = step_loc*(B_n*0+0) + i_loc_L;
-				A_vals[id] += coeffVF * ( UnF * area );
+				A_vals[id[0]+1] += coeffVF * ( UnF * area );
+
 				
 				// convective term
-				B[step_loc*0 + i_loc_L] -= ( VFF * UnF * area );
+				B[ijStartL_local + 1] -= ( VFF * UnF * area );
 			}
 			
 			
@@ -568,45 +425,43 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 	
 	
 
+	// linear solver : PETSc library
 	vector<double> resiVar(B_n*mesh.cells.size(),0.0);
 	
+	string solver = "gmres";
+	double relTol = 0.0;
+	double tolerance = 0.0;
+	string preconditioner = "mg";
+	int maxIter = 50;
 	
-	solveAMGCL("volume_fraction", mesh, B_n, A_rows, A_cols, A_vals, B, resiVar);
 	
+	
+	solvePETSc_Test_Coupled(mesh, resiVar, A_rows, A_cols, A_vals, B,
+		B_n*mesh.cells.size(), B_n*mesh.ncellsTotal,
+		"bicgstab", 1.e-200, 1.e-5, preconditioner, controls.maxIterVF[0]);
+		
 
-	// solvePETSc_Test_Coupled(mesh, resiVar, A_rows, A_cols, A_vals, B,
-		// B_n*mesh.cells.size(), B_n*mesh.ncellsTotal,
-		// "bicgstab", 1.e-200, 1.e-12, "mg", controls.maxIterVF[0]);
-		
-	// solveHypre_Test_Coupled(mesh, resiVar, A_rows, A_cols, A_vals, B,
-		// B_n*mesh.cells.size(), B_n*mesh.ncellsTotal,
-		// "bicgstab", 1.e-6, 1.e-6, "mg", 50);
-		
-	
-	
+	// solveAMGCL_VF(mesh, A_vals, B_vals, resiVar);
 
 	
 
 	// update
 	// double relaxVF = 0.99;
 	
-	double normDelVF = 0.0;
 	double normVF = 0.0;
 	for(int i=0; i<mesh.cells.size(); ++i){
 		SEMO_Cell& cell = mesh.cells[i];
 		
 		cell.var[controls.VF[0]] += controls.vofVofURF * resiVar[i];
-		cell.var[controls.VF[0]] = max(1.e-12,min(1.0-1.e-12,cell.var[controls.VF[0]]));
+		cell.var[controls.VF[0]] = max(0.0,min(1.0,cell.var[controls.VF[0]]));
 		
-		normDelVF += pow(resiVar[i],2.0);
-		
-		normVF += pow(cell.var[controls.VF[0]],2.0);
+		normVF += pow(resiVar[i],2.0);
 		
 	}
 	
 	
 	
-	return sqrt(normDelVF);// /(sqrt(normVF+1.d-50));
+	return sqrt(normVF);
 	
 	
 }
