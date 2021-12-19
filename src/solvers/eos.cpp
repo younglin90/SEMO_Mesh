@@ -63,14 +63,12 @@ void SEMO_Solvers_Builder::calcIncomCellEOSVF(
 		vector<double> VF;
 		double tmp1=0.0;
 		for(int ns=0; ns<nSp-1; ++ns){
-			VF.push_back(cell.var[controls.VF[ns]]);
-			tmp1 += cell.var[controls.VF[ns]];
-			
-			// cout << cell.var[controls.VF[ns]] << endl;
+			double MF_tmp = max(0.0,min(1.0,cell.var[controls.VF[ns]]));
+			VF.push_back( max(0.0,min(1.0,MF_tmp)) );
+			tmp1 += MF_tmp;
 		}
-		VF.push_back(1.0 - tmp1);
+		VF.push_back( max(0.0,min(1.0,1.0 - tmp1)) );
 		
-		// cout << nSp << " " << VF[0] << " " << VF[1] << endl;
 		
 		double rho = 0.0;
 		for(int ns=0; ns<nSp; ++ns){
@@ -215,12 +213,11 @@ void SEMO_Solvers_Builder::calcCellEOSVF(
 		vector<double> VF;
 		double tmp1=0.0;
 		for(int ns=0; ns<nSp-1; ++ns){
-			VF.push_back(cell.var[controls.VF[ns]]);
-			tmp1 += cell.var[controls.VF[ns]];
-			
-			// cout << cell.var[controls.VF[ns]] << endl;
+			double MF_tmp = max(0.0,min(1.0,cell.var[controls.VF[ns]]));
+			VF.push_back( max(0.0,min(1.0,MF_tmp)) );
+			tmp1 += MF_tmp;
 		}
-		VF.push_back(1.0 - tmp1);
+		VF.push_back( max(0.0,min(1.0,1.0 - tmp1)) );
 		
 		// cout << nSp << " " << VF[0] << " " << VF[1] << endl;
 		
@@ -362,10 +359,11 @@ void SEMO_Solvers_Builder::calcCellEOSMF(
 		vector<double> MF;
 		double tmp1=0.0;
 		for(int ns=0; ns<nSp-1; ++ns){
-			MF.push_back(cell.var[controls.MF[ns]]);
-			tmp1 += cell.var[controls.MF[ns]];
+			double MF_tmp = max(0.0,min(1.0,cell.var[controls.MF[ns]]));
+			MF.push_back( max(0.0,min(1.0,MF_tmp)) );
+			tmp1 += MF_tmp;
 		}
-		MF.push_back(1.0 - tmp1);
+		MF.push_back( max(0.0,min(1.0,1.0 - tmp1)) );
 		
 		
 		double rho = 0.0;
@@ -445,7 +443,10 @@ void SEMO_Solvers_Builder::getValuesFromEOSVF(
 	vector<double>& MF){
 
 	int nSp = VF.size();
-	
+
+	for(int ns=0; ns<nSp; ++ns){
+		VF[ns] = max(0.0,min(1.0,VF[ns]));
+	}
 	
 	vector<double> rhoi(nSp,0.0);
 	vector<double> Ci(nSp,0.0);
@@ -537,6 +538,9 @@ void SEMO_Solvers_Builder::getValuesFromEOSMF(
 
 	int nSp = MF.size();
 	
+	for(int ns=0; ns<nSp; ++ns){
+		MF[ns] = max(0.0,min(1.0,MF[ns]));
+	}
 	
 	vector<double> rhoi(nSp,0.0);
 	vector<double> Ci(nSp,0.0);
@@ -626,6 +630,10 @@ void SEMO_Solvers_Builder::getValuesFromEOSMF(
 	vector<double>& drdMF, vector<double>& dhdMF){
 
 	int nSp = MF.size();
+	
+	for(int ns=0; ns<nSp; ++ns){
+		MF[ns] = max(0.0,min(1.0,MF[ns]));
+	}
 	
 	vector<double> rhoi(nSp,0.0);
 	vector<double> Ci(nSp,0.0);

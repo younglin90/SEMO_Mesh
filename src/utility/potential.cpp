@@ -20,7 +20,7 @@
 using namespace std;
 
 #include "../mesh/build.h" 
-#include "../mesh/load.h" 
+#include "../load/load.h" 
 #include "../mesh/geometric.h" 
 
 #include "../solvers/build.h" 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 	
 	// calc velocity potential
 	vector<vector<double>> gradP;
-	math.calcLeastSquare(mesh, controls.P, controls.fP, gradP);
+	math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
 	
 	
 	
@@ -398,113 +398,118 @@ int main(int argc, char* argv[]) {
 		
 		gradResiP.clear();
 		gradResiP.resize(mesh.cells.size(),vector<double>(3,0.0));
-		
-		
-		for(auto& face : mesh.faces){
-			
-			if(face.getType() == SEMO_Types::INTERNAL_FACE){
-				
-				double DVar = 
-					resiVar[face.neighbour] - resiVar[face.owner];
-				
-				gradResiP[face.owner][0] += face.distCells[0] * DVar;
-				gradResiP[face.owner][1] += face.distCells[1] * DVar;
-				gradResiP[face.owner][2] += face.distCells[2] * DVar;
-				
-				gradResiP[face.neighbour][0] += face.distCells[0] * DVar;
-				gradResiP[face.neighbour][1] += face.distCells[1] * DVar;
-				gradResiP[face.neighbour][2] += face.distCells[2] * DVar;
-				
-			}
-			
+		{
+			int dummy0;
+			math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
+				-1, dummy0, resiVar, gradResiP);
 		}
 		
 		
-		// boundary
-		for(auto& boundary : mesh.boundary){
+		// for(auto& face : mesh.faces){
 			
-			if(boundary.neighbProcNo == -1){
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
 				
-				int str = boundary.startFace;
-				int end = str + boundary.nFaces;
+				// double DVar = 
+					// resiVar[face.neighbour] - resiVar[face.owner];
 				
-				if(boundary.type[0] == "fixedValue"){
-					for(int i=str; i<end; ++i){
-						auto& face = mesh.faces[i];
-						
-						double DVar = 
-							0.0 - resiVar[face.owner];
-						
-						gradResiP[face.owner][0] += face.distCells[0] * DVar;
-						gradResiP[face.owner][1] += face.distCells[1] * DVar;
-						gradResiP[face.owner][2] += face.distCells[2] * DVar;
-						
-						
-					}
-				}
-			}
-		}
-		
-		
-		// processor faces
-		vector<double> sendValues;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
+				// gradResiP[face.owner][0] += face.distCells[0] * DVar;
+				// gradResiP[face.owner][1] += face.distCells[1] * DVar;
+				// gradResiP[face.owner][2] += face.distCells[2] * DVar;
+				
+				// gradResiP[face.neighbour][0] += face.distCells[0] * DVar;
+				// gradResiP[face.neighbour][1] += face.distCells[1] * DVar;
+				// gradResiP[face.neighbour][2] += face.distCells[2] * DVar;
+				
+			// }
 			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				sendValues.push_back(resiVar[face.owner]);
-			}
-		}
+		// }
 		
-		SEMO_MPI_Builder mpi;
 		
-		vector<double> recvValues;
-		mpi.setProcsFaceDatas(
-					sendValues, recvValues,
-					mesh.countsProcFaces, mesh.countsProcFaces, 
-					mesh.displsProcFaces, mesh.displsProcFaces);
+		// // boundary
+		// for(auto& boundary : mesh.boundary){
+			
+			// if(boundary.neighbProcNo == -1){
+				
+				// int str = boundary.startFace;
+				// int end = str + boundary.nFaces;
+				
+				// if(boundary.type[0] == "fixedValue"){
+					// for(int i=str; i<end; ++i){
+						// auto& face = mesh.faces[i];
+						
+						// double DVar = 
+							// 0.0 - resiVar[face.owner];
+						
+						// gradResiP[face.owner][0] += face.distCells[0] * DVar;
+						// gradResiP[face.owner][1] += face.distCells[1] * DVar;
+						// gradResiP[face.owner][2] += face.distCells[2] * DVar;
+						
+						
+					// }
+				// }
+			// }
+		// }
+		
+		
+		// // processor faces
+		// vector<double> sendValues;
+		// for(int i=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
+			
+			// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				// sendValues.push_back(resiVar[face.owner]);
+			// }
+		// }
+		
+		// SEMO_MPI_Builder mpi;
+		
+		// vector<double> recvValues;
+		// mpi.setProcsFaceDatas(
+					// sendValues, recvValues,
+					// mesh.countsProcFaces, mesh.countsProcFaces, 
+					// mesh.displsProcFaces, mesh.displsProcFaces);
 
-		int num=0;
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
+		// int num=0;
+		// for(int i=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
 			
-			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				double DVar = 
-					recvValues[num] - resiVar[face.owner];
+			// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				// double DVar = 
+					// recvValues[num] - resiVar[face.owner];
 				
-				gradResiP[face.owner][0] += face.distCells[0] * DVar;
-				gradResiP[face.owner][1] += face.distCells[1] * DVar;
-				gradResiP[face.owner][2] += face.distCells[2] * DVar;
+				// gradResiP[face.owner][0] += face.distCells[0] * DVar;
+				// gradResiP[face.owner][1] += face.distCells[1] * DVar;
+				// gradResiP[face.owner][2] += face.distCells[2] * DVar;
 						
-				++num;
-			}
-		}
+				// ++num;
+			// }
+		// }
 		
 		
 		
-		for(int i=0; i<mesh.cells.size(); ++i){
-			SEMO_Cell& cell = mesh.cells[i];
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// SEMO_Cell& cell = mesh.cells[i];
 			
-			double tmp0 = 
-				cell.coeffLeastSquare[0] * gradResiP[i][0] +
-				cell.coeffLeastSquare[1] * gradResiP[i][1] +
-				cell.coeffLeastSquare[2] * gradResiP[i][2];
+			// double tmp0 = 
+				// cell.coeffLeastSquare[0] * gradResiP[i][0] +
+				// cell.coeffLeastSquare[1] * gradResiP[i][1] +
+				// cell.coeffLeastSquare[2] * gradResiP[i][2];
 				
-			double tmp1 = 
-				cell.coeffLeastSquare[1] * gradResiP[i][0] +
-				cell.coeffLeastSquare[3] * gradResiP[i][1] +
-				cell.coeffLeastSquare[4] * gradResiP[i][2];
+			// double tmp1 = 
+				// cell.coeffLeastSquare[1] * gradResiP[i][0] +
+				// cell.coeffLeastSquare[3] * gradResiP[i][1] +
+				// cell.coeffLeastSquare[4] * gradResiP[i][2];
 				
-			double tmp2 = 
-				cell.coeffLeastSquare[2] * gradResiP[i][0] +
-				cell.coeffLeastSquare[4] * gradResiP[i][1] +
-				cell.coeffLeastSquare[5] * gradResiP[i][2];
+			// double tmp2 = 
+				// cell.coeffLeastSquare[2] * gradResiP[i][0] +
+				// cell.coeffLeastSquare[4] * gradResiP[i][1] +
+				// cell.coeffLeastSquare[5] * gradResiP[i][2];
 				
-			gradResiP[i][0] = tmp0;
-			gradResiP[i][1] = tmp1;
-			gradResiP[i][2] = tmp2;
+			// gradResiP[i][0] = tmp0;
+			// gradResiP[i][1] = tmp1;
+			// gradResiP[i][2] = tmp2;
 			
-		}
+		// }
 		
 		
 		double residual = 0.0;

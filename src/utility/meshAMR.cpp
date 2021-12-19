@@ -12,7 +12,7 @@
 #include "scotch.h" 
 
 #include "../mesh/build.h" 
-#include "../mesh/load.h" 
+#include "../load/load.h" 
 #include "../mesh/geometric.h" 
 #include "../mesh/polyAMR.h" 
 
@@ -153,8 +153,7 @@ int main(int argc, char* argv[]) {
 		
 		geometric.init(mesh);
 		
-		// math.initLeastSquare(mesh);
-		math.initLeastSquare2nd(mesh);
+		math.initLeastSquare(mesh);
 	
 	}
 	

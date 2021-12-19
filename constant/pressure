@@ -4,7 +4,7 @@
 initialField
 {
 	type	fixedValue;
-	value	100000.0;
+	value	101325.0;
 }
 
 
@@ -14,7 +14,7 @@ boundaryField
 	suboutlet
 	{
 		type	fixedValue;
-		value	100000.0;
+		value	101325.0;
 	}
 
 	invwall

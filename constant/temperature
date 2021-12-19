@@ -16,18 +16,15 @@ boundaryField
 		type	zeroGradient;
 	}
 
-
 	invwall
 	{
 		type	zeroGradient;
 	}
 
-
 	viswall
 	{
 		type	zeroGradient;
 	}
-
 	
 	gasinlet
 	{

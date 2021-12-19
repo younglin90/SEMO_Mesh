@@ -150,6 +150,7 @@ class SEMO_Solvers_Builder{
 		double calcPressureEq(
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species,
 			int iterNonOrthogonality);
 	
 		double calcPressureEq(
@@ -163,7 +164,8 @@ class SEMO_Solvers_Builder{
 			
 		double calcVolfracEq(
 			SEMO_Mesh_Builder& mesh,
-			SEMO_Controls_Builder& controls);
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
 			
 		double calcVolfracEq(
 			SEMO_Mesh_Builder& mesh,
@@ -594,16 +596,109 @@ class SEMO_Solvers_Builder{
 			
 			
 			
-		// curvature
+		// source
+		double calcSourceGravity(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species
+			);
+		double calcSourceSurfaceTension(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species
+			);
 		void calcCurvature(
 			SEMO_Mesh_Builder& mesh,
 			int cn,
 			vector<double>& kappa);
 			
-			
-			
-			
-			
+		// surface normal vel.
+				
+		// void calcSurfaceNormalVelocity(
+			// double& UnF, 
+			// vector<double>& gradUL, vector<double>& gradUR, 
+			// vector<double>& gradVL, vector<double>& gradVR, 
+			// vector<double>& gradWL, vector<double>& gradWR,
+			// vector<double>& gradPL, vector<double>& gradPR, 
+			// vector<double>& srcGRV_L, vector<double>& srcGRV_R, 
+			// vector<double>& srcSFT_L, vector<double>& srcSFT_R,
+			// double& orgPL, double& orgPR, 
+			// double& RhoL, double& RhoR, 
+			// double& wCL, double& wCR, 
+			// double& timeStep,
+			// vector<double>& gravityAcceleration,
+			// double& sigma, 
+			// double& kappaL, double& kappaR,
+			// double& orgVFL, double& orgVFR,
+			// double& alpha, double& dPN,
+			// vector<double>& nvec,
+			// vector<double>& vecSkewness,
+			// vector<double>& unitNomalsPN
+			// );
+		void calcInterpolVelSkewness(
+			double& UnF, 
+			vector<double>& gradUL, vector<double>& gradUR, 
+			vector<double>& gradVL, vector<double>& gradVR, 
+			vector<double>& gradWL, vector<double>& gradWR,
+			double& wCL, double& wCR, 
+			vector<double>& nvec,
+			vector<double>& vecSkewness
+		);
+		void calcInterpolVelPressure(
+			double& UnF, 
+			vector<double>& gradPL, vector<double>& gradPR, 
+			double& orgPL, double& orgPR, 
+			double& RhoL, double& RhoR, 
+			double& wCL, double& wCR, 
+			double& timeStep,
+			double& alpha, double& dPN,
+			vector<double>& nvec,
+			vector<double>& unitNomalsPN
+		);
+		void calcInterpolVelGravity(
+			double& UnF, 
+			vector<double>& srcGRV_L, vector<double>& srcGRV_R, 
+			double& RhoL, double& RhoR, 
+			double& wCL, double& wCR, 
+			double& timeStep,
+			vector<double>& gravityAcceleration,
+			double& alpha, 
+			vector<double>& nvec,
+			vector<double>& unitNomalsPN
+		);
+		void calcInterpolVelSurfTens(
+			double& UnF, 
+			vector<double>& srcSFT_L, vector<double>& srcSFT_R,
+			double& RhoL, double& RhoR, 
+			double& wCL, double& wCR, 
+			double& timeStep,
+			double& sigma, 
+			double& kappaL, double& kappaR,
+			double& orgVFL, double& orgVFR,
+			double& alpha, double& dPN,
+			vector<double>& nvec,
+			vector<double>& unitNomalsPN
+		);
+		void calcInterpolVelUnsteady(
+			double& UnF, 
+			double& wCL, double& wCR, 
+			double& UnF_old, 
+			double& UL_old, double& UR_old,
+			double& VL_old, double& VR_old,
+			double& WL_old, double& WR_old,
+			vector<double>& nvec
+			);
+		void saveSurfaceNormalVelocity(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species
+			);
+		
+		void setCellVarMinMax(
+			SEMO_Mesh_Builder& mesh,
+			int cn, int cnMax, int cnMin);
+	
+	
 			
 		void calcLinearSolverLUSGS(
 			SEMO_Mesh_Builder& mesh,

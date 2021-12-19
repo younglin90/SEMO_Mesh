@@ -25,7 +25,8 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceForSegregated(
 	
 	vector<vector<double>> gradP;
 	// // math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
-	math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
+	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
 	
 	// double underCoeff = 0.4;
 	double underCoeff = 0.9;
@@ -90,18 +91,18 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithReconPVForSegregated(
 	vector<vector<double>> gradU;
 	vector<vector<double>> gradV;
 	vector<vector<double>> gradW;
-	// math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
-	// // math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
-	// // math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
-	// // math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
 	// // math.calcGGLSQ(mesh, controls.P, controls.fP, gradP);
 	// // math.calcGGLSQ(mesh, controls.U, controls.fU, gradU);
 	// // math.calcGGLSQ(mesh, controls.V, controls.fV, gradV);
 	// // math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
-	math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	
 	
 	
@@ -344,8 +345,8 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithVfMSTACS(
 	
 	vector<vector<double>> gradMF;
 	
-	// math.calcGaussGreen(mesh, controls.MF[0], controls.fMF[0], gradMF);
-	math.calcLeastSquare2nd(mesh, controls.MF[0], controls.fMF[0], gradMF);
+	math.calcGaussGreen(mesh, controls.MF[0], controls.fMF[0], gradMF);
+	// math.calcLeastSquare2nd(mesh, controls.MF[0], controls.fMF[0], gradMF);
 	
 	
 
@@ -519,18 +520,18 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFaceWithRecon(
 	vector<vector<double>> gradU;
 	vector<vector<double>> gradV;
 	vector<vector<double>> gradW;
-	// math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
-	// // math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
-	// // math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
-	// // math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
 	// // math.calcGGLSQ(mesh, controls.P, controls.fP, gradP);
 	// // math.calcGGLSQ(mesh, controls.U, controls.fU, gradU);
 	// // math.calcGGLSQ(mesh, controls.V, controls.fV, gradV);
 	// // math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
-	math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	
 	
 	

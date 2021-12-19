@@ -78,15 +78,18 @@ void SEMO_Solvers_Builder::calcFluxes(
 	// calc gradient
 	SEMO_Utility_Math math;
 	vector<vector<double>> gradU;
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
 	math.calcGradientFace(mesh, gradU, controls.U, controls.fU, 
 					controls.dUdx, controls.dUdy, controls.dUdz);
 	vector<vector<double>> gradV;
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
 	math.calcGradientFace(mesh, gradV, controls.V, controls.fV, 
 					controls.dVdx, controls.dVdy, controls.dVdz);
 	vector<vector<double>> gradW;
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	math.calcGradientFace(mesh, gradW, controls.W, controls.fW, 
 					controls.dWdx, controls.dWdy, controls.dWdz);
 	

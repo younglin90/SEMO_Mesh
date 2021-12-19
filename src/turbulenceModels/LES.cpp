@@ -42,14 +42,24 @@ void SEMO_TurbModel_LES::calcWALE(
 	double Cw = 0.325;
 	
 
+	// cout << "AAAAAAAAAA1" << endl;
 	// gradient U, V, W
 	SEMO_Utility_Math math;
-	vector<vector<double>> gradU;
-	vector<vector<double>> gradV;
-	vector<vector<double>> gradW;
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	vector<vector<double>> gradU(mesh.cells.size(),vector<double>(3,0.0));
+	vector<vector<double>> gradV(mesh.cells.size(),vector<double>(3,0.0));
+	vector<vector<double>> gradW(mesh.cells.size(),vector<double>(3,0.0));
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	
 	
 	vector<vector<double>> S(3,vector<double>(3,0.0));
@@ -150,12 +160,22 @@ void SEMO_TurbModel_LES::calcSmagorinsky(
 
 	// gradient U, V, W
 	SEMO_Utility_Math math;
-	vector<vector<double>> gradU;
-	vector<vector<double>> gradV;
-	vector<vector<double>> gradW;
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	vector<vector<double>> gradU(mesh.cells.size(),vector<double>(3,0.0));
+	vector<vector<double>> gradV(mesh.cells.size(),vector<double>(3,0.0));
+	vector<vector<double>> gradW(mesh.cells.size(),vector<double>(3,0.0));
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	
 	
 	vector<vector<double>> S(3,vector<double>(3,0.0));
@@ -223,12 +243,21 @@ void SEMO_TurbModel_LES::calcDynamicSmagorinsky(
 
 	// gradient U, V, W
 	SEMO_Utility_Math math;
-	vector<vector<double>> gradU;
-	vector<vector<double>> gradV;
-	vector<vector<double>> gradW;
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	vector<vector<double>> gradU(mesh.cells.size(),vector<double>(3,0.0));
+	vector<vector<double>> gradV(mesh.cells.size(),vector<double>(3,0.0));
+	vector<vector<double>> gradW(mesh.cells.size(),vector<double>(3,0.0));
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	
 
 	vector<vector<double>> S(3,vector<double>(3,0.0));

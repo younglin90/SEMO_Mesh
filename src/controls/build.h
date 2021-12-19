@@ -7,7 +7,8 @@
 using namespace std;
 
 #include "../mesh/build.h"
-#include "../utility/read.h"
+// #include "../utility/read.h"
+#include "../load/load.h"
 #include "../species/species.h"
 
 
@@ -23,15 +24,30 @@ class SEMO_Controls_Builder{
 		double saveInterval;
 		string saveControl;
 		string saveFormat;
-		string saveCompression;
 		string timeFormat;
 		string adjustTimeStep;
+		int saveCompression;
 		double maxCo;
 		double maxVfCo;
 		double maxTimeStep;
 		double orgTimeStep;
 		int writePrecision;
 		
+		// user save datas
+		map<string,bool> saveMeshData;
+		map<string,bool> saveGradientData;
+		map<string,bool> saveThermodynamicData;
+		map<string,bool> saveBodyForceData;
+		
+		// extract 관련
+		double residual;
+		vector<string> extractFieldDatas;
+		vector<string> extractAverageDatas;
+		vector<string> extractNames;
+		vector<string> extractCellValueTargets;
+		vector<vector<double>> extractCenterPoints;
+		vector<double> extractRadii;
+		vector<vector<double>> extractDatas;
 		
 		string fluxScheme;
 		string gradScheme;
@@ -137,6 +153,8 @@ class SEMO_Controls_Builder{
 		vector<int> fMF_HO;
 		int fRho_HO;
 		int fHt_HO;
+		
+		int fVF_NVD;
 	
 		
 		
@@ -153,6 +171,22 @@ class SEMO_Controls_Builder{
 		int dWdx;
 		int dWdy;
 		int dWdz;
+		
+		// 최대 최소 값
+		int maximumP;
+		int minimumP;
+		int maximumU;
+		int minimumU;
+		int maximumV;
+		int minimumV;
+		int maximumW;
+		int minimumW;
+		int maximumT;
+		int minimumT;
+		vector<int> maximumVF;
+		vector<int> minimumVF;
+		vector<int> maximumMF;
+		vector<int> minimumMF;
 		
 		// turbulence
 		string turbType;
@@ -256,6 +290,8 @@ class SEMO_Controls_Builder{
 		// scheme
 		double time;
 		double timeStep;
+		double oldTimeStep;
+		double old2TimeStep;
 		double pseudoCo;
 		double specifiedCFL;
 		double allowableCFL;
@@ -284,27 +320,36 @@ class SEMO_Controls_Builder{
 		int mu;
 		int muT;
 		int muEffective;
-		int kappa;
-		int kappaEffective;
+		int k;
+		int kEffective;
 		int D;
 		int DEffective;
 		int cv;
 		int cp;
 		int kSGS;
+		
+		// source terms
+		vector<int> sourceGravity;
+		vector<int> sourceSurfaceTension;
+		
 
 		double PrT;
 		double ScT;
 		
+		int kappa;
 		
 		// dynamic Mesh
+		vector<double> indicatorCriterion;
 		int intervalRefine;
-		double indicatorRefine;
+		// double indicatorRefine;
 		int maxLevelRefine;
 		int maxCellsRefine;
 		double minVolumeRefine;
 		
+		int bufferLayer;
+		
 		int intervalUnrefine;
-		double indicatorUnrefine;
+		// double indicatorUnrefine;
 		
 };
 

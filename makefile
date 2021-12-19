@@ -6,23 +6,24 @@ EXE = SEMO
 
 LIBINCLUDE = \
              -Ilib/zlib\
-             -Ilib/PETSc/include\
              -Ilib/Metis\
              -Ilib/Scotch\
-             -Ilib/HYPRE/include\
              -Ilib/amgcl\
-             -Ilib/boost\
+             -Ilib\
+             # -Ilib/boost\
+             #-Ilib/HYPRE/include\
+             #-Ilib/PETSc/include\
              # -I/home/yyl/petsc/arch-linux-c-debug/include\
 
 LIBRARIES = \
             lib/zlib/libz.a\
-            lib/PETSc/lib/libpetsc.so.3.14\
-            -Wl,-rpath,lib/PETSc/lib\
             lib/Metis/libparmetis.a\
             lib/Metis/libmetis.a\
             lib/Scotch/libscotch.a\
             lib/Scotch/libscotcherr.a\
-            lib/HYPRE/lib/libHYPRE.a\
+            # lib/PETSc/lib/libpetsc.so.3.14\
+            #lib/HYPRE/lib/libHYPRE.a\
+            #-Wl,-rpath,lib/PETSc/lib\
              # ./lib/Scotch/libscotchmetis.a\
              # -Wl,-rpath,/home/yyl/petsc/arch-linux-c-debug/lib\
              # -L/home/yyl/petsc/arch-linux-c-debug/lib\
@@ -32,20 +33,22 @@ LIBRARIES = \
              # -Wl,-rpath,./lib/PETSc/lib\
 
 SOURCES = src/mesh/build.cpp\
-	      src/mesh/load.cpp\
-	      src/mesh/save.cpp\
 	      src/mesh/geometric.cpp\
 	      src/mesh/partition.cpp\
 	      src/mesh/distribute.cpp\
 	      src/mesh/hexaOctAMR.cpp\
+	      src/mesh/polyAMR.cpp\
+	      src/mesh/polyRefine.cpp\
+	      src/mesh/polyUnrefine.cpp\
+	      src/mesh/reorder.cpp\
 	      src/math/math.cpp\
 	      src/math/gradient.cpp\
-	      src/solvers/transport.cpp\
-	      src/solvers/viscousFlux.cpp\
-	      src/mesh/saveGnuplot.cpp\
+	      src/math/RCM.cpp\
 	      src/mpi/build.cpp\
 	      src/controls/build.cpp\
 	      src/variables/build.cpp\
+	      src/solvers/transport.cpp\
+	      src/solvers/viscousFlux.cpp\
 	      src/solvers/build.cpp\
 	      src/solvers/pressureBased.cpp\
 	      src/solvers/densityBased.cpp\
@@ -74,81 +77,99 @@ SOURCES = src/mesh/build.cpp\
 	      src/solvers/norm.cpp\
 	      src/solvers/NVD.cpp\
 	      src/solvers/hybridBased.cpp\
-	      src/solvers/curvature.cpp\
-	      src/utility/read.cpp\
+	      src/solvers/source/gravity.cpp\
+	      src/solvers/source/surfaceTension.cpp\
+	      src/solvers/source/curvature.cpp\
+	      src/solvers/surfaceNormalVelocity.cpp\
+	      src/solvers/cellVarMinMax.cpp\
 	      src/turbulenceModels/LES.cpp\
-	      src/math/RCM.cpp\
-	      src/mesh/polyAMR.cpp\
-	      src/mesh/polyRefine.cpp\
-	      src/mesh/polyUnrefine.cpp\
-	      src/mesh/reorder.cpp\
 
-OBJECTS = src/main.o $(SOURCES:.cpp=.o)
+SOURCES_SAVE = src/save/save.cpp\
+	      src/save/saveOnlyMesh.cpp\
+	      src/save/saveAscii.cpp\
+	      src/save/saveBinary.cpp\
+	      src/save/saveCompress.cpp\
+	      src/save/saveParticle.cpp\
+	      src/save/saveGnuplot.cpp\
+	      src/save/saveMkdirs.cpp\
+	      src/save/saveBase64.cpp\
+	      src/save/saveCellData.cpp\
+
+SOURCES_LOAD = src/load/load.cpp\
+	      src/load/loadOpenFoam.cpp\
+	      src/load/loadFiles.cpp\
+	      src/load/loadBinary.cpp\
+	      src/load/loadCompress.cpp\
+	      src/load/loadBase64.cpp\
+
+OBJECTS = $(SOURCES:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
+# main
+EXE_Main = Main
+
+OBJECTS_Main = src/main.o $(OBJECTS)
 
 # Density based single time
 EXE_CompDensitySingle = CompDensitySingle
 
-OBJECTS_CompDensitySingle = src/main/compressible/densityBasedSingle.o $(SOURCES:.cpp=.o)
+OBJECTS_CompDensitySingle = src/main/compressible/densityBasedSingle.o $(OBJECTS)
 
 # Density based dual time
 EXE_CompDensityDual = CompDensityDual
 
-OBJECTS_CompDensityDual = src/main/compressible/densityBasedDual.o $(SOURCES:.cpp=.o)
+OBJECTS_CompDensityDual = src/main/compressible/densityBasedDual.o $(OBJECTS)
 
 # Pressure based 
 EXE_IncomPressure = IncomPressure
 
-OBJECTS_IncomPressure = src/main/incompressible/pressureBased.o $(SOURCES:.cpp=.o)
+OBJECTS_IncomPressure = src/main/incompressible/pressureBased.o $(OBJECTS)
 
 # hybrid based
 EXE_CompHybrid = CompHybrid
 
-OBJECTS_CompHybrid = src/main/compressible/hybridBased.o $(SOURCES:.cpp=.o)
+OBJECTS_CompHybrid = src/main/compressible/hybridBased.o $(OBJECTS)
 
 # comp coupled based
 EXE_CompCoupled = CompCoupled
 
-OBJECTS_CompCoupled = src/main/compressible/mainCoupled.o $(SOURCES:.cpp=.o)
+OBJECTS_CompCoupled = src/main/compressible/mainCoupled.o $(OBJECTS)
 
 # partitioning
 EXE_PARTITION = Partition
 
 SOURCES_PARTITION = src/utility/partition.cpp\
                     src/mesh/build.cpp\
-                    src/mesh/load.cpp\
-                    src/mesh/save.cpp\
                     src/mesh/geometric.cpp\
                     src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
 
-OBJECTS_PARTITION = $(SOURCES_PARTITION:.cpp=.o)
+OBJECTS_PARTITION = $(SOURCES_PARTITION:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
 
 # initialization
 EXE_INITIAL = Initial
 
 SOURCES_INITIAL = src/utility/initial.cpp\
                     src/mesh/build.cpp\
-                    src/mesh/load.cpp\
-                    src/mesh/save.cpp\
                     src/mesh/geometric.cpp\
                     src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
                     src/controls/build.cpp\
-                    src/utility/read.cpp\
 
-OBJECTS_INITIAL = $(SOURCES_INITIAL:.cpp=.o)
+OBJECTS_INITIAL = $(SOURCES_INITIAL:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
 
 # potential flow
 EXE_POTENTIAL = Potential
 
 SOURCES_POTENTIAL = src/utility/potential.cpp\
                     src/mesh/build.cpp\
-                    src/mesh/load.cpp\
-                    src/mesh/save.cpp\
                     src/mesh/geometric.cpp\
                     src/math/math.cpp\
                     src/math/gradient.cpp\
                     src/mpi/build.cpp\
                     src/controls/build.cpp\
-                    src/utility/read.cpp\
                     src/solvers/build.cpp\
                     src/solvers/eos.cpp\
                     src/solvers/solvePETSc.cpp\
@@ -156,21 +177,85 @@ SOURCES_POTENTIAL = src/utility/potential.cpp\
                     src/solvers/reconComp.cpp\
                     src/solvers/NVD.cpp\
 
-OBJECTS_POTENTIAL = $(SOURCES_POTENTIAL:.cpp=.o)
+OBJECTS_POTENTIAL = $(SOURCES_POTENTIAL:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
+
+# laplace equations
+EXE_LAPLACE = Laplace
+
+SOURCES_LAPLACE = src/utility/laplace.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
+                    src/solvers/build.cpp\
+                    src/solvers/eos.cpp\
+                    src/solvers/solveAMGCL.cpp\
+                    src/solvers/reconIncom.cpp\
+                    src/solvers/reconComp.cpp\
+                    src/solvers/NVD.cpp\
+
+OBJECTS_LAPLACE = $(SOURCES_LAPLACE:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
+
+# advection equations
+EXE_ADVECTION = Advection
+
+SOURCES_ADVECTION = src/utility/advection.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
+                    src/solvers/build.cpp\
+                    src/solvers/eos.cpp\
+                    src/solvers/solveAMGCL.cpp\
+                    src/solvers/reconIncom.cpp\
+                    src/solvers/reconComp.cpp\
+                    src/solvers/NVD.cpp\
+                    src/mesh/polyAMR.cpp\
+                    src/mesh/polyRefine.cpp\
+                    src/mesh/polyUnrefine.cpp\
+
+OBJECTS_ADVECTION = $(SOURCES_ADVECTION:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
+
+# gradient
+EXE_GRADIENT = Gradient
+
+SOURCES_GRADIENT = src/utility/gradient.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
+                    src/solvers/build.cpp\
+                    src/solvers/eos.cpp\
+                    src/solvers/solveAMGCL.cpp\
+                    src/solvers/reconIncom.cpp\
+                    src/solvers/reconComp.cpp\
+                    src/solvers/NVD.cpp\
+
+OBJECTS_GRADIENT = $(SOURCES_GRADIENT:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
+
 
 # MapField
 EXE_MapField = MapField
 
 SOURCES_MapField = src/utility/mapField.cpp\
                     src/mesh/build.cpp\
-                    src/mesh/load.cpp\
-                    src/mesh/save.cpp\
                     src/mesh/geometric.cpp\
                     src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
                     src/controls/build.cpp\
-                    src/utility/read.cpp\
 
-OBJECTS_MapField = $(SOURCES_MapField:.cpp=.o)
+OBJECTS_MapField = $(SOURCES_MapField:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
 
 # MeshAMR
 EXE_MeshAMR = MeshAMR
@@ -182,24 +267,28 @@ EXE_MeshAMR = MeshAMR
                     # src/mesh/geometric.cpp\
                     # src/math/math.cpp\
                     # src/controls/build.cpp\
-                    # src/utility/read.cpp\
 
-OBJECTS_MeshAMR = src/utility/meshAMR.o $(SOURCES:.cpp=.o)
+OBJECTS_MeshAMR = src/utility/meshAMR.o $(SOURCES:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
 # OBJECTS_MeshAMR = $(SOURCES_MeshAMR:.cpp=.o)
 
 # ExtractData
 EXE_ExtractData = ExtractData
 
-OBJECTS_ExtractData = src/utility/extractData.o $(SOURCES:.cpp=.o)
+OBJECTS_ExtractData = src/utility/extractData.o $(SOURCES:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
 
 COTEXT  = "\033[1;31m Compiling\033[0m\033[1m $< \033[0m"
 
 # all : $(EXE)
-all : $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_CompCoupled) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
+
+EXE_ALL = $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_CompCoupled) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_LAPLACE) $(EXE_ADVECTION) $(EXE_GRADIENT) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
+
+OBJECTS_ALL = $(OBJECTS_Main) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_CompCoupled) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_LAPLACE) $(OBJECTS_ADVECTION) $(OBJECTS_GRADIENT) $(OBJECTS_MapField) $(OBJECTS_MeshAMR)
+
+all : $(EXE_ALL)
 # all : $(EXE_LOAD)
 
-$(EXE) : $(OBJECTS)
-	@$(CCOMPLR) -o $@ $(OBJECTS) $(LIBRARIES)
+$(EXE_Main) : $(OBJECTS_Main)
+	@$(CCOMPLR) -o $@ $(OBJECTS_Main) $(LIBRARIES)
 	@echo -e "\033[1;31m Main code compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_CompDensitySingle) : $(OBJECTS_CompDensitySingle)
@@ -234,6 +323,21 @@ $(EXE_POTENTIAL) : $(OBJECTS_POTENTIAL)
 	@$(CCOMPLR) -o $@ $(OBJECTS_POTENTIAL) $(LIBRARIES)
 	@echo -e "\033[1;31m POTENTIAL CODE compile/link complete \033[0m" | tee -a make.log
 
+$(EXE_LAPLACE) : $(OBJECTS_LAPLACE)
+	@$(CCOMPLR) -o $@ $(OBJECTS_LAPLACE) $(LIBRARIES)
+	@echo -e "\033[1;31m LAPLACE CODE compile/link complete \033[0m" | tee -a make.log
+
+
+$(EXE_ADVECTION) : $(OBJECTS_ADVECTION)
+	@$(CCOMPLR) -o $@ $(OBJECTS_ADVECTION) $(LIBRARIES)
+	@echo -e "\033[1;31m ADVECTION CODE compile/link complete \033[0m" | tee -a make.log
+
+
+
+$(EXE_GRADIENT) : $(OBJECTS_GRADIENT)
+	@$(CCOMPLR) -o $@ $(OBJECTS_GRADIENT) $(LIBRARIES)
+	@echo -e "\033[1;31m GRADIENT CODE compile/link complete \033[0m" | tee -a make.log
+
 $(EXE_MapField) : $(OBJECTS_MapField)
 	@$(CCOMPLR) -o $@ $(OBJECTS_MapField) $(LIBRARIES)
 	@echo -e "\033[1;31m MapField CODE compile/link complete \033[0m" | tee -a make.log
@@ -252,4 +356,4 @@ $(EXE_ExtractData) : $(OBJECTS_ExtractData)
 
 clean:
 	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log
-	@rm -fr $(OBJECTS) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_MapField) $(OBJECTS_MeshAMR) $(EXE) $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData) $(EXE_CompCoupled) make.log *.o
+	@rm -fr $(OBJECTS_ALL) $(EXE_ALL) make.log *.o

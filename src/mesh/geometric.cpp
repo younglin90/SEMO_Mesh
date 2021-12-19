@@ -795,8 +795,8 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	int size = MPI::COMM_WORLD.Get_size();
 
 	if(rank==0){
-		cout << "┌────────────────────────────────────────────────────" << endl;
-		cout << "| execute geometric (face normal vectors, face area, face center, cell volume) ... ";
+		// cout << "┌────────────────────────────────────────────────────" << endl;
+		// cout << "| execute geometric (face normal vectors, face area, face center, cell volume) ... ";
 	}
 	
 	
@@ -1122,9 +1122,9 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	int num_wrong_cell_centroid_global;
 	MPI_Allreduce(&num_wrong_face_centroid, &num_wrong_face_centroid_global, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(&num_wrong_cell_centroid, &num_wrong_cell_centroid_global, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-	if(rank==0) cout << endl;
-	if(rank==0) cout << "| # of Wrong face centroid = " << num_wrong_face_centroid_global << endl;
-	if(rank==0) cout << "| # of Wrong cell centroid = " << num_wrong_cell_centroid_global << endl;
+	// if(rank==0) cout << endl;
+	// if(rank==0) cout << "| # of Wrong face centroid = " << num_wrong_face_centroid_global << endl;
+	// if(rank==0) cout << "| # of Wrong cell centroid = " << num_wrong_cell_centroid_global << endl;
 	
 	
 	
@@ -1196,9 +1196,9 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	double minVolume;
 	MPI_Allreduce(&myMaxVolume, &maxVolume, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 	MPI_Allreduce(&myMinVolume, &minVolume, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-	if(rank==0) cout << endl;
-	if(rank==0) cout << "| Max Cell Volume = " << maxVolume << endl;
-	if(rank==0) cout << "| Min Cell Volume = " << minVolume << endl;
+	// if(rank==0) cout << endl;
+	// if(rank==0) cout << "| Max Cell Volume = " << maxVolume << endl;
+	// if(rank==0) cout << "| Min Cell Volume = " << minVolume << endl;
 	
 
 	
@@ -1316,6 +1316,16 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 			double dzPN = mesh.cells[face.neighbour].z-mesh.cells[face.owner].z;
 			double dPN = sqrt(pow(dxPN,2.0)+pow(dyPN,2.0)+pow(dzPN,2.0));
 			
+			face.vecPF.resize(3,0.0);
+			face.vecPF[0] = dxFP;
+			face.vecPF[1] = dyFP;
+			face.vecPF[2] = dzFP;
+			
+			face.vecNF.resize(3,0.0);
+			face.vecNF[0] = dxFN;
+			face.vecNF[1] = dyFN;
+			face.vecNF[2] = dzFN;
+			
 			// at openfoam 
 			double dFP_of = abs(
 				dxFP*face.unitNormals[0] +
@@ -1331,7 +1341,16 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				// dFN = dFN_of;
 			// }
 			
-			face.wC = dFN/(dFP+dFN);
+			
+			
+			// face.wC = dFN/(dFP+dFN);
+			
+			// at openfoam
+			face.wC = dFN_of/(dFP_of+dFN_of);
+			// 절단오차 걸러내기 위한 과정
+			face.wC = (float)(round(face.wC * 10000000) / 10000000);
+			
+			
 			
 			
 			// face.wC = abs( dxFN*dxPN/dPN + dyFN*dyPN/dPN + dzFN*dzPN/dPN ) / ( dPN );
@@ -1413,11 +1432,24 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 			face.wVC = 0.5;
 			
 			face.wC = 0.5;
+			// 절단오차 걸러내기 위한 과정
+			face.wC = (float)(round(face.wC * 10000000) / 10000000);
 			
 			
 			double dxFP = face.x-mesh.cells[face.owner].x;
 			double dyFP = face.y-mesh.cells[face.owner].y;
 			double dzFP = face.z-mesh.cells[face.owner].z;
+			double dFP = sqrt(pow(dxFP,2.0)+pow(dyFP,2.0)+pow(dzFP,2.0));
+			
+			face.vecPF.resize(3,0.0);
+			face.vecPF[0] = dxFP;
+			face.vecPF[1] = dyFP;
+			face.vecPF[2] = dzFP;
+			
+			face.vecNF.resize(3,0.0);
+			face.vecNF[0] = dxFP;
+			face.vecNF[1] = dyFP;
+			face.vecNF[2] = dzFP;
 			
 			double dFP_of = abs(
 				dxFP*face.unitNormals[0] +
@@ -1426,6 +1458,19 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				
 			double mag_a = dFP_of;
 			face.magPN = 2.0 * mag_a;
+			
+			face.unitNomalsPN.resize(3,0.0);
+			face.unitNomalsPN[0] = dxFP/dFP;
+			face.unitNomalsPN[1] = dyFP/dFP;
+			face.unitNomalsPN[2] = dzFP/dFP;
+			double alphaF = 0.0;
+			alphaF += face.unitNormals[0]*face.unitNomalsPN[0];
+			alphaF += face.unitNormals[1]*face.unitNomalsPN[1];
+			alphaF += face.unitNormals[2]*face.unitNomalsPN[2];
+			face.alphaF = 1.0/abs(alphaF);
+			
+			// skewness
+			face.vecSkewness.resize(3,0.0);
 			
 			vector<double> dP(3,0.0);
 			dP[0] = face.x - mag_a * face.unitNormals[0];
@@ -1512,8 +1557,6 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				double dzFP = face.z-mesh.cells[face.owner].z;
 				double dFP = sqrt(pow(dxFP,2.0)+pow(dyFP,2.0)+pow(dzFP,2.0));
 				
-				// face.wC = dFP;
-				
 				double dxFN = face.x-*iter0;
 				double dyFN = face.y-*iter1;
 				double dzFN = face.z-*iter2;
@@ -1523,6 +1566,16 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 				double dyPN = *iter1-mesh.cells[face.owner].y;
 				double dzPN = *iter2-mesh.cells[face.owner].z;
 				double dPN = sqrt(pow(dxPN,2.0)+pow(dyPN,2.0)+pow(dzPN,2.0));
+			
+				face.vecPF.resize(3,0.0);
+				face.vecPF[0] = dxFP;
+				face.vecPF[1] = dyFP;
+				face.vecPF[2] = dzFP;
+				
+				face.vecNF.resize(3,0.0);
+				face.vecNF[0] = dxFN;
+				face.vecNF[1] = dyFN;
+				face.vecNF[2] = dzFN;
 				
 				// at openfoam 
 				double dFP_of = abs(
@@ -1539,8 +1592,17 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 					// dFN = dFN_of;
 				// }
 				
-				face.wC = dFN/(dFP+dFN);
 				
+				
+				// face.wC = dFN/(dFP+dFN);
+				
+				// at openfoam
+				// 절단오차 걸러내기 위해 float 붙임
+				face.wC = dFN_of/(dFP_of+dFN_of);
+				// 절단오차 걸러내기 위한 과정
+				face.wC = (float)(round(face.wC * 10000000) / 10000000);
+					
+					
 					
 				// face.wC = abs( dxFN*dxPN + dyFN*dyPN + dzFN*dzPN ) / ( dxPN*dxPN + dyPN*dyPN + dzPN*dzPN );
 				// if( face.wC < 0.1 || face.wC > 0.9 ){
@@ -1637,7 +1699,17 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	
 	
 	
-	
+	// // wC limiter
+	// for(auto& face : mesh.faces){
+		
+		// double wC = face.wC;
+		// wC = 2.0*wC;
+		// wC = pow(wC,0.1);
+		// face.wC = 0.5*wC;
+		
+		// // face.wC = max(0.5-0.2,min(0.5+0.2,face.wC));
+		// // face.wC = max(0.5-0.4,min(0.5+0.4,face.wC));
+	// }
 	
 
 	// for(auto& face : mesh.faces){
@@ -1687,8 +1759,11 @@ void SEMO_Mesh_Geometric::init(SEMO_Mesh_Builder& mesh){
 	
 	
 	MPI_Barrier(MPI_COMM_WORLD);
-	if(rank==0) cout << "-> completed" << endl;
-	if(rank==0) cout << "└────────────────────────────────────────────────────" << endl;
+	
+	if(rank==0){
+		// cout << "-> completed" << endl;
+		// cout << "└────────────────────────────────────────────────────" << endl;
+	}
 		
 }
 

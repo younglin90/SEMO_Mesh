@@ -160,3 +160,166 @@ void SEMO_MPI_Builder::setProcsFaceDatas(
 // }
 
 
+void SEMO_MPI_Builder::sendRecvTemporaryData(
+	SEMO_Mesh_Builder& mesh,
+	vector<double>& sendValues, vector<double>& recvValues){
+		
+		
+	recvValues.clear();
+		
+	vector<double> recv;
+	vector<double> send;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			send.push_back(sendValues[face.owner]);
+		}
+	}
+	setProcsFaceDatas(
+				send, recv,
+				mesh.countsProcFaces, mesh.countsProcFaces, 
+				mesh.displsProcFaces, mesh.displsProcFaces);
+	int num=0;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			recvValues.push_back(recv[num]);
+			
+			++num;
+		}
+	}
+	
+}
+
+
+
+void SEMO_MPI_Builder::sendRecvTemporaryVectorData(
+	SEMO_Mesh_Builder& mesh,
+	vector<vector<double>>& sendValues, vector<vector<double>>& recvValues){
+		
+	recvValues.clear();
+		
+	vector<double> x_recv, y_recv, z_recv;
+	vector<double> x_send, y_send, z_send;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			x_send.push_back(sendValues[face.owner][0]);
+			y_send.push_back(sendValues[face.owner][1]);
+			z_send.push_back(sendValues[face.owner][2]);
+		}
+	}
+	setProcsFaceDatas(
+				x_send, x_recv,
+				mesh.countsProcFaces, mesh.countsProcFaces, 
+				mesh.displsProcFaces, mesh.displsProcFaces);
+	setProcsFaceDatas(
+				y_send, y_recv,
+				mesh.countsProcFaces, mesh.countsProcFaces, 
+				mesh.displsProcFaces, mesh.displsProcFaces);
+	setProcsFaceDatas(
+				z_send, z_recv,
+				mesh.countsProcFaces, mesh.countsProcFaces, 
+				mesh.displsProcFaces, mesh.displsProcFaces);
+	int num=0;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			vector<double> tmp(3,0.0);
+			tmp[0] = x_recv[num];
+			tmp[1] = y_recv[num];
+			tmp[2] = z_recv[num];
+			recvValues.push_back(tmp);
+			
+			++num;
+		}
+	}
+		
+	
+}
+
+
+
+void SEMO_MPI_Builder::sendRecvTemporaryCellData(
+	SEMO_Mesh_Builder& mesh,
+	int& cnum,
+	vector<double>& recvValues){
+		
+	recvValues.clear();
+	// recvValues.resize(cnum.size(),vector<double>());
+		
+	vector<double> recv;
+	vector<double> send;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			send.push_back(mesh.cells[face.owner].var[cnum]);
+		}
+	}
+	setProcsFaceDatas(
+				send, recv,
+				mesh.countsProcFaces, mesh.countsProcFaces, 
+				mesh.displsProcFaces, mesh.displsProcFaces);
+	int num=0;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			recvValues.push_back(recv[num]);
+			
+			++num;
+		}
+	}
+		
+	
+}
+
+
+
+void SEMO_MPI_Builder::sendRecvTemporaryCellVectorData(
+	SEMO_Mesh_Builder& mesh,
+	vector<int>& cnum,
+	vector<vector<double>>& recvValues){
+		
+	recvValues.clear();
+	// recvValues.resize(cnum.size(),vector<double>());
+		
+	vector<vector<double>> recv(cnum.size(),vector<double>());
+	vector<vector<double>> send(cnum.size(),vector<double>());
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			for(int ii=0; ii<cnum.size(); ++ii){
+				send[ii].push_back(mesh.cells[face.owner].var[cnum[ii]]);
+			}
+		}
+	}
+	for(int ii=0; ii<cnum.size(); ++ii){
+		setProcsFaceDatas(
+					send[ii], recv[ii],
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+	}
+	int num=0;
+	for(int i=0; i<mesh.faces.size(); ++i){
+		auto& face = mesh.faces[i];
+		
+		if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			vector<double> tmp;
+			for(int ii=0; ii<cnum.size(); ++ii){
+				tmp.push_back(recv[ii][num]);
+			}
+			recvValues.push_back(tmp);
+			
+			++num;
+		}
+	}
+		
+	
+}

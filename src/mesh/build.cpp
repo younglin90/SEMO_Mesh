@@ -456,7 +456,8 @@ void SEMO_Mesh_Builder::loadFile(string filetype, string folder){
 		meshLoad.OpenFoam(*this, folder);
 	} 
 	if(filetype=="vtu"){
-		meshLoad.vtu(*this, folder);
+		cout << "| NOT defined vtu" << endl;
+		// meshLoad.vtu(*this, folder);
 	} 
 }
 
@@ -1424,3 +1425,82 @@ void SEMO_Mesh_Builder::cellsGlobal(){
 
 
 
+
+void SEMO_Mesh_Builder::calcSkewness(vector<double>& output){
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+	output.clear();
+	output.resize(mesh.cells.size(),0.0);
+
+	for(auto& face : mesh.faces){
+		double value1=0.0;
+		double value2=0.0;
+		value1 += face.vecSkewness[0]*face.vecSkewness[0];
+		value1 += face.vecSkewness[1]*face.vecSkewness[1];
+		value1 += face.vecSkewness[2]*face.vecSkewness[2];
+		value2 += face.vecPN[0]*face.vecPN[0];
+		value2 += face.vecPN[1]*face.vecPN[1];
+		value2 += face.vecPN[2]*face.vecPN[2];
+		double value = sqrt(value1)/sqrt(value2);
+		output[face.owner] = max(output[face.owner],value);
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			output[face.neighbour] = max(output[face.neighbour],value);
+		}
+	}
+		
+}
+
+void SEMO_Mesh_Builder::calcNonOrthogonality(vector<double>& output){
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+	output.clear();
+	output.resize(mesh.cells.size(),0.0);
+	for(auto& face : mesh.faces){
+		double value1=0.0;
+		double value2=0.0;
+		value1 += face.vecPN[0]*face.unitNormals[0];
+		value1 += face.vecPN[1]*face.unitNormals[1];
+		value1 += face.vecPN[2]*face.unitNormals[2];
+		value2 += face.vecPN[0]*face.vecPN[0];
+		value2 += face.vecPN[1]*face.vecPN[1];
+		value2 += face.vecPN[2]*face.vecPN[2];
+		double value = acos(abs(value1)/sqrt(value2));
+		// cout << face.owner << endl;
+		output[face.owner] = max(output[face.owner],value);
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			output[face.neighbour] = max(output[face.neighbour],value);
+		}
+	}
+	
+}
+
+
+
+
+void SEMO_Mesh_Builder::calcUniformity(vector<double>& output){
+	
+	SEMO_Mesh_Builder& mesh = *this;
+	
+	output.clear();
+	output.resize(mesh.cells.size(),1.e8);
+	for(auto& face : mesh.faces){
+		double value1=0.0;
+		double value2=0.0;
+		for(int ii=0; ii<3; ++ii){
+			value1 += face.vecPF[ii]*face.vecPF[ii];
+			value2 += face.vecNF[ii]*face.vecNF[ii];
+		}
+		value1 = sqrt(value1);
+		value2 = sqrt(value2);
+		value2 = value1 + value2;
+		double value = value1/value2;
+		value = 1.0-2.0*abs(value-0.5);
+		output[face.owner] = min(output[face.owner],value);
+		if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			output[face.neighbour] = min(output[face.neighbour],value);
+		}
+	}
+		
+}

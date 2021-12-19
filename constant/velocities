@@ -3,8 +3,8 @@
 //============================================
 initialField
 {
-        type                    fixedValue;
-        value    (0 0 0);
+        type	fixedValue;
+        value	(0 0 0);
 }
 
 
@@ -29,13 +29,13 @@ boundaryField
 	gasinlet
 	{
 		type	surfaceNormalFixedValue;
-		value	-0.8;
+		value	-12.18;
 	}
 
 	liqinlet
 	{
 		type	surfaceNormalFixedValue;
-		value	-0.8416;
+		value	-1.69;
 	}
 	
 }

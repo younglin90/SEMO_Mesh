@@ -12,7 +12,7 @@
 #include "scotch.h" 
 
 #include "../../mesh/build.h" 
-#include "../../mesh/load.h" 
+#include "../../load/load.h" 
 #include "../../mesh/geometric.h" 
 #include "../../mesh/polyAMR.h"
 
@@ -132,8 +132,7 @@ int main(int argc, char* argv[]) {
 		
 		geometric.init(mesh);
 		
-		// math.initLeastSquare(mesh);
-		math.initLeastSquare2nd(mesh);
+		math.initLeastSquare(mesh);
 	
 	}
 	
@@ -196,17 +195,38 @@ int main(int argc, char* argv[]) {
 			++controls.iterReal;
 			
 			if(controls.saveControl == "timeStep"){
-				if(controls.iterReal % controls.saveInterval == 0){
+				if(controls.iterReal % (int)controls.saveInterval == 0){
 					string foldername;
-					// if( controls.time < 1.e-6 ){
-						std::ostringstream streamObj;
-						streamObj << controls.time;
-						foldername = "./save/" + streamObj.str() + "/";
-					// }
-					// else{
-						// foldername = "./save/" + to_string(controls.time) + "/";
-					// }
+					std::ostringstream streamObj;
+					streamObj << controls.time;
+					foldername = "./save/" + streamObj.str() + "/";
+					
+					solvers.setCompValuesLeftRightFace(mesh, controls, species);
+					
 					save.vtu(foldername, mesh, controls, species);
+					
+					// save.particles(foldername, mesh, controls, species);
+					
+				}
+			}
+			else if(controls.saveControl == "runTime"){
+				int jung = controls.time / controls.saveInterval;
+				double namuji = controls.time - (double)jung * controls.saveInterval;
+				if(
+				namuji < controls.timeStep &&
+				namuji >= 0.0
+				){
+					string foldername;
+					std::ostringstream streamObj;
+					streamObj << controls.time;
+					foldername = "./save/" + streamObj.str() + "/";
+					
+					solvers.setCompValuesLeftRightFace(mesh, controls, species);
+					
+					save.vtu(foldername, mesh, controls, species);
+					
+					// save.particles(foldername, mesh, controls, species);
+					
 				}
 			}
 		}

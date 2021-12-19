@@ -1,5 +1,5 @@
 
-simulationType = laminar
+simulationType = LES
 
 LES
 {

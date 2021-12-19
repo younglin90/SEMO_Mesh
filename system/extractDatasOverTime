@@ -1,0 +1,18 @@
+fieldDatas = (residual)
+
+averageDatas = (volume-fraction-water)
+
+cellDataNames = ()
+cellDataTargets = (pressure x-velocity)
+
+cell1
+{
+	center = (1.0 0.0 0.0)
+	radius = 1.0
+}
+
+cell2
+{
+	center = (0.0 0.0 0.0)
+	radius = 1.0
+}

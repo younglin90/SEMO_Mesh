@@ -27,12 +27,17 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	
 
 	SEMO_MPI_Builder mpi;
-	mpi.setCellDatasToFaceRight(mesh, 
-				controls.VF[0], controls.fVF[0],
-				mesh.countsProcFaces, mesh.countsProcFaces, 
-				mesh.displsProcFaces, mesh.displsProcFaces);
-	vector<vector<double>> gradVF;
-	math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	if(size>1){
+		mpi.setCellDatasToFaceRight(mesh, 
+					controls.VF[0], controls.fVF[0],
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+	}
+	// cout << "AAAAAAAA" << endl;
+	vector<vector<double>> gradVF(mesh.cells.size(),vector<double>(3,0.0));
+	vector<double> dummy;
+	math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+		controls.VF[0], controls.fVF[0], dummy, gradVF);
 	// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	for(int i=0; i<mesh.cells.size(); ++i){
 		mesh.cells[i].var[controls.indicatorAMR[0]] = 
@@ -44,85 +49,11 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	
 	
 	// ======================
-	double coeff_indi_refine = 5.0; // 2D
-	// double coeff_indi_refine = 100.0; // 3D
-	double coeff_indi_const = 1.0;
-	// ======================
-	
-	
-	for(auto& cell : mesh.cells){
-		if(cell.var[controls.indicatorAMR[0]] > coeff_indi_refine){
-			cell.var[controls.indicatorAMR[0]] = coeff_indi_const;  //coeff_mul_indi * controls.indicatorRefine;
-		}
-		else{
-			cell.var[controls.indicatorAMR[0]] = 0.0;
-		} 
-	}
-	
+	// add Buffer layer
+	for(int iter=0; iter<controls.bufferLayer; ++iter){
 
-	vector<double> smoothAi;
-	vector<double> AiUp;
-	vector<double> AiDown;
-	
-	for(int i=0; i<mesh.cells.size(); ++i){
-		smoothAi.push_back(mesh.cells[i].var[controls.indicatorAMR[0]]);
-	}
-	
-	//================================================
-	// smoothing Ai
-	for(int iter=0; iter<5; ++iter){
-		
-		AiUp.clear();
-		AiDown.clear();
-		for(int i=0; i<mesh.cells.size(); ++i){
-			AiUp.push_back(0.0);
-			AiDown.push_back(0.0);
-		}
-		
-		for(int i=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			
-			double wCL = face.wC;
-			// double wCL = 0.5;
-			double wCR = 1.0 - wCL;
-			
-			if(face.getType() == SEMO_Types::INTERNAL_FACE){
-			
-				double AiF = 
-					wCL*smoothAi[face.owner] +
-					wCR*smoothAi[face.neighbour];
-				
-				AiUp[face.owner] += AiF*face.area;
-				AiUp[face.neighbour] += AiF*face.area;
-				
-				AiDown[face.owner] += face.area;
-				AiDown[face.neighbour] += face.area;
-			
-			}
-			
-		}
-
-		// boundary
-		for(auto& boundary : mesh.boundary){
-			
-			if(boundary.neighbProcNo == -1){
-				
-				int str = boundary.startFace;
-				int end = str + boundary.nFaces;
-				
-				for(int i=str; i<end; ++i){
-					auto& face = mesh.faces[i];
-					
-					double AiF = smoothAi[face.owner];
-					
-					AiUp[face.owner] += AiF*face.area;
-				
-					AiDown[face.owner] += face.area;
-					
-				}
-			}
-		}
-		
+		vector<double> newIndicatorAMR(mesh.cells.size(),0.0);
+		vector<double> recvValues;
 		if(size>1){
 			// processor faces
 			vector<double> sendValues;
@@ -130,49 +61,176 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 				auto& face = mesh.faces[i];
 				
 				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-					sendValues.push_back(smoothAi[face.owner]);
+					sendValues.push_back(mesh.cells[face.owner].var[controls.indicatorAMR[0]]);
 				}
 			}
-			vector<double> recvValues;
 			mpi.setProcsFaceDatas(
 						sendValues, recvValues,
 						mesh.countsProcFaces, mesh.countsProcFaces, 
 						mesh.displsProcFaces, mesh.displsProcFaces);
-			int num=0;
-			for(int i=0; i<mesh.faces.size(); ++i){
-				auto& face = mesh.faces[i];
-			
-				double wCL = face.wC;
-				// double wCL = 0.5;
-				double wCR = 1.0 - wCL;
-				
-				if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
-					double AiF = wCL*smoothAi[face.owner]+wCR*recvValues[num];
-					
-					AiUp[face.owner] += AiF*face.area;
-				
-					AiDown[face.owner] += face.area;
-					
-					++num;
-				}
-			}
-			
 		}
-	
+		
+		int num_proc = 0;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			double maxInd = 0.0;
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				maxInd = max(mesh.cells[face.owner].var[controls.indicatorAMR[0]],
+							 mesh.cells[face.neighbour].var[controls.indicatorAMR[0]]);
+				newIndicatorAMR[face.owner] = max(newIndicatorAMR[face.owner],maxInd);
+				newIndicatorAMR[face.neighbour] = max(newIndicatorAMR[face.neighbour],maxInd);
+			}
+			else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				maxInd = max(mesh.cells[face.owner].var[controls.indicatorAMR[0]],
+							 recvValues[num_proc]);
+				newIndicatorAMR[face.owner] = max(newIndicatorAMR[face.owner],maxInd);
+				++num_proc;
+			}
+			else{
+				maxInd = mesh.cells[face.owner].var[controls.indicatorAMR[0]];
+				newIndicatorAMR[face.owner] = max(newIndicatorAMR[face.owner],maxInd);
+			}
+		}
 		
 		for(int i=0; i<mesh.cells.size(); ++i){
-			smoothAi[i] = AiUp[i]/AiDown[i];
-			if(mesh.cells[i].var[controls.indicatorAMR[0]] > coeff_indi_refine){
-				smoothAi[i] = coeff_indi_const; //coeff_mul_indi * controls.indicatorRefine;
-			}
-			
+			mesh.cells[i].var[controls.indicatorAMR[0]] = newIndicatorAMR[i];
 		}
-		
 	}
+	// ======================
 	
-	for(int i=0; i<mesh.cells.size(); ++i){
-		mesh.cells[i].var[controls.indicatorAMR[0]] = smoothAi[i];
-	}
+	
+	
+	// // ======================
+	// double coeff_indi_refine = 5.0; // 2D
+	// // double coeff_indi_refine = 100.0; // 3D
+	// double coeff_indi_const = 1.0;
+	// // ======================
+	
+	
+	// for(auto& cell : mesh.cells){
+		// if(cell.var[controls.indicatorAMR[0]] > coeff_indi_refine){
+			// cell.var[controls.indicatorAMR[0]] = coeff_indi_const;  //coeff_mul_indi * controls.indicatorRefine;
+		// }
+		// else{
+			// cell.var[controls.indicatorAMR[0]] = 0.0;
+		// } 
+	// }
+	
+
+	// vector<double> smoothAi;
+	// vector<double> AiUp;
+	// vector<double> AiDown;
+	
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// smoothAi.push_back(mesh.cells[i].var[controls.indicatorAMR[0]]);
+	// }
+	
+	// //================================================
+	// // smoothing Ai
+	// for(int iter=0; iter<5; ++iter){
+		
+		// AiUp.clear();
+		// AiDown.clear();
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// AiUp.push_back(0.0);
+			// AiDown.push_back(0.0);
+		// }
+		
+		// for(int i=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
+			
+			// double wCL = face.wC;
+			// // double wCL = 0.5;
+			// double wCR = 1.0 - wCL;
+			
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			
+				// double AiF = 
+					// wCL*smoothAi[face.owner] +
+					// wCR*smoothAi[face.neighbour];
+				
+				// AiUp[face.owner] += AiF*face.area;
+				// AiUp[face.neighbour] += AiF*face.area;
+				
+				// AiDown[face.owner] += face.area;
+				// AiDown[face.neighbour] += face.area;
+			
+			// }
+			
+		// }
+
+		// // boundary
+		// for(auto& boundary : mesh.boundary){
+			
+			// if(boundary.neighbProcNo == -1){
+				
+				// int str = boundary.startFace;
+				// int end = str + boundary.nFaces;
+				
+				// for(int i=str; i<end; ++i){
+					// auto& face = mesh.faces[i];
+					
+					// double AiF = smoothAi[face.owner];
+					
+					// AiUp[face.owner] += AiF*face.area;
+				
+					// AiDown[face.owner] += face.area;
+					
+				// }
+			// }
+		// }
+		
+		// if(size>1){
+			// // processor faces
+			// vector<double> sendValues;
+			// for(int i=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// sendValues.push_back(smoothAi[face.owner]);
+				// }
+			// }
+			// vector<double> recvValues;
+			// mpi.setProcsFaceDatas(
+						// sendValues, recvValues,
+						// mesh.countsProcFaces, mesh.countsProcFaces, 
+						// mesh.displsProcFaces, mesh.displsProcFaces);
+			// int num=0;
+			// for(int i=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+			
+				// double wCL = face.wC;
+				// // double wCL = 0.5;
+				// double wCR = 1.0 - wCL;
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
+					// double AiF = wCL*smoothAi[face.owner]+wCR*recvValues[num];
+					
+					// AiUp[face.owner] += AiF*face.area;
+				
+					// AiDown[face.owner] += face.area;
+					
+					// ++num;
+				// }
+			// }
+			
+		// }
+	
+		
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// smoothAi[i] = AiUp[i]/AiDown[i];
+			// if(mesh.cells[i].var[controls.indicatorAMR[0]] > coeff_indi_refine){
+				// smoothAi[i] = coeff_indi_const; //coeff_mul_indi * controls.indicatorRefine;
+			// }
+			
+		// }
+		
+	// }
+	
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// mesh.cells[i].var[controls.indicatorAMR[0]] = smoothAi[i];
+	// }
 	
 	
 	
@@ -276,20 +334,51 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 
 	// for(int i=0; i<5; ++i){
 		
-	// if(controls.iterReal % controls.intervalRefine == 0) 
+	if( (controls.iterReal+1) % controls.intervalRefine == 0){
+		if(rank==0) cout << "| exe. Poly AMR Refinement" << endl;
 		polyRefine(mesh, controls, 0);
+	}
 	
 	// geometric.init(mesh);
 	
-	// if(controls.iterReal % controls.intervalUnrefine == 0)
-		polyUnrefine(mesh, controls, 0);
+	if( (controls.iterReal+1) % controls.intervalUnrefine == 0){
+		if(rank==0) cout << "| exe. Poly AMR Un-refinement" << endl;
+		polyUnrefine(mesh, controls, 0); 
+	}
+	
+	
+
+	
+	// 추가적인 셀 값들
+	mesh.cellsProcVar.resize(controls.nTotalCellVar,vector<double>());
+	mesh.cellsProcGradientVar.resize(controls.nTotalCellVar,vector<vector<double>>());
+	mesh.cellsGradientVar.resize(controls.nTotalCellVar,vector<vector<double>>());
+	
 	
 	// geometric.init(mesh);
 	
 	// }
 	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if(rank==0) cout << "1111111" << endl;
 	
-	mesh.informations();
+	
+	
+	
+	
+	
+	// mesh.informations();
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if(rank==0) cout << "22222" << endl;
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// SEMO_Mesh_Save save;
@@ -304,7 +393,12 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	
 	
 	geometric.init(mesh);
-	math.initLeastSquare2nd(mesh); 
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if(rank==0) cout << "33333" << endl;
+	
+	math.initLeastSquare(mesh); 
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if(rank==0) cout << "44444" << endl;
 	
 	
 	

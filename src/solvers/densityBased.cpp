@@ -248,7 +248,7 @@ void SEMO_Solvers_Builder::compressibleDensityBasedDualTime(
 		
 
 		if(controls.saveControl == "pseudoTimeStep"){
-			if(controls.iterPseudo % controls.saveInterval == 0){
+			if(controls.iterPseudo % (int)controls.saveInterval == 0){
 				SEMO_Mesh_Save save;
 				
 				string foldername;

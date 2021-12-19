@@ -12,7 +12,7 @@
 #include "scotch.h" 
 
 #include "../../mesh/build.h" 
-#include "../../mesh/load.h" 
+#include "../../load/load.h" 
 #include "../../mesh/geometric.h" 
 #include "../../mesh/polyAMR.h"
 
@@ -81,21 +81,20 @@ int main(int argc, char* argv[]) {
 		
 		
 		for(auto& cell : mesh.cells){
-			vector<double> Q(controls.nEq,0.0);
-			Q[0] = cell.var[controls.Rho];
-			Q[1] = cell.var[controls.Rho] * cell.var[controls.U];
-			Q[2] = cell.var[controls.Rho] * cell.var[controls.V];
-			Q[3] = cell.var[controls.Rho] * cell.var[controls.W];
-			Q[4] = cell.var[controls.Rho] * cell.var[controls.Ht] - cell.var[controls.P];
-			for(int ns=0; ns<controls.nSp-1; ++ns){
-				Q[5+ns] = cell.var[controls.Rho] * cell.var[controls.MF[ns]];
-				
-				// cout << cell.var[controls.MF[ns]] << endl;
+			cell.var[controls.Qm[0]] = cell.var[controls.U];
+			cell.var[controls.Qm[1]] = cell.var[controls.V];
+			cell.var[controls.Qm[2]] = cell.var[controls.W];
+			for(int i=0; i<controls.nSp-1; ++i){
+				cell.var[controls.Qm[3+i]] = cell.var[controls.VF[i]];
 			}
-			for(int i=0; i<controls.nEq; ++i){
-				cell.var[controls.Qm[i]] = Q[i];
-				cell.var[controls.Qn[i]] = Q[i];
+			
+			cell.var[controls.Qn[0]] = cell.var[controls.U];
+			cell.var[controls.Qn[1]] = cell.var[controls.V];
+			cell.var[controls.Qn[2]] = cell.var[controls.W];
+			for(int i=0; i<controls.nSp-1; ++i){
+				cell.var[controls.Qn[3+i]] = cell.var[controls.VF[i]];
 			}
+			
 		}
 	
 	}
@@ -158,8 +157,7 @@ int main(int argc, char* argv[]) {
 		
 		geometric.init(mesh);
 		
-		// math.initLeastSquare(mesh);
-		math.initLeastSquare2nd(mesh);
+		math.initLeastSquare(mesh);
 		
 		
 	}
@@ -181,42 +179,23 @@ int main(int argc, char* argv[]) {
 	
 	
 
+		
 
 	bool calcFlow = true;
 	
 	// flow calculation
 	if(calcFlow){
 		
+		
 		solvers.calcCellTransport(mesh, controls, species);
+		
 		
 		
 		SEMO_Mesh_Save save;
 		
 		
-		
-
-	// for(int i=0; i<mesh.cells.size(); ++i){
-		
-		// auto& cell = mesh.cells[i];
-		
-		// if(cell.y < -0.157){
-			// cell.var[controls.VF[0]] = 0.0;
-		// }
-		
-	// }
-		
-				// string foldername2;
-				// // if( controls.time < 1.e-6 ){
-					// std::ostringstream streamObj2;
-					// streamObj2 << controls.time;
-					// foldername2 = "./save/" + streamObj2.str() + "/";
-	// save.vtu(foldername2, mesh, controls, species);
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-		
-		
 		while(
-		controls.iterReal<controls.iterRealMax ||
+		controls.iterReal<controls.iterRealMax &&
 		controls.time<stod(controls.stopAt) ){
 			
 	
@@ -233,11 +212,10 @@ int main(int argc, char* argv[]) {
 			// AMR
 			// if(controls.iterReal % 10 == 0 && controls.iterReal != 0){
 			// if(controls.iterReal % 1 == 0){ 
-			if(
-			// controls.iterReal != 0 && 
-			(controls.iterReal % controls.intervalRefine == 0 ||
-			controls.iterReal % controls.intervalUnrefine == 0)
-			){ 
+			if
+			( (controls.iterReal+1) % controls.intervalRefine == 0 ||
+			  (controls.iterReal+1) % controls.intervalUnrefine == 0)
+			{ 
 			int numnum=0; 
 			// while(1){
 				// cout << numnum << endl;

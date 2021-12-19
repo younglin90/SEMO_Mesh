@@ -92,18 +92,18 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFaceWithReconPV(
 	vector<vector<double>> gradU;
 	vector<vector<double>> gradV;
 	vector<vector<double>> gradW;
-	// math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
-	// // math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
-	// // math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
-	// // math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
+	math.calcGaussGreen(mesh, controls.P, controls.fP, gradP);
+	math.calcGaussGreen(mesh, controls.U, controls.fU, gradU);
+	math.calcGaussGreen(mesh, controls.V, controls.fV, gradV);
+	math.calcGaussGreen(mesh, controls.W, controls.fW, gradW);
 	// // math.calcGGLSQ(mesh, controls.P, controls.fP, gradP);
 	// // math.calcGGLSQ(mesh, controls.U, controls.fU, gradU);
 	// // math.calcGGLSQ(mesh, controls.V, controls.fV, gradV);
 	// // math.calcGGLSQ(mesh, controls.W, controls.fW, gradW);
-	math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
-	math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
-	math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
-	math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
+	// math.calcLeastSquare2nd(mesh, controls.P, controls.fP, gradP);
+	// math.calcLeastSquare2nd(mesh, controls.U, controls.fU, gradU);
+	// math.calcLeastSquare2nd(mesh, controls.V, controls.fV, gradV);
+	// math.calcLeastSquare2nd(mesh, controls.W, controls.fW, gradW);
 	
 	
 	
@@ -361,11 +361,14 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFaceWithVfMSTACS(
 	// calc gradient
 	SEMO_Utility_Math math;
 	
-	vector<vector<double>> gradVF;
+	vector<vector<double>> gradVF(mesh.cells.size(),vector<double>(9,0.0));
 	
-	// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	// math.calcGGLSQ(mesh, controls.VF[0], controls.fVF[0], gradVF);
-	math.calcLeastSquare2nd(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	{
+		// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
+		vector<double> dummyVec;
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+			controls.VF[0], controls.fVF[0], dummyVec, gradVF);
+	}
 	
 	
 

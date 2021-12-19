@@ -10,89 +10,7 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	){
 		
 	int rank = MPI::COMM_WORLD.Get_rank();
-	
-	// cout << endl;
-	// cout << "start" << endl;
-	
-	// vector<double> resiVar(5,0.0);
-	// vector<int> A_rows(5,0);
-	// vector<int> A_cols(5,0);
-	// vector<double> A_vals(5,0.0);
-	// vector<double> B(5,0.0);
-	
-	// if(rank==0){
-		// A_rows.resize(9);
-		// A_cols.resize(9);
-		// A_vals.resize(9);
-		// resiVar.resize(3);
-		// B.resize(3);
-		
-		// A_rows[0] = 0; A_cols[0] = 0; A_vals[0] = 7.0;
-		// A_rows[1] = 0; A_cols[1] = 2; A_vals[1] = 1.0;
-		// A_rows[2] = 0; A_cols[2] = 5; A_vals[2] = 2.0;
-		// A_rows[3] = 0; A_cols[3] = 6; A_vals[3] = 7.0;
-		// A_rows[4] = 1; A_cols[4] = 1; A_vals[4] = -4.0;
-		// A_rows[5] = 1; A_cols[5] = 2; A_vals[5] = 8.0;
-		// A_rows[6] = 1; A_cols[6] = 4; A_vals[6] = 2.0;
-		// A_rows[7] = 2; A_cols[7] = 2; A_vals[7] = 1.0;
-		// A_rows[8] = 2; A_cols[8] = 7; A_vals[8] = 5.0;
-		
-		// B[0] = 1.0;
-		// B[1] = 1.0;
-		// B[2] = 1.0;
-	// }
-	// else if(rank==1){
-		// A_rows.resize(3);
-		// A_cols.resize(3);
-		// A_vals.resize(3);
-		// resiVar.resize(2);
-		// B.resize(2);
-		
-		// A_rows[0] = 3; A_cols[0] = 3; A_vals[0] = 7.0;
-		// A_rows[1] = 3; A_cols[1] = 6; A_vals[1] = 9.0;
-		// A_rows[2] = 4; A_cols[2] = 1; A_vals[2] = -4.0;
-		
-		// B[0] = 1.0;
-		// B[1] = 1.0;
-	// }
-	// else if(rank==2){
-		// A_rows.resize(5);
-		// A_cols.resize(5);
-		// A_vals.resize(5);
-		// resiVar.resize(2);
-		// B.resize(2);
-		
-		// A_rows[0] = 5; A_cols[0] = 2; A_vals[0] = 7.0;
-		// A_rows[1] = 5; A_cols[1] = 5; A_vals[1] = 3.0;
-		// A_rows[2] = 5; A_cols[2] = 7; A_vals[2] = 8.0;
-		// A_rows[3] = 6; A_cols[3] = 1; A_vals[3] = 1.0;
-		// A_rows[4] = 6; A_cols[4] = 6; A_vals[4] = 11.0;
-		
-		// B[0] = 1.0;
-		// B[1] = 1.0;
-	// }
-	// else if(rank==3){
-		// A_rows.resize(3);
-		// A_cols.resize(3);
-		// A_vals.resize(3);
-		// resiVar.resize(1);
-		// B.resize(1);
-		
-		// A_rows[0] = 7; A_cols[0] = 2; A_vals[0] = -3.0;
-		// A_rows[1] = 7; A_cols[1] = 6; A_vals[1] = 2.0;
-		// A_rows[2] = 7; A_cols[2] = 7; A_vals[2] = 5.0;
-		
-		// B[0] = 1.0;
-	// }
-	
-	// solveAMGCL(mesh, resiVar, A_rows, A_cols, A_vals, B,
-		// 5, 20,
-		// "lgmres", 1.e-8, 1.e-6, "aa", 5);
-		
-	
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-	
+    int size = MPI::COMM_WORLD.Get_size();
 	
 	
 	
@@ -151,56 +69,29 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	}
 	
 	
+	// save old timesteps
+	controls.old2TimeStep = controls.oldTimeStep;
+	controls.oldTimeStep = controls.timeStep;
 	
-	this->calcIncomRealTimeStep(mesh, controls);
-	if(rank==0) {
-		cout << " | timeStep = " << controls.timeStep;
-	}
+	
+	
+	
 	double corantNum = -10.0;
-	this->calcCorantNumberForPrint(mesh, controls, corantNum);
-	if(rank==0) {
-		cout << " | corantNumber = " << corantNum << endl;
+	if(controls.adjustTimeStep == "yes"){
+		corantNum = this->calcTimeStepFromCorantNumber(mesh, controls, species);
 	}
+	else{
+		this->calcCorantNumberForPrint(mesh, controls, corantNum);
+	}
+	if(rank==0) cout << " | timeStep = " << controls.timeStep;
+	if(rank==0) cout << " | corantNumber = " << corantNum << endl;
 	
-	
-	
-	
-	
-	// controls.iterVof = 0;
-	// // controls.iterVofMax = 10;
-	// double saveTimeStep = controls.timeStep;
-	// controls.timeStep = 1.e-4;
-	// int iterVofMax = saveTimeStep / controls.timeStep;
-	// // while(controls.iterVof<controls.iterVofMax){
-	// while(controls.iterVof<iterVofMax){
-		// for(auto& cell : mesh.cells){
-			// for(int i=0; i<controls.nSp-1; ++i){
-				// cell.var[controls.oldVF[i]] = cell.var[controls.VF[i]];
-				// cell.var[controls.oldMF[i]] = cell.var[controls.MF[i]];
-			// }
-		// }
-		
-		// // this->setIncomValuesLeftRightFace(mesh, controls, species);
-		// // this->setIncomValuesLeftRightFaceWithReconPV(mesh, controls, species);
-		// this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
-		// // this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
-		
-		// double normVF = this->calcVolfracExplicitEq(mesh, controls);
-		
-		
-		// this->calcIncomCellEOSVF(mesh, controls, species);
-		// this->calcCellTransport(mesh, controls, species);
-		
-		// if(rank==0) {
-			// cout << "|  └ VOF step = " << controls.iterVof << " | " << normVF << endl;
-		// }
-		// cout.precision(3);
-		
-		// ++controls.iterVof;
-	// }
-	// controls.timeStep = saveTimeStep;
-	
-	
+
+	// save old timesteps
+	if( controls.iterReal == 0 ){
+		controls.oldTimeStep = controls.timeStep;
+		controls.old2TimeStep = controls.oldTimeStep;
+	}
 	
 	
 	
@@ -218,7 +109,7 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 			this->setIncomValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
 			// this->setCompValuesLeftRightFaceWithNVD(mesh, controls, species);
 			
-			norm[1] = this->calcVolfracEq(mesh, controls);
+			norm[1] = this->calcVolfracEq(mesh, controls, species);
 			
 			
 			this->calcIncomCellEOSVF(mesh, controls, species);
@@ -245,7 +136,10 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	// }
 	
 	
-	
+	this->setIncomValuesLeftRightFace(mesh, controls, species);
+	this->setCellVarMinMax(mesh, controls.VF[0], controls.maximumVF[0], controls.minimumVF[0]);
+	this->calcSourceGravity(mesh, controls, species);
+	this->calcSourceSurfaceTension(mesh, controls, species);
 
 	
 	controls.iterPBs = 0;
@@ -315,12 +209,10 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 			// if(rank==0) cout << "|========== pressure" << endl;
 			
 			this->setIncomValuesLeftRightFace(mesh, controls, species);
-			norm[1] = this->calcPressureEq(mesh, controls, 2);
+			norm[1] = this->calcPressureEq(mesh, controls, species, 1);
 			
 			++controls.iterPre;
 		}
-		
-		
 		
 		
 		// // coupled
@@ -503,17 +395,17 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 		++controls.iterPBs;
 		
 
-		if(controls.saveControl == "pseudoTimeStep"){
-			if(controls.iterPseudo % controls.saveInterval == 0){
-				SEMO_Mesh_Save save;
+		// if(controls.saveControl == "pseudoTimeStep"){
+			// if(controls.iterPseudo % controls.saveInterval == 0){
+				// SEMO_Mesh_Save save;
 				
-				string foldername;
-				std::ostringstream streamObj;
-				streamObj << controls.iterPseudo;
-				foldername = "./save/" + streamObj.str() + "/";
-				save.vtu(foldername, mesh, controls, species);
-			}
-		}
+				// string foldername;
+				// std::ostringstream streamObj;
+				// streamObj << controls.iterPseudo;
+				// foldername = "./save/" + streamObj.str() + "/";
+				// save.vtu(foldername, mesh, controls, species);
+			// }
+		// }
 		
 		
 		++controls.iterTotal;
@@ -522,7 +414,7 @@ void SEMO_Solvers_Builder::incompressiblePressureBased(
 	
 	
 	
-	
+	// this->saveSurfaceNormalVelocity(mesh, controls, species);
 	
 	
 	

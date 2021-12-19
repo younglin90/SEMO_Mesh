@@ -3,11 +3,8 @@
 //============================================
 initialField
 {
-	type			cylinderToCell;
-	defaultValue	1.0;
-	points	(0.5 0.5 -1.0) (0.5 0.5 1.0);
-	radius 		0.25
-	cylinderValue	0.0;
+	type	fixedValue;
+	value	1.0;
 }
 
 
@@ -17,7 +14,7 @@ boundaryField
 	suboutlet
 	{
 		type	inletOutlet;
-		value	1.0;
+		value	0.0;
 	}
 
 	invwall

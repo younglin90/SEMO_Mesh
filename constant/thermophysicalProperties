@@ -5,15 +5,11 @@ water
 {
 	thermodynamics
 	{
-                rho
-                {
-                        type = NASG
-                        Pinf = 621780000.0
-                        cv = 3610.0
-                        gamma = 1.19
-                        b = 6.7212e-4
-                        q = -1177788.0
-                }
+		rho
+		{
+			type = const
+			value = 998.0			
+		}
 	}
 	
 	transport
@@ -21,12 +17,12 @@ water
 		mu
 		{
 			type = const
-			value = 10.0
+			value = 0.001
 		}
 		sigma
 		{
 			type = const
-			value = 1.96
+			value = 0.0728
 		}
 	}
 }
@@ -35,16 +31,11 @@ air
 {
 	thermodynamics
 	{
-                rho
-                {
-                        type = NASG
-                        Pinf = 0.0
-                        cv = 717.0
-                        gamma = 1.4
-                        b = 0.0
-                        q = 0.0
-                }
-		
+		rho
+		{
+			type = const
+			value = 1.2
+		}
 	}
 	
 	transport
@@ -52,7 +43,7 @@ air
 		mu
 		{
 			type = const
-			value = 0.1
+			value = 1.e-5
 		}
 
 		sigma

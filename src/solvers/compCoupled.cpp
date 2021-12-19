@@ -59,6 +59,12 @@ void SEMO_Solvers_Builder::compressibleCoupled(
 	
 	
 	
+
+	// save old timesteps
+	controls.old2TimeStep = controls.oldTimeStep;
+	controls.oldTimeStep = controls.timeStep;
+	
+	
 	//===================================================
 	double corantNum = -10.0;
 	if(controls.adjustTimeStep == "yes"){
@@ -69,6 +75,15 @@ void SEMO_Solvers_Builder::compressibleCoupled(
 	}
 	if(rank==0) cout << " | timeStep = " << controls.timeStep;
 	if(rank==0) cout << " | corantNumber = " << corantNum << endl;
+	
+	
+
+	// save old timesteps
+	if( controls.iterReal == 0 ){
+		controls.oldTimeStep = controls.timeStep;
+		controls.old2TimeStep = controls.oldTimeStep;
+	}
+	
 	
 	vector<double> norm(2,0.0);
 	

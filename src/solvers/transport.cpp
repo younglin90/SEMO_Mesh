@@ -79,6 +79,7 @@ void SEMO_Solvers_Builder::calcCellTransport(
 	}
 	//========================
 		
+	// cout << "BBBBBBBBBBB" << endl;
 	
 	for(int i=0; i<mesh.cells.size(); ++i){
 		auto& cell = mesh.cells[i];

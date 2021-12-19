@@ -7,7 +7,7 @@
 void SEMO_Controls_Builder::readSpecies(vector<SEMO_Species>& species){
 	
 	
-	SEMO_Utility_Read read;
+	SEMO_Mesh_Load read;
 
 
 	// thermophysicalProperties
@@ -87,7 +87,7 @@ void SEMO_Controls_Builder::readSpecies(vector<SEMO_Species>& species){
 void SEMO_Controls_Builder::readConfigures(){
 	
 	
-	SEMO_Utility_Read read;
+	SEMO_Mesh_Load read;
 
 	vector<string> tmp;
 	
@@ -128,20 +128,109 @@ void SEMO_Controls_Builder::readConfigures(){
 	this->timeStep = stod(controlDict["timeStep"]);
 	this->orgTimeStep = this->timeStep;
 	this->saveInterval = stod(controlDict["saveInterval"]);
+	this->saveCompression = stoi(controlDict["saveCompression"]);
+	// this->saveCompression = controlDict["saveCompression"];
 	this->saveControl = controlDict["saveControl"];
 	this->saveFormat = controlDict["saveFormat"];
-	this->saveCompression = controlDict["saveCompression"];
 	this->timeFormat = controlDict["timeFormat"];
 	this->adjustTimeStep = controlDict["adjustTimeStep"];
 	this->maxCo = stod(controlDict["maxCo"]);
 	this->maxVfCo = stod(controlDict["maxVfCo"]);
 	this->maxTimeStep = stod(controlDict["maxTimeStep"]);
 	this->writePrecision = stoi(controlDict["writePrecision"]);
+	
+	
+	tmp.clear();
+	read.vecters(controlDict["saveMeshData"], tmp);
+	for(int i=0; i<tmp.size(); ++i){
+		this->saveMeshData.insert(make_pair(tmp[i], true));
+	}
+	tmp.clear();
+	read.vecters(controlDict["saveGradientData"], tmp);
+	for(int i=0; i<tmp.size(); ++i){
+		this->saveGradientData.insert(make_pair(tmp[i], true));
+	}
+	tmp.clear();
+	read.vecters(controlDict["saveThermodynamicData"], tmp);
+	for(int i=0; i<tmp.size(); ++i){
+		this->saveThermodynamicData.insert(make_pair(tmp[i], true));
+	}
+	tmp.clear();
+	read.vecters(controlDict["saveBodyForceData"], tmp);
+	for(int i=0; i<tmp.size(); ++i){
+		this->saveBodyForceData.insert(make_pair(tmp[i], true));
+	}
+	
+	
+	// 데이터 추출
+	map<string,string> extractData;
+	read.file("./system/extractDatasOverTime",extractData);
+	
+	// 필드 데이터 추출
+	vector<string> extFieldDatas;
+	read.vecters(extractData["fieldDatas"], extFieldDatas);
+	if(extFieldDatas[0].empty()){
+		extFieldDatas.clear();
+	}
+	for(int i=0; i<extFieldDatas.size(); ++i){
+		this->extractFieldDatas.push_back(extFieldDatas[i]);
+	}
+	
+	// 평균 데이터 추출
+	vector<string> extAverageDatas;
+	read.vecters(extractData["averageDatas"], extAverageDatas);
+	if(extAverageDatas[0].empty()){
+		extAverageDatas.clear();
+	}
+	for(int i=0; i<extAverageDatas.size(); ++i){
+		this->extractAverageDatas.push_back(extAverageDatas[i]);
+	}
+	
+	// 셀 데이터 추출
+	vector<string> extNames;
+	read.vecters(extractData["cellDataNames"], extNames);
+	vector<string> extCellValueTargets;
+	read.vecters(extractData["cellDataTargets"], extCellValueTargets);
+	
+	// if(extNames.size() != extCellValueTargets.size()){
+		// cout << "| WARNING : extNames.size() != extCellValueTargets.size()" << endl;
+	// }
+	
+	if(extNames[0].empty()){
+		extNames.clear();
+	}
+	// cout << extNames.size() << endl;
+
+	for(int i=0; i<extCellValueTargets.size(); ++i){
+		this->extractCellValueTargets.push_back(extCellValueTargets[i]);
+	}
+	
+	for(int i=0; i<extNames.size(); ++i){
+		map<string,string> tmp2;
+		read.file("./system/extractDatasOverTime", extNames[i], tmp2);
+		this->extractNames.push_back(extNames[i]);
+		// this->extractCellValueTargets.insert(make_pair(extCellValueTargets[i], true));
+		
+		// cout << this->extractCellValueTargets.size() << endl;
+		
+		vector<string> tmp3;
+		read.vecters(tmp2["center"], tmp3);
+		vector<double> xyz(3,0.0);
+	// cout <<  extNames[i] << " " << tmp2["center"] << " " << tmp2["radius"] << endl;
+		xyz[0] = stod(tmp3[0]); xyz[1] = stod(tmp3[1]); xyz[2] = stod(tmp3[2]);
+	// cout << "BBBBBBBB" << endl;
+		this->extractCenterPoints.push_back(xyz);
+		tmp3.clear();
+		read.vecters(tmp2["radius"], tmp3);
+		this->extractRadii.push_back(stod(tmp3[0]));
+	}
+	
 
 
 	// gravity acceleration
 	map<string,string> gravity;
 	read.file("./constant/g",gravity);
+	tmp.clear();
 	read.vecters(gravity["value"], tmp);
 	for(int i=0; i<tmp.size(); ++i){
 		this->gravityAcceleration.push_back(stod(tmp[i]));
@@ -473,10 +562,22 @@ void SEMO_Controls_Builder::readConfigures(){
 		dynamicMesh_Refine);
 		
 	this->intervalRefine = stoi(dynamicMesh_Refine["interval"]);
-	this->indicatorRefine = stod(dynamicMesh_Refine["indicator"]);
+	// this->indicatorRefine = stod(dynamicMesh_Refine["indicator"]);
 	this->maxLevelRefine = stoi(dynamicMesh_Refine["maxLevel"]);
 	this->maxCellsRefine = stoi(dynamicMesh_Refine["maxCells"]);
 	this->minVolumeRefine = stod(dynamicMesh_Refine["minVolume"]);
+		
+	vector<string> tmpCriterion;
+	read.vecters(dynamicMesh_Refine["indicator"], tmpCriterion);
+	if(tmpCriterion.size() != this->maxLevelRefine){
+		cout << "| indicatorCriterion != maxLevel" << endl;
+	}
+	this->indicatorCriterion.resize(tmpCriterion.size(),0.0);
+	for(int i=0; i<tmpCriterion.size(); ++i){
+		this->indicatorCriterion[i] = stod(tmpCriterion[i]);
+	}
+	
+	this->bufferLayer = stoi(dynamicMesh_Refine["bufferLayer"]);
 		
 	map<string,string> dynamicMesh_Unrefine;
 	read.file("./system/dynamicMesh", 
@@ -484,7 +585,7 @@ void SEMO_Controls_Builder::readConfigures(){
 		dynamicMesh_Unrefine);
 		
 	this->intervalUnrefine = stoi(dynamicMesh_Unrefine["interval"]);
-	this->indicatorUnrefine = stod(dynamicMesh_Unrefine["indicator"]);
+	// this->indicatorUnrefine = stod(dynamicMesh_Unrefine["indicator"]);
 
 	//===========================
 
@@ -564,14 +665,14 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	
 	for(int i=0; i<this->nSp; ++i){
 		this->VF.push_back(this->nTotalCellVar++);
-		string name = "volume-fraction-" + species[i].name;
-		this->name.push_back(name);
+		string name_tmp = "volume-fraction-" + species[i].name;
+		this->name.push_back(name_tmp);
 	}
 	
 	for(int i=0; i<this->nSp; ++i){
 		this->MF.push_back(this->nTotalCellVar++);
-		string name = "mass-fraction-" + species[i].name;
-		this->name.push_back(name);
+		string name_tmp = "mass-fraction-" + species[i].name;
+		this->name.push_back(name_tmp);
 	}
 
 
@@ -598,18 +699,24 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	
 	for(int i=0; i<this->nSp; ++i){
 		this->dRhoDVF.push_back(this->nTotalCellVar++);
-		this->name.push_back("dRhoDVF");
-	
+		string name_tmp = "dRhoDVF-" + species[i].name;
+		this->name.push_back(name_tmp);
+	}
+	for(int i=0; i<this->nSp; ++i){
 		this->dHtDVF.push_back(this->nTotalCellVar++);
-		this->name.push_back("dHtDVF");
+		string name_tmp = "dHtDVF-" + species[i].name;
+		this->name.push_back(name_tmp);
 	
 	}
 	for(int i=0; i<this->nSp; ++i){
 		this->dRhoDMF.push_back(this->nTotalCellVar++);
-		this->name.push_back("dRhoDMF");
-	
+		string name_tmp = "dRhoDMF-" + species[i].name;
+		this->name.push_back(name_tmp);
+	}
+	for(int i=0; i<this->nSp; ++i){
 		this->dHtDMF.push_back(this->nTotalCellVar++);
-		this->name.push_back("dHtDMF");
+		string name_tmp = "dHtDMF-" + species[i].name;
+		this->name.push_back(name_tmp);
 	
 	}
 	
@@ -618,9 +725,13 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	// }
 	for(int i=0; i<this->nEq+2; ++i){
 		this->Qn.push_back(this->nTotalCellVar++);
+		string name_tmp = "Qn-" + to_string(i);
+		this->name.push_back(name_tmp);
 	}
 	for(int i=0; i<this->nEq+2; ++i){
 		this->Qm.push_back(this->nTotalCellVar++);
+		string name_tmp = "Qm-" + to_string(i);
+		this->name.push_back(name_tmp);
 	}
 
 	this->oldP = this->nTotalCellVar++;
@@ -640,16 +751,16 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	
 	for(int i=0; i<this->nSp-1; ++i){
 		this->oldVF.push_back(this->nTotalCellVar++);
-		string name = "volume-fraction-" + species[i].name;
-		name.append("-old");
-		this->name.push_back(name);
+		string name_tmp = "volume-fraction-" + species[i].name;
+		name_tmp.append("-old");
+		this->name.push_back(name_tmp);
 	}
 	
 	for(int i=0; i<this->nSp-1; ++i){
 		this->oldMF.push_back(this->nTotalCellVar++);
-		string name = "mass-fraction-" + species[i].name;
-		name.append("-old");
-		this->name.push_back(name);
+		string name_tmp = "mass-fraction-" + species[i].name;
+		name_tmp.append("-old");
+		this->name.push_back(name_tmp);
 	}
 	
 	// cout << "AAAAAAAAAA" << endl;
@@ -681,10 +792,10 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->muEffective = this->nTotalCellVar++;
 	this->name.push_back("effective-viscosity");
 	
-	this->kappa = this->nTotalCellVar++;
+	this->k = this->nTotalCellVar++;
 	this->name.push_back("thermal-conductivity");
 	
-	this->kappaEffective = this->nTotalCellVar++;
+	this->kEffective = this->nTotalCellVar++;
 	this->name.push_back("conductivity");
 	
 	this->D = this->nTotalCellVar++;
@@ -708,16 +819,88 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	// this->invRCM = this->nTotalCellVar++;
 	// this->name.push_back("invRCM");
 	
+	this->kappa = this->nTotalCellVar++;
+	this->name.push_back("curvature");
+	
+	
+	{
+		this->sourceGravity.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceGravity-x-momentum");
+		this->sourceGravity.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceGravity-y-momentum");
+		this->sourceGravity.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceGravity-z-momentum");
+		this->sourceGravity.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceGravity-energy");
+	}
+	{
+		this->sourceSurfaceTension.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceSurfaceTension-x-momentum");
+		this->sourceSurfaceTension.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceSurfaceTension-y-momentum");
+		this->sourceSurfaceTension.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceSurfaceTension-z-momentum");
+		this->sourceSurfaceTension.push_back(this->nTotalCellVar++);
+		this->name.push_back("sourceSurfaceTension-energy");
+	}
+	
+	{
+		this->maximumP = this->nTotalCellVar++;
+		this->name.push_back("maximum-P");
+		this->minimumP = this->nTotalCellVar++;
+		this->name.push_back("minimum-P");
+		this->maximumU = this->nTotalCellVar++;
+		this->name.push_back("maximum-U");
+		this->minimumU = this->nTotalCellVar++;
+		this->name.push_back("minimum-U");
+		this->maximumV = this->nTotalCellVar++;
+		this->name.push_back("maximum-V");
+		this->minimumV = this->nTotalCellVar++;
+		this->name.push_back("minimum-V");
+		this->maximumW = this->nTotalCellVar++;
+		this->name.push_back("maximum-W");
+		this->minimumW = this->nTotalCellVar++;
+		this->name.push_back("minimum-W");
+		this->maximumT = this->nTotalCellVar++;
+		this->name.push_back("maximum-T");
+		this->minimumT = this->nTotalCellVar++;
+		this->name.push_back("minimum-T");
+		for(int i=0; i<this->nSp-1; ++i){
+			this->maximumVF.push_back(this->nTotalCellVar++);
+			string name_tmp = "maximum-volume-fraction-" + species[i].name;
+			this->name.push_back(name_tmp);
+		}
+		for(int i=0; i<this->nSp-1; ++i){
+			this->minimumVF.push_back(this->nTotalCellVar++);
+			string name_tmp = "minimum-volume-fraction-" + species[i].name;
+			this->name.push_back(name_tmp);
+		}
+		
+		for(int i=0; i<this->nSp-1; ++i){
+			this->maximumMF.push_back(this->nTotalCellVar++);
+			string name_tmp = "maximum-mass-fraction-" + species[i].name;
+			this->name.push_back(name_tmp);
+		}
+		for(int i=0; i<this->nSp-1; ++i){
+			this->minimumMF.push_back(this->nTotalCellVar++);
+			string name_tmp = "minimum-mass-fraction-" + species[i].name;
+			this->name.push_back(name_tmp);
+		}
+	}
+	
 	
 	this->indicatorAMR.push_back(this->nTotalCellVar++);
 	this->name.push_back("indicatorAMR");
 	
+	this->UDV.clear();
 	this->UDV.push_back(this->nTotalCellVar++);
 	this->name.push_back("UDV0");
-	this->UDV.push_back(this->nTotalCellVar++);
+	this->UDV.push_back(this->nTotalCellVar++); 
 	this->name.push_back("UDV1");
 	this->UDV.push_back(this->nTotalCellVar++);
 	this->name.push_back("UDV2");
+	this->UDV.push_back(this->nTotalCellVar++);
+	this->name.push_back("UDV3");
 	
 	
 
@@ -757,6 +940,7 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->fRho_HO = this->nTotalFaceLRVar++;
 	this->fHt_HO = this->nTotalFaceLRVar++;
 	
+	this->fVF_NVD = this->nTotalFaceLRVar++;
 	
 	
 	// face var

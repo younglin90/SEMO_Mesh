@@ -52,10 +52,10 @@ solvers
 
 PIMPLE
 {
-	nCorrectors = 3
+	nCorrectors = 6
 	nMomentumEq = 1
 	nPressureEq = 1
-	nSpeciesEq = 2
+	nSpeciesEq = 6
 }
  
 relaxationFactors
@@ -64,7 +64,7 @@ relaxationFactors
     {
 		U
 		{
-			default = 0.5
+			default = 0.3
 			adjustRF = no
 			adjustSteps = (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.1)
@@ -75,7 +75,7 @@ relaxationFactors
     {
 		P
 		{
-			default = 0.9
+			default = 0.3
 			adjustRF = no
 			adjustSteps 1 (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.3)
@@ -83,7 +83,7 @@ relaxationFactors
 		
 		U
 		{
-			default = 0.9
+			default = 0.3
 			adjustRF = no
 			adjustSteps = (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.1)
@@ -94,7 +94,7 @@ relaxationFactors
     {
 		VF
 		{
-			default = 0.9
+			default = 0.3
 			adjustRF = no
 			adjustSteps = (0 3 7 16)
 			adjustValues = (0.01 0.05 0.1 0.3)
@@ -151,18 +151,18 @@ relaxationFactorsDualTime
 
 limiter
 {
-    maxP = 1.e15
-    minP = 1.e-1
+    maxP = 1.e8
+    minP = 1.e-5
 	
-    maxU = 1.e15
-    minU = -1.e15
+    maxU = 1.e5
+    minU = -1.e5
 	
-    maxV = 1.e15
-    minV = -1.e15
+    maxV = 1.e5
+    minV = -1.e5
 	
-    maxW = 1.e15
-    minW = -1.e15
+    maxW = 1.e5
+    minW = -1.e5
 	
-    maxT = 1.e8
-    minT = 1.e-5
+    maxT = 8500.0
+    minT = 0.1
 }

@@ -593,7 +593,7 @@ void SEMO_Solvers_Builder::solveAMGCL(
 			// amgcl::mpi::amg<
 			// SBackend,
 			// amgcl::mpi::coarsening::smoothed_aggregation<SBackend>,
-			// amgcl::mpi::relaxation::spai0<SBackend>   //gauss_seidel, ilu0, iluk, ilup, spai1
+			// amgcl::mpi::relaxation::iluk<SBackend>   //gauss_seidel, ilu0, iluk, ilup, spai1
 			// >,
 			// amgcl::mpi::solver::bicgstab<SBackend>
 			amgcl::mpi::solver::fgmres<SBackend>
@@ -613,7 +613,7 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		
 		// prm.precond.coarsening.over_interp = 1.0;
 		
-		prm.precond.k = 1;
+		prm.precond.k = 0;
 		prm.precond.damping = 3.0;
 		// prm.precond.relax.k = 2;
 		// prm.solver.K = 5;
@@ -879,11 +879,8 @@ void SEMO_Solvers_Builder::solveAMGCL(
 	else if(equation == "volume_fraction"){
 		
 		typedef amgcl::mpi::make_solver<
-			// amgcl::mpi::block_preconditioner<
-				// amgcl::relaxation::as_preconditioner<
-					// SBackend, 
-					// amgcl::relaxation::spai0
-				// >
+			// amgcl::mpi::relaxation::as_preconditioner<
+			// amgcl::mpi::relaxation::ilu0<SBackend>   //gauss_seidel, ilu0, iluk, ilup, spai1
 			// >,
 			amgcl::mpi::amg<
 			SBackend,
@@ -894,8 +891,8 @@ void SEMO_Solvers_Builder::solveAMGCL(
 			// amgcl::mpi::solver::bicgstab<SBackend>
 			// amgcl::mpi::solver::idrs<SBackend>
 			// amgcl::mpi::solver::preonly<SBackend>
-			// amgcl::mpi::solver::fgmres<SBackend>
-			amgcl::mpi::solver::lgmres<SBackend>
+			amgcl::mpi::solver::fgmres<SBackend>
+			// amgcl::mpi::solver::lgmres<SBackend>
 		> Solver; 
 		Solver::params prm;
 
@@ -906,13 +903,14 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		// prm.precond.ncycle = 1;
 		// prm.precond.relax.k = 2;
 		// // prm.precond.max_levels = 40;
-		prm.precond.coarsening.over_interp = 1.0;
-		prm.solver.K = 4;
-		prm.solver.M = 35;
+		prm.precond.coarsening.over_interp = 1.8;
+		// prm.solver.K = 4;
+		// prm.solver.M = 35;
 		prm.solver.tol = 1e-9;
-		prm.solver.maxiter = 100;
+		// prm.solver.relTol = 1.e-200;
+		prm.solver.maxiter = 1000;
 		
-		prm.solver.ns_search = true;
+		// prm.solver.ns_search = true;
 		// prm.solver.verbose = false;
 		// if(world.rank == 0) prm.solver.verbose = true;
 		// prm.solver.maxiter = 50;
@@ -940,16 +938,13 @@ void SEMO_Solvers_Builder::solveAMGCL(
 	else if(equation == "pressure"){
 		
 		typedef amgcl::mpi::make_solver<
-			// amgcl::mpi::block_preconditioner<
-				// amgcl::relaxation::as_preconditioner<
-					// SBackend, 
-					// amgcl::relaxation::spai0
-				// >
+			// amgcl::mpi::relaxation::as_preconditioner<
+			// amgcl::mpi::relaxation::ilu0<SBackend>   //gauss_seidel, ilu0, iluk, ilup, spai1
 			// >,
 			amgcl::mpi::amg<
 			SBackend,
-			// amgcl::mpi::coarsening::smoothed_aggregation<SBackend>,
-			amgcl::mpi::coarsening::aggregation<SBackend>,
+			amgcl::mpi::coarsening::smoothed_aggregation<SBackend>,
+			// amgcl::mpi::coarsening::aggregation<SBackend>,
 			amgcl::mpi::relaxation::ilu0<SBackend>   //gauss_seidel, ilu0, iluk, ilup, spai1
 			>,
 			// amgcl::mpi::solver::bicgstab<SBackend>
@@ -960,20 +955,19 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		> Solver; 
 		Solver::params prm;
 
-		prm.precond.npre = 1;
-		prm.precond.npost = 5;
-		prm.precond.coarsening.over_interp = 1.0;
+		// prm.precond.relax.k = 2;
+		// prm.precond.npre = 1;
+		// prm.precond.npost = 3;
+		// prm.precond.coarsening.over_interp = 1.2;
 		// prm.precond.coarsening.relax = 0.7;
 
-		prm.solver.maxiter = 100;
-		
-		prm.solver.ns_search = true;
+		// prm.solver.ns_search = true;
 		// prm.solver.verbose = false;
 		// if(world.rank == 0) prm.solver.verbose = true;
-		// prm.solver.maxiter = 50;
-		prm.solver.tol = 1e-9;
+		prm.solver.tol = 1e-7;
 		// prm.solver.replacement = true;
-		prm.solver.smoothing = true;
+		prm.solver.maxiter = 500;
+		// prm.solver.smoothing = true;
 		
 
 		
@@ -1202,6 +1196,9 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		     world, std::tie(chunk, ptr, col, val));
 
 	typedef amgcl::mpi::make_solver<
+		// amgcl::mpi::relaxation::as_preconditioner<
+		// amgcl::mpi::relaxation::ilu0<SBackend>   //gauss_seidel, ilu0, iluk, ilup, spai1
+		// >,
 		amgcl::mpi::amg<
 		SBackend,
 		// amgcl::mpi::coarsening::smoothed_aggregation<SBackend>,
@@ -1211,8 +1208,8 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		// amgcl::mpi::solver::bicgstab<SBackend>
 		// amgcl::mpi::solver::idrs<SBackend>
 		// amgcl::mpi::solver::preonly<SBackend>
-		amgcl::mpi::solver::lgmres<SBackend>
-		// amgcl::mpi::solver::fgmres<SBackend>
+		// amgcl::mpi::solver::lgmres<SBackend>
+		amgcl::mpi::solver::fgmres<SBackend>
 	> Solver; 
 	Solver::params prm;
 	
@@ -1224,11 +1221,11 @@ void SEMO_Solvers_Builder::solveAMGCL(
 	prm.precond.coarsening.over_interp = 1.0;
 	// prm.precond.coarsening.relax = 0.7;
 
-	prm.solver.maxiter = 100;
-	prm.solver.K = 4;
-	prm.solver.M = 35;
+	// prm.solver.K = 4;
+	// prm.solver.M = 35;
 	// prm.solver.ns_search = true;
 	prm.solver.tol = 1e-9;
+	prm.solver.maxiter = 1000;
 	// prm.solver.replacement = true;
 	// prm.solver.smoothing = true;
 	

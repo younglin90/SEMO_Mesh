@@ -230,13 +230,14 @@ void SEMO_Solvers_Builder::calcCorantNumberForPrint(
 			sqrt(pow(controls.gravityAcceleration[0],2.0) +
                  pow(controls.gravityAcceleration[1],2.0) +
                  pow(controls.gravityAcceleration[2],2.0));
-		double gravTime = sqrt( pow(cell.volume,0.333) / (gravMag+1.e-200) );
+		double gravTime = sqrt( sqrt(minA) / (gravMag+1.e-200) );
 		minDt = min(minDt,gravTime);
 		
 		
 		double surfTensCoeff = 0.0728;
 		double surfTensTime = 
-			pow(pow(cell.volume,0.333),1.5)*sqrt(1001/(4.0*3.14*surfTensCoeff));
+			// pow(pow(cell.volume,0.333),1.5)*sqrt(1001.0/(4.0*3.14*surfTensCoeff));
+			sqrt(pow(minA,1.5)*(1000.0+1.2)/(4.0*3.141592*surfTensCoeff));
 		minDt = min(minDt,surfTensTime);
 		
 	}
@@ -291,13 +292,14 @@ double SEMO_Solvers_Builder::calcTimeStepFromCorantNumber(
 			sqrt(pow(controls.gravityAcceleration[0],2.0) +
                  pow(controls.gravityAcceleration[1],2.0) +
                  pow(controls.gravityAcceleration[2],2.0));
-		double gravTime = sqrt( pow(cell.volume,0.333) / (gravMag+1.e-200) );
+		double gravTime = sqrt( sqrt(minA) / (gravMag+1.e-200) );
 		minDt = min(minDt,gravTime);
 		
 		
 		double surfTensCoeff = species[0].sigma;
 		double surfTensTime = 
-			pow(pow(cell.volume,0.333),1.5)*sqrt(1001.0/(4.0*3.14*surfTensCoeff));
+			// pow(pow(cell.volume,0.333),1.5)*sqrt(1001.0/(4.0*3.14*surfTensCoeff));
+			sqrt(pow(minA,1.5)*(1000.0+1.2)/(4.0*3.141592*surfTensCoeff));
 		minDt = min(minDt,surfTensTime);
 		
 	}
@@ -310,7 +312,12 @@ double SEMO_Solvers_Builder::calcTimeStepFromCorantNumber(
 	
 	controls.timeStep = corantNum * minDtReduced;
 	
-	if(controls.timeStep>controls.maxTimeStep) controls.timeStep = controls.maxTimeStep;
+	double corantNum_out = corantNum;
+	
+	if(controls.timeStep>controls.maxTimeStep) {
+		corantNum_out = corantNum * controls.maxTimeStep/controls.timeStep;
+		controls.timeStep = controls.maxTimeStep;
+	}
 
-	return corantNum;
+	return corantNum_out;
 }

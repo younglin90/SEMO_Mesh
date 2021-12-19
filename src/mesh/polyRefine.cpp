@@ -632,6 +632,15 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
+	int beforeCellSize = mesh.cells.size();
+	int beforeFaceSize = mesh.faces.size();
+	int beforePointSize = mesh.points.size();
+	int afterCellSize = 0;
+	int afterFaceSize = 0;
+	int afterPointSize = 0;
+	
+	
+	
 	// for(int i=0; i<mesh.faces.size(); ++i){
 		// if(mesh.faces[i].getType() == SEMO_Types::PROCESSOR_FACE){
 			// for(auto& j : mesh.faces[i].points){
@@ -659,8 +668,10 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
-	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
-	if(rank==0) cout << "| execute AMR - Refine " << endl;
+	if(rank==0){
+		// cout << "┌────────────────────────────────────────────────────" << endl;
+		// cout << "| execute AMR - Refine " << endl;
+	}
 	
 	SEMO_Mesh_Geometric geometric;
 	
@@ -694,7 +705,7 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	int maxLevel_AMR = controls.maxLevelRefine;
-	double indicatorRefine_AMR = controls.indicatorRefine;
+	// double indicatorRefine_AMR = controls.indicatorRefine;
 	double minVolume_AMR = controls.minVolumeRefine;
 	int maxCells_AMR = controls.maxCellsRefine;
 	
@@ -707,8 +718,17 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 				// boolCellRefine[i] = true;
 			// }
 
-			if(mesh.cells[i].var[controls.indicatorAMR[0]] > indicatorRefine_AMR) 
-				boolCellRefine[i] = true;
+			// if(mesh.cells[i].var[controls.indicatorAMR[0]] > indicatorRefine_AMR) 
+				// boolCellRefine[i] = true;
+			
+			for(int level=0; level<controls.indicatorCriterion.size(); ++level){
+				double indicatorRefine_AMR = controls.indicatorCriterion[level];
+				if( mesh.cells[i].level < level+1 ){
+					if( mesh.cells[i].var[controls.indicatorAMR[0]] > indicatorRefine_AMR ){
+						boolCellRefine[i] = true;
+					}
+				}					
+			}
 			
 			
 			if(mesh.cells[i].volume < minVolume_AMR) boolCellRefine[i] = false;
@@ -1900,9 +1920,9 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
 		
-		// face.var.resize(controls.nTotalFaceVar,0.0);
-		// face.varL.resize(controls.nTotalFaceLRVar,0.0);
-		// face.varR.resize(controls.nTotalFaceLRVar,0.0);
+		face.var.resize(controls.nTotalFaceVar,0.0);
+		face.varL.resize(controls.nTotalFaceLRVar,0.0);
+		face.varR.resize(controls.nTotalFaceLRVar,0.0);
 		
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
@@ -1948,10 +1968,30 @@ void SEMO_Poly_AMR_Builder::polyRefine(
 	
 	
 	
+	afterCellSize = mesh.cells.size();
+	afterFaceSize = mesh.faces.size();
+	afterPointSize = mesh.points.size();
+	
+	int addedCellSize = afterCellSize - beforeCellSize;
+	int addedFaceSize = afterFaceSize - beforeFaceSize;
+	int addedPointSize = afterPointSize - beforePointSize;
+	
+	int addedCellSize_glb, addedFaceSize_glb, addedPointSize_glb;
+	MPI_Allreduce(&addedCellSize, &addedCellSize_glb, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&addedFaceSize, &addedFaceSize_glb, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&addedPointSize, &addedPointSize_glb, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	
+	
 	
 	if(rank==0){
-		cout << "| AMR - Refine completed" << endl;
-		cout << "└────────────────────────────────────────────────────" << endl;
+		
+		cout << 
+		" | refined added cell size = " << addedCellSize_glb <<
+		" | refined added face size = " << addedFaceSize_glb <<
+		" | refined added point size = " << addedPointSize_glb << endl;
+		
+		// cout << "| AMR - Refine completed" << endl;
+		// cout << "└────────────────────────────────────────────────────" << endl;
 	}
 	
 	

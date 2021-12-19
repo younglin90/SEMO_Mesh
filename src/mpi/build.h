@@ -64,7 +64,26 @@ class SEMO_MPI_Builder{
 			vector<double>& sendValues, vector<double>& recvValues,
 			vector<int>& sendCounts, vector<int>& recvCounts, 
 			vector<int>& sendDisps, vector<int>& recvDisps);
+			
+
+		void sendRecvTemporaryData(
+			SEMO_Mesh_Builder& mesh,
+			vector<double>& sendValues, vector<double>& recvValues);
+
+		void sendRecvTemporaryVectorData(
+			SEMO_Mesh_Builder& mesh,
+			vector<vector<double>>& sendValues, vector<vector<double>>& recvValues);
+			
+		void sendRecvTemporaryCellData(
+			SEMO_Mesh_Builder& mesh,
+			int& cnum,
+			vector<double>& recvValues);
 		
+		void sendRecvTemporaryCellVectorData(
+			SEMO_Mesh_Builder& mesh,
+			vector<int>& cnum,
+			vector<vector<double>>& recvValues);
+	
 		// void setProcsFaceDatas(
 			// vector<bool>& sendValues, vector<bool>& recvValues,
 			// vector<int>& sendCounts, vector<int>& recvCounts, 

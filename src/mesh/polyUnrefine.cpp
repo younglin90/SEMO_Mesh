@@ -506,6 +506,21 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	int rank = MPI::COMM_WORLD.Get_rank();
 	int size = MPI::COMM_WORLD.Get_size();
 	
+	
+	
+
+	
+	
+	int beforeCellSize = mesh.cells.size();
+	int beforeFaceSize = mesh.faces.size();
+	int beforePointSize = mesh.points.size();
+	int afterCellSize = 0;
+	int afterFaceSize = 0;
+	int afterPointSize = 0;
+	
+	
+	
+	
 	int proc_num = 0;
 	
 	// cout << rank << " CCCCC " << mesh.cells.size() << endl;
@@ -531,8 +546,11 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
-	if(rank==0) cout << "┌────────────────────────────────────────────────────" << endl;
-	if(rank==0) cout << "| execute AMR - Unrefine " << endl;
+	
+	if(rank==0){
+		// cout << "┌────────────────────────────────────────────────────" << endl;
+		// cout << "| execute AMR - Unrefine " << endl;
+	}
 	
 	// MPI_Barrier(MPI_COMM_WORLD);
 	// cout << rank << " : 0-0" << endl;
@@ -565,7 +583,7 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// }
 	
 	
-	double indicatorUnrefine_AMR = controls.indicatorUnrefine;
+	// double indicatorUnrefine_AMR = controls.indicatorUnrefine;
 	
 	vector<bool> boolCellUnrefine(mesh.cells.size(),false);
 	for(int i=0; i<mesh.cells.size(); ++i){
@@ -582,8 +600,18 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 			// boolCellUnrefine[i] = true;
 		
 
-		if(mesh.cells[i].var[controls.indicatorAMR[0]] < indicatorUnrefine_AMR) 
-			boolCellUnrefine[i] = true;
+		// if(mesh.cells[i].var[controls.indicatorAMR[0]] < indicatorUnrefine_AMR) 
+			// boolCellUnrefine[i] = true;
+		
+	
+		for(int level=0; level<controls.indicatorCriterion.size(); ++level){
+			double indicatorRefine_AMR = controls.indicatorCriterion[level];
+			if( mesh.cells[i].level > level ){
+				if( mesh.cells[i].var[controls.indicatorAMR[0]] <= indicatorRefine_AMR ){
+					boolCellUnrefine[i] = true;
+				}
+			}					
+		}
 		
 		
 		// 만약 셀의 레벨이 0 이면, false
@@ -2324,9 +2352,45 @@ void SEMO_Poly_AMR_Builder::polyUnrefine(
 	// save.vtu(tmpFile, rank, mesh);
 	
 	
+	
+	
+
+	
+	afterCellSize = mesh.cells.size();
+	afterFaceSize = mesh.faces.size();
+	afterPointSize = mesh.points.size();
+	
+	int deletedCellSize = beforeCellSize - afterCellSize;
+	int deletedFaceSize = beforeFaceSize - afterFaceSize;
+	int deletedPointSize = beforePointSize - afterPointSize;
+	
+	int deletedCellSize_glb, deletedFaceSize_glb, deletedPointSize_glb;
+	MPI_Allreduce(&deletedCellSize, &deletedCellSize_glb, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&deletedFaceSize, &deletedFaceSize_glb, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&deletedPointSize, &deletedPointSize_glb, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	
+	
+	
 	if(rank==0){
-		cout << "| AMR - Unrefine completed" << endl;
-		cout << "└────────────────────────────────────────────────────" << endl;
+		
+		cout << 
+		" | unrefined deleted cell size = " << deletedCellSize_glb <<
+		" | unrefined deleted face size = " << deletedFaceSize_glb <<
+		" | unrefined deleted point size = " << deletedPointSize_glb << endl;
+		
+		// cout << "| AMR - Refine completed" << endl;
+		// cout << "└────────────────────────────────────────────────────" << endl;
+	}
+	
+	
+	
+	
+	
+	
+	
+	if(rank==0){
+		// cout << "| AMR - Unrefine completed" << endl;
+		// cout << "└────────────────────────────────────────────────────" << endl;
 	}
 	
 	

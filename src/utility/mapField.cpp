@@ -20,7 +20,7 @@
 
 using namespace std;
 #include "../mesh/build.h" 
-#include "../mesh/load.h" 
+#include "../load/load.h" 
 #include "../mesh/geometric.h" 
 
 #include "../controls/build.h" 
@@ -48,7 +48,7 @@ void loadSaveVTU(
 // SEMO_Mesh_Builder mesh;
 // SEMO_Mesh_Builder meshObj;
 SEMO_Mesh_Load load;
-SEMO_Utility_Read read;
+// SEMO_Utility_Read read;
 SEMO_Controls_Builder controls;
 vector<SEMO_Species> species;
 SEMO_Mesh_Save save;
@@ -1256,7 +1256,7 @@ void loadVTU(
 			bool nameMatching = false;
 			for(int j=0; j<saveNameP.size(); ++j){
 				if(mesh.boundary[i].name == saveNameP[j]){
-					mesh.boundary[i].type[0] = read.trim(saveTypeP[j]);
+					mesh.boundary[i].type[0] = load.trim(saveTypeP[j]);
 					mesh.boundary[i].var[0] = saveValueP[j];
 					nameMatching = true;
 					break;
@@ -1270,9 +1270,9 @@ void loadVTU(
 			nameMatching = false;
 			for(int j=0; j<saveNameVel.size(); ++j){
 				if(mesh.boundary[i].name == saveNameVel[j]){
-					mesh.boundary[i].type[1] = read.trim(saveTypeVel[j]);
-					mesh.boundary[i].type[2] = read.trim(saveTypeVel[j]);
-					mesh.boundary[i].type[3] = read.trim(saveTypeVel[j]);
+					mesh.boundary[i].type[1] = load.trim(saveTypeVel[j]);
+					mesh.boundary[i].type[2] = load.trim(saveTypeVel[j]);
+					mesh.boundary[i].type[3] = load.trim(saveTypeVel[j]);
 					mesh.boundary[i].var[1] = saveValueVel[j][0];
 					mesh.boundary[i].var[2] = saveValueVel[j][1];
 					mesh.boundary[i].var[3] = saveValueVel[j][2];
@@ -1288,7 +1288,7 @@ void loadVTU(
 			nameMatching = false;
 			for(int j=0; j<saveNameT.size(); ++j){
 				if(mesh.boundary[i].name == saveNameT[j]){
-					mesh.boundary[i].type[4] = read.trim(saveTypeT[j]);
+					mesh.boundary[i].type[4] = load.trim(saveTypeT[j]);
 					mesh.boundary[i].var[4] = saveValueT[j];
 					nameMatching = true;
 					break;
@@ -1304,7 +1304,7 @@ void loadVTU(
 				nameMatching = false;
 				for(int j=0; j<saveNameVF[ns].size(); ++j){
 					if(mesh.boundary[i].name == saveNameVF[ns][j]){
-						mesh.boundary[i].type[5+ns] = read.trim(saveTypeVF[ns][j]);
+						mesh.boundary[i].type[5+ns] = load.trim(saveTypeVF[ns][j]);
 						mesh.boundary[i].var[5+ns] = saveValueVF[ns][j];
 						nameMatching = true;
 						break;

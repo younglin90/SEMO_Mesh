@@ -6,8 +6,8 @@
 #include <list>
 using namespace std;
 
-#include "load.h"
-#include "save.h"
+#include "../load/load.h"
+#include "../save/save.h"
 #include "../mpi/build.h"
 #include "../math/math.h"
 
@@ -73,6 +73,8 @@ class SEMO_Face{
 		double wVC;
 		double magPN;
 		double alphaF;
+		vector<double> vecPF;
+		vector<double> vecNF;
 		vector<double> unitNomalsPN;
 		vector<double> vecSkewness;
 		vector<double> vecPdP;
@@ -117,7 +119,10 @@ class SEMO_Cell{
 		
 		vector<double> var;
 	
-		vector<double> coeffLeastSquare;
+		vector<double> coeffLeastSquare1stFaceStencil;
+		vector<double> coeffLeastSquare2ndFaceStencil;
+		vector<double> coeffLeastSquare1stCellVetexStencil;
+		vector<double> coeffLeastSquare2ndCellVertexStencil;
 		
 		vector<int> stencil;
 		
@@ -209,6 +214,11 @@ class SEMO_Mesh_Builder{
 		
 		void reorder();
 		
+		// 메쉬 에러
+		void calcSkewness(vector<double>& output);
+		void calcNonOrthogonality(vector<double>& output);
+		void calcUniformity(vector<double>& output);
+		
 		
 		// mesh datas
 		vector<SEMO_Point> points;
@@ -241,7 +251,15 @@ class SEMO_Mesh_Builder{
 		vector<int> CRS_col_ptr_LR;
 		vector<int> CRS_col_ptr_RL;
 		
+		
+		// 값들
+		vector<vector<double>> cellsProcVar;
+		vector<vector<vector<double>>> cellsProcGradientVar;
+		vector<vector<vector<double>>> cellsGradientVar;
+		
 		// SEMO_MPI_Builder mpi;
+		
+		
 		
 		
 	private:
