@@ -223,6 +223,51 @@ SOURCES_ADVECTION = src/utility/advection.cpp\
 OBJECTS_ADVECTION = $(SOURCES_ADVECTION:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
 
 
+# compression volume fraction equations
+EXE_CompressVF = CompressVF
+
+SOURCES_CompressVF = src/utility/compressVolumeFraction.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
+                    src/solvers/build.cpp\
+                    src/solvers/eos.cpp\
+                    src/solvers/solveAMGCL.cpp\
+                    src/solvers/reconIncom.cpp\
+                    src/solvers/reconComp.cpp\
+                    src/solvers/NVD.cpp\
+                    src/mesh/polyAMR.cpp\
+                    src/mesh/polyRefine.cpp\
+                    src/mesh/polyUnrefine.cpp\
+
+OBJECTS_CompressVF = $(SOURCES_CompressVF:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
+
+# calc. SMD from volume fraction
+EXE_SMD = CalcSMD
+
+SOURCES_SMD = src/utility/calcSMD.cpp\
+                    src/mesh/build.cpp\
+                    src/mesh/geometric.cpp\
+                    src/math/math.cpp\
+                    src/math/gradient.cpp\
+                    src/mpi/build.cpp\
+                    src/controls/build.cpp\
+                    src/solvers/build.cpp\
+                    src/solvers/eos.cpp\
+                    src/solvers/solveAMGCL.cpp\
+                    src/solvers/reconIncom.cpp\
+                    src/solvers/reconComp.cpp\
+                    src/solvers/NVD.cpp\
+                    src/mesh/polyAMR.cpp\
+                    src/mesh/polyRefine.cpp\
+                    src/mesh/polyUnrefine.cpp\
+
+OBJECTS_SMD = $(SOURCES_SMD:.cpp=.o) $(SOURCES_SAVE:.cpp=.o) $(SOURCES_LOAD:.cpp=.o)
+
 # gradient
 EXE_GRADIENT = Gradient
 
@@ -280,9 +325,9 @@ COTEXT  = "\033[1;31m Compiling\033[0m\033[1m $< \033[0m"
 
 # all : $(EXE)
 
-EXE_ALL = $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_CompCoupled) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_LAPLACE) $(EXE_ADVECTION) $(EXE_GRADIENT) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
+EXE_ALL = $(EXE_CompDensitySingle) $(EXE_CompDensityDual) $(EXE_IncomPressure) $(EXE_CompHybrid) $(EXE_CompCoupled) $(EXE_PARTITION) $(EXE_INITIAL) $(EXE_POTENTIAL) $(EXE_LAPLACE) $(EXE_ADVECTION) $(EXE_CompressVF) $(EXE_SMD) $(EXE_GRADIENT) $(EXE_MapField) $(EXE_MeshAMR) $(EXE_ExtractData)
 
-OBJECTS_ALL = $(OBJECTS_Main) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_CompCoupled) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_LAPLACE) $(OBJECTS_ADVECTION) $(OBJECTS_GRADIENT) $(OBJECTS_MapField) $(OBJECTS_MeshAMR)
+OBJECTS_ALL = $(OBJECTS_Main) $(OBJECTS_CompDensitySingle) $(OBJECTS_CompDensityDual) $(OBJECTS_IncomPressure) $(OBJECTS_CompHybrid) $(OBJECTS_CompCoupled) $(OBJECTS_PARTITION) $(OBJECTS_INITIAL) $(OBJECTS_POTENTIAL) $(OBJECTS_LAPLACE) $(OBJECTS_ADVECTION) $(OBJECTS_CompressVF) $(OBJECTS_SMD) $(OBJECTS_GRADIENT) $(OBJECTS_MapField) $(OBJECTS_MeshAMR)
 
 all : $(EXE_ALL)
 # all : $(EXE_LOAD)
@@ -332,7 +377,13 @@ $(EXE_ADVECTION) : $(OBJECTS_ADVECTION)
 	@$(CCOMPLR) -o $@ $(OBJECTS_ADVECTION) $(LIBRARIES)
 	@echo -e "\033[1;31m ADVECTION CODE compile/link complete \033[0m" | tee -a make.log
 
+$(EXE_CompressVF) : $(OBJECTS_CompressVF)
+	@$(CCOMPLR) -o $@ $(OBJECTS_CompressVF) $(LIBRARIES)
+	@echo -e "\033[1;31m ADVECTION CODE compile/link complete \033[0m" | tee -a make.log
 
+$(EXE_SMD) : $(OBJECTS_SMD)
+	@$(CCOMPLR) -o $@ $(OBJECTS_SMD) $(LIBRARIES)
+	@echo -e "\033[1;31m calcSMD CODE compile/link complete \033[0m" | tee -a make.log
 
 $(EXE_GRADIENT) : $(OBJECTS_GRADIENT)
 	@$(CCOMPLR) -o $@ $(OBJECTS_GRADIENT) $(LIBRARIES)

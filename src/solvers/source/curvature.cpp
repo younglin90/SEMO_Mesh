@@ -6,6 +6,7 @@
 
 void SEMO_Solvers_Builder::calcCurvature(
 	SEMO_Mesh_Builder& mesh,
+	SEMO_Controls_Builder& controls,
 	int cn,
 	vector<double>& kappa){
 		
@@ -17,24 +18,35 @@ void SEMO_Solvers_Builder::calcCurvature(
 	SEMO_Utility_Math math;
 	
 	
-	int iterVFSmoothingMax = 6;
-	int iterVFSmoothing_Eikonal_Max = 6;
+	// int iterVFSmoothingMax = 6;
+	// int iterVFSmoothing_Eikonal_Max = 6;
+	
+	int LSReinitIterMax = 4;
+	double CFL_LS = 0.1;
+	
+	double weightIterThick = 5.0;
+	
+	double tanhWeight = 2.0;
 	int iterFirstSmoothingMax = 0;
 	int iterSecondSmoothingMax = 0;
 	
-	bool boolSkewnessCorrection = true;
+	// bool boolSkewnessCorrection = true;
 	// bool boolSkewnessCorrection = false;
 	// bool boolNonOrthoCorrection = true;
-	bool boolNonOrthoCorrection = false;
+	// bool boolNonOrthoCorrection = false;
 	
-	int gradIterMax_LS = 1;
-	int gradIterMax_GG = 0;
+	// int gradIterMax_LS = 1;
+	// int gradIterMax_GG = 0;
 	
 	
 	
+	vector<double> orgAi(mesh.cells.size());
 	vector<double> smoothAi(mesh.cells.size());
+	vector<double> levelSetVar(mesh.cells.size());
 	for(int i=0; i<mesh.cells.size(); ++i){
+		orgAi[i] = mesh.cells[i].var[cn];
 		smoothAi[i] = mesh.cells[i].var[cn];
+		levelSetVar[i] = mesh.cells[i].var[controls.LS];
 	}
 	
 	
@@ -174,7 +186,7 @@ void SEMO_Solvers_Builder::calcCurvature(
 	//================================================
 	// smoothing Ai -> level-set : solving Eikonal equation
 	
-	vector<bool> faceSmoothAi(mesh.faces.size(),false);
+	vector<double> faceSmoothAi(mesh.faces.size(),0.0);
 	for(int i=0; i<mesh.faces.size(); ++i){
 		auto& face = mesh.faces[i];
 		double wCL = face.wC;
@@ -288,15 +300,21 @@ void SEMO_Solvers_Builder::calcCurvature(
 	// vof 함수를 level-set 함수로 변경
 	for(int i=0; i<mesh.cells.size(); ++i){
 		smoothAi[i] = smoothAi[i]-0.5;
+		
+		// if(!interfacePresentCell[i]){
+			// if(smoothAi[i]>0.0) smoothAi[i] = 1000.0;
+			// if(smoothAi[i]<0.0) smoothAi[i] = -1000.0;
+		// }
 	}
 	
 	// interface cell 의 level-set 값 재계산
 	{
-		vector<vector<double>> gradSmoothAi(mesh.cells.size(),vector<double>(9,0.0));
+		vector<vector<double>> gradSmoothAi(mesh.cells.size(),vector<double>(3,0.0));
 		{
 			int dummy0;
-			math.calcLeastSquare(mesh, "cellVertex", "2nd", "input", 
+			math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
 				-1, dummy0, smoothAi, gradSmoothAi);
+			// math.calcGaussGreen(mesh, -1, smoothAi, gradSmoothAi);
 		}
 		for(int i=0; i<mesh.cells.size(); ++i){
 			if(interfacePresentCell[i]){
@@ -305,20 +323,15 @@ void SEMO_Solvers_Builder::calcCurvature(
 				magGrad += pow(gradSmoothAi[i][1],2.0);
 				magGrad += pow(gradSmoothAi[i][2],2.0);
 				// magGrad = sqrt(magGrad);
-				if(magGrad>1.e-8){
+				if(magGrad>1.0){
 					smoothAi[i] = smoothAi[i] / magGrad;
 				}
+				// smoothAi[i] = max(0.0,min(1.0,smoothAi[i]));
 			}
 		}
 	}
 	
-	// double tau_ls = 1.e15;
-	// for(int i=0; i<mesh.cells.size(); ++i){
-		// tau_ls = min(tau_ls,pow(mesh.cells[i].volume,0.3));
-	// }
-	// double tau_ls_glob;
-	// MPI_Allreduce(&tau_ls, &tau_ls_glob, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-	// tau_ls = 0.1*tau_ls_glob;
+	
 	
 	// 로컬 시간스템 구하기
 	vector<double> tau_ls_local(mesh.cells.size(),0.0);
@@ -348,8 +361,9 @@ void SEMO_Solvers_Builder::calcCurvature(
 	
 	vector<double> velocity0(mesh.cells.size(),0.0);
 	for(int i=0; i<mesh.cells.size(); ++i){
-		velocity0[i] = smoothAi[i] / sqrt(pow(smoothAi[i],2.0) +
-			pow(abs(smoothAi[i])*pow(mesh.cells[i].volume,0.333),2.0));
+		double var = smoothAi[i];
+		velocity0[i] = var / sqrt(pow(var,2.0) +
+			pow(abs(var)*pow(mesh.cells[i].volume,0.333),2.0));
 	}
 	vector<double> velocity0_recv;
 	if(size>1){
@@ -366,6 +380,24 @@ void SEMO_Solvers_Builder::calcCurvature(
 					mesh.countsProcFaces, mesh.countsProcFaces, 
 					mesh.displsProcFaces, mesh.displsProcFaces);
 	}
+	
+	
+	
+
+	// // 레벨셋 값에 넣기
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// if(!interfacePresentCell[i]){
+			// if(smoothAi[i] > 0.0 && levelSetVar[i] > 0.0 && abs(levelSetVar[i]) > 1.e-4){
+				// smoothAi[i] = levelSetVar[i];
+			// }
+			
+			// if(smoothAi[i] < 0.0 && levelSetVar[i] < 0.0 && abs(levelSetVar[i]) > 1.e-4){
+				// smoothAi[i] = levelSetVar[i];
+			// }
+		// }
+	// }
+	
+	
 	
 	// std::copy(smoothAi.begin(),smoothAi.end(),ini_smoothAi.begin());
 	
@@ -747,15 +779,392 @@ void SEMO_Solvers_Builder::calcCurvature(
 
 
 	
-	for(int iter=0; iter< 8; ++iter){
+	// for(int iter=0; iter< 12; ++iter){
 
+		// // =======================================
+		// // 그레디언트 구하기
+		// vector<vector<double>> gradSmoothAi(mesh.cells.size(),vector<double>(3,0.0));
+		// {
+			// // int dummy0;
+			// // math.calcLeastSquare(mesh, "face", "1st", "input", 
+				// // -1, dummy0, smoothAi, gradSmoothAi);
+			// math.calcGaussGreen(mesh, -1, smoothAi, gradSmoothAi);
+		// }
+		// vector<double> smoothAi_recv;
+		// vector<vector<double>> gradSmoothAi_recv(3,vector<double>());
+		// if(size>1){
+			// // processor faces
+			// vector<double> smoothAi_send;
+			// vector<vector<double>> gradSmoothAi_send(3,vector<double>());
+			// for(int i=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// smoothAi_send.push_back(smoothAi[face.owner]);
+					// gradSmoothAi_send[0].push_back(gradSmoothAi[face.owner][0]);
+					// gradSmoothAi_send[1].push_back(gradSmoothAi[face.owner][1]);
+					// gradSmoothAi_send[2].push_back(gradSmoothAi[face.owner][2]);
+				// }
+			// }
+			// mpi.setProcsFaceDatas(
+						// smoothAi_send, smoothAi_recv,
+						// mesh.countsProcFaces, mesh.countsProcFaces, 
+						// mesh.displsProcFaces, mesh.displsProcFaces);
+			// for(int ii=0; ii<3; ++ii){
+				// mpi.setProcsFaceDatas(
+							// gradSmoothAi_send[ii], gradSmoothAi_recv[ii],
+							// mesh.countsProcFaces, mesh.countsProcFaces, 
+							// mesh.displsProcFaces, mesh.displsProcFaces);
+			// }
+		// }
+		
+		// // =======================================
+		// // 셀 surface normal vector 구하기
+		// vector<vector<double>> sufNorVec(mesh.cells.size(),vector<double>(3,0.0));
+		// // internal cells
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// auto& cell = mesh.cells[i];
+			// double magGrad = sqrt(
+				// pow(gradSmoothAi[i][0],2.0)+
+				// pow(gradSmoothAi[i][1],2.0)+
+				// pow(gradSmoothAi[i][2],2.0));
+			// if(magGrad != 0.0){
+				// for(int ii=0; ii<3; ++ii){
+					// sufNorVec[i][ii] = gradSmoothAi[i][ii]/magGrad;
+				// }
+			// }
+		// }
+		// vector<vector<double>> sufNorVec_recv(3,vector<double>());
+		// if(size>1){
+			// // processor faces
+			// vector<vector<double>> sufNorVec_send(3,vector<double>());
+			// for(int i=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// sufNorVec_send[0].push_back(sufNorVec[face.owner][0]);
+					// sufNorVec_send[1].push_back(sufNorVec[face.owner][1]);
+					// sufNorVec_send[2].push_back(sufNorVec[face.owner][2]);
+				// }
+			// }
+			// for(int ii=0; ii<3; ++ii){
+				// mpi.setProcsFaceDatas(
+							// sufNorVec_send[ii], sufNorVec_recv[ii],
+							// mesh.countsProcFaces, mesh.countsProcFaces, 
+							// mesh.displsProcFaces, mesh.displsProcFaces);
+			// }
+		// }
+		
+		// // =======================================
+		// // 리스트 스퀘어 weight 구하기
+		// vector<double> weightLower(mesh.cells.size(),0.0);
+		// // internal cells
+		// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
+			// if(face.getType() == SEMO_Types::BOUNDARY_FACE) continue;
+			
+			// double distX = face.distCells[0];
+			// double distY = face.distCells[1];
+			// double distZ = face.distCells[2];
+			
+			
+			// double wk = 0.0;
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+			// wk = max(0.0,wk);
+			
+			// weightLower[face.owner] += wk;
+				
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				// wk = 0.0;
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
+				// wk = max(0.0,wk);
+				
+				// weightLower[face.neighbour] += wk;
+			// }
+
+		// }
+		// // processor faces
+		// vector<double> weightLower_recv;
+		// if(size>1){
+			// vector<double> weightLower_send;
+			// for(int i=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// weightLower_send.push_back(weightLower[face.owner]);
+				// }
+			// }
+			// mpi.setProcsFaceDatas(
+						// weightLower_send, weightLower_recv,
+						// mesh.countsProcFaces, mesh.countsProcFaces, 
+						// mesh.displsProcFaces, mesh.displsProcFaces);
+		// }
+		
+		
+		
+		// // =======================================
+		// // 리스트 스퀘어 초기화
+		// vector<vector<double>> vsum(mesh.cells.size(),vector<double>(6,0.0));
+		
+		// for(auto& face : mesh.faces){
+			
+			// double distX = face.distCells[0];
+			// double distY = face.distCells[1];
+			// double distZ = face.distCells[2];
+			
+			// // weighting function
+			// // double wk = 1.0 / sqrt(pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+			// double wk = 0.0;
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+			// wk = max(0.0,wk);
+			// if(abs(weightLower[face.owner])>1.e-8){
+				// wk /= weightLower[face.owner];
+			// }
+			// else{
+				// wk = 0.0;
+			// }
+			
+			// vector<double> vari(3,0.0);
+			// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+			
+			// // 대칭행렬
+			// for(int ii=0, num=0; ii<3; ++ii){
+				// for(int jj=0; jj<3; ++jj){
+					// if(jj>=ii){
+						// vsum[face.owner][num++] += wk * vari[ii]*vari[jj];
+					// }
+				// }
+			// }
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				
+				// wk = 0.0;
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
+				// wk = max(0.0,wk);
+				// if(abs(weightLower[face.neighbour])>1.e-8){
+					// wk /= weightLower[face.neighbour];
+				// }
+				// else{
+					// wk = 0.0;
+				// }
+				
+				// vari[0] *= (-1.0); vari[1] *= (-1.0); vari[2] *= (-1.0);
+				
+				// for(int ii=0, num=0; ii<3; ++ii){
+					// for(int jj=0; jj<3; ++jj){
+						// if(jj>=ii){
+							// vsum[face.neighbour][num++] += wk * vari[ii]*vari[jj];
+						// }
+					// }
+				// }
+			// }
+			
+		// }
+		
+		
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// SEMO_Cell& cell = mesh.cells[i];
+			
+			// // 대칭행렬의 역행렬도 대칭행렬
+			// vector<vector<double>> U(3,vector<double>(3,0.0));
+			// U[0][0] = vsum[i][0]; 
+			// U[0][1] = vsum[i][1];
+			// U[0][2] = vsum[i][2];
+			// U[1][0] = vsum[i][1];
+			// U[1][1] = vsum[i][3];
+			// U[1][2] = vsum[i][4];
+			// U[2][0] = vsum[i][2];
+			// U[2][1] = vsum[i][4];
+			// U[2][2] = vsum[i][5];
+		
+			// // SVD 수도 역행렬 구하기
+			// vector<double> D(U[0].size());
+			// vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
+			
+			// math.svdcmp(U, D, V);
+			
+			// vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
+			// for (int ii = 0; ii < D.size(); ++ii) {
+				// if (abs(D[ii]) > 1.e-8 ) {
+					// invD[ii][ii] = 1.0/D[ii];
+				// }
+			// }
+	
+			// vector<vector<double>> transU;
+			// math.transpose(U, transU);
+			// vector<vector<double>> out;
+			// math.matmul(invD, transU, out);
+			// vector<vector<double>> pseudoInvMatrix;
+			// math.matmul(V, out, pseudoInvMatrix);
+			
+			// vsum[i][0] = pseudoInvMatrix[0][0];
+			// vsum[i][1] = pseudoInvMatrix[0][1];
+			// vsum[i][2] = pseudoInvMatrix[0][2];
+			// vsum[i][3] = pseudoInvMatrix[1][1];
+			// vsum[i][4] = pseudoInvMatrix[1][2];
+			// vsum[i][5] = pseudoInvMatrix[2][2];
+			
+		// }
+		
+		
+		// // =======================================
+		// // 그레디언트 계산
+		// vector<vector<double>> grad_tmp(mesh.cells.size(),vector<double>(3,0.0));
+		
+		
+		// // internal cells
+		// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+			// auto& face = mesh.faces[i];
+			
+			// if(face.getType() == SEMO_Types::BOUNDARY_FACE) continue;
+	
+
+			// double distX = face.distCells[0];
+			// double distY = face.distCells[1];
+			// double distZ = face.distCells[2];
+			
+			// // double wk = 1.0 / sqrt(pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+			// double wk = 0.0;
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+			// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+			// wk = max(0.0,wk);
+			// if(abs(weightLower[face.owner])>1.e-8){
+				// wk /= weightLower[face.owner];
+			// }
+			// else{
+				// wk = 0.0;
+			// }
+			
+			// double DVar = 0.0;
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				// DVar = smoothAi[face.neighbour] - smoothAi[face.owner];
+			// }
+			// else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				// DVar = smoothAi_recv[ip] - smoothAi[face.owner];
+			// }
+		
+			// vector<double> vari(3,0.0);
+			// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+	
+			// for(int ii=0; ii<3; ++ii){
+				// grad_tmp[face.owner][ii] += wk * vari[ii] * DVar;
+			// }
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				
+				// wk = 0.0;
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
+				// wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
+				// wk = max(0.0,wk);
+				// if(abs(weightLower[face.neighbour])>1.e-8){
+					// wk /= weightLower[face.neighbour];
+				// }
+				// else{
+					// wk = 0.0;
+				// }
+				
+				// vari[0] *= (-1.0); vari[1] *= (-1.0); vari[2] *= (-1.0);
+				// DVar *= (-1.0);
+				// for(int ii=0; ii<3; ++ii){
+					// grad_tmp[face.neighbour][ii] += wk * vari[ii] * DVar;
+				// }
+			// }
+				
+			// if(face.getType() == SEMO_Types::PROCESSOR_FACE) ++ip;
+		// }
+		
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// SEMO_Cell& cell = mesh.cells[i];
+			
+			// double tmp0 = 
+				// vsum[i][0] * grad_tmp[i][0] +
+				// vsum[i][1] * grad_tmp[i][1] +
+				// vsum[i][2] * grad_tmp[i][2];
+				
+			// double tmp1 = 
+				// vsum[i][1] * grad_tmp[i][0] +
+				// vsum[i][3] * grad_tmp[i][1] +
+				// vsum[i][4] * grad_tmp[i][2];
+				
+			// double tmp2 = 
+				// vsum[i][2] * grad_tmp[i][0] +
+				// vsum[i][4] * grad_tmp[i][1] +
+				// vsum[i][5] * grad_tmp[i][2];
+				
+			// grad_tmp[i][0] = tmp0;
+			// grad_tmp[i][1] = tmp1;
+			// grad_tmp[i][2] = tmp2;
+			
+		// }
+		
+		// // =======================================
+		// // Hamilton-Jacobi 방정식 풀기
+		// double residual_ls = 0.0;
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// SEMO_Cell& cell = mesh.cells[i];
+
+			// if(!interfacePresentCell[i]){
+				// double magGrad = sqrt(
+					// pow(grad_tmp[i][0],2.0)+
+					// pow(grad_tmp[i][1],2.0)+
+					// pow(grad_tmp[i][2],2.0));
+				// // double magGrad = sqrt(
+					// // pow(gradSmoothAi[i][0],2.0)+
+					// // pow(gradSmoothAi[i][1],2.0)+
+					// // pow(gradSmoothAi[i][2],2.0));
+					
+				// double resi_tmp = 0.1 * tau_ls_local[i]*velocity0[i]*(1.0-magGrad);
+				// // double resi_tmp = 0.1 * tau_ls*velocity0[i]*(1.0-magGrad);
+				// smoothAi[i] += resi_tmp;
+				// residual_ls += resi_tmp*resi_tmp;
+			// }
+		// }
+		// double residual_ls_glob = 0.0;
+		// MPI_Allreduce(&residual_ls, &residual_ls_glob, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		// if(rank==0) cout << "| level-set re-initialization residual = " << residual_ls_glob << endl;
+
+	// }
+
+
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// SEMO_Cell& cell = mesh.cells[i];
+		// cell.var[controls.LS] = smoothAi[i];
+	// }
+	
+
+
+
+
+
+
+
+
+
+	vector<double> saveLSReinitResi(2,0.0);
+	for(int iter=0; iter< LSReinitIterMax; ++iter){
+		
+		// double epsilon = std::numeric_limits<double>::min();
+		double epsilon = 1.e-25;
+		double epsilon2 = 1.e-5;
+		double weight = 1.0;
+		double weight2 = 1.0;
+		
+		
 		// =======================================
 		// 그레디언트 구하기
 		vector<vector<double>> gradSmoothAi(mesh.cells.size(),vector<double>(3,0.0));
 		{
 			int dummy0;
-			math.calcLeastSquare(mesh, "face", "1st", "input", 
+			math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
 				-1, dummy0, smoothAi, gradSmoothAi);
+			// math.calcGaussGreen(mesh, -1, smoothAi, gradSmoothAi);
 		}
 		vector<double> smoothAi_recv;
 		vector<vector<double>> gradSmoothAi_recv(3,vector<double>());
@@ -822,121 +1231,252 @@ void SEMO_Solvers_Builder::calcCurvature(
 			}
 		}
 		
-		// =======================================
-		// 리스트 스퀘어 weight 구하기
-		vector<double> weightLower(mesh.cells.size(),0.0);
-		// internal cells
-		for(int i=0, ip=0; i<mesh.faces.size(); ++i){
-			auto& face = mesh.faces[i];
-			if(face.getType() == SEMO_Types::BOUNDARY_FACE) continue;
-			
-			double distX = face.distCells[0];
-			double distY = face.distCells[1];
-			double distZ = face.distCells[2];
-			
-			
-			double wk = 0.0;
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
-			wk = max(0.0,wk);
-			
-			weightLower[face.owner] += wk;
-				
-			if(face.getType() == SEMO_Types::INTERNAL_FACE){
-				wk = 0.0;
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
-				wk = max(0.0,wk);
-				
-				weightLower[face.neighbour] += wk;
-			}
-
-		}
-		// processor faces
-		vector<double> weightLower_recv;
-		if(size>1){
-			vector<double> weightLower_send;
-			for(int i=0; i<mesh.faces.size(); ++i){
-				auto& face = mesh.faces[i];
-				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-					weightLower_send.push_back(weightLower[face.owner]);
-				}
-			}
-			mpi.setProcsFaceDatas(
-						weightLower_send, weightLower_recv,
-						mesh.countsProcFaces, mesh.countsProcFaces, 
-						mesh.displsProcFaces, mesh.displsProcFaces);
-		}
-		
 		
 		
 		// =======================================
 		// 리스트 스퀘어 초기화
 		vector<vector<double>> vsum(mesh.cells.size(),vector<double>(6,0.0));
 		
-		for(auto& face : mesh.faces){
+		
+		// =======================================
+		// face
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
 			
 			double distX = face.distCells[0];
 			double distY = face.distCells[1];
 			double distZ = face.distCells[2];
-			
-			// weighting function
-			// double wk = 1.0 / sqrt(pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
-			double wk = 0.0;
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
-			wk = max(0.0,wk);
-			if(abs(weightLower[face.owner])>1.e-8){
-				wk /= weightLower[face.owner];
-			}
-			else{
-				wk = 0.0;
-			}
-			
-			vector<double> vari(3,0.0);
-			vari[0] = distX; vari[1] = distY; vari[2] = distZ;
-			
-			// 대칭행렬
-			for(int ii=0, num=0; ii<3; ++ii){
-				for(int jj=0; jj<3; ++jj){
-					if(jj>=ii){
-						vsum[face.owner][num++] += wk * vari[ii]*vari[jj];
-					}
-				}
-			}
-			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+		
+			{
+				double wk = 0.0;
+				wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+				wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+				wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+				wk = pow(weight2*wk,weight);
+				wk = max(epsilon2,wk);
 				
-				wk = 0.0;
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
-				wk = max(0.0,wk);
-				if(abs(weightLower[face.neighbour])>1.e-8){
-					wk /= weightLower[face.neighbour];
-				}
-				else{
-					wk = 0.0;
-				}
+				vector<double> vari(3,0.0);
+				vari[0] = distX; vari[1] = distY; vari[2] = distZ;
 				
-				vari[0] *= (-1.0); vari[1] *= (-1.0); vari[2] *= (-1.0);
-				
+				// 대칭행렬
 				for(int ii=0, num=0; ii<3; ++ii){
 					for(int jj=0; jj<3; ++jj){
 						if(jj>=ii){
-							vsum[face.neighbour][num++] += wk * vari[ii]*vari[jj];
+							vsum[face.owner][num++] += wk * vari[ii]*vari[jj];
 						}
 					}
 				}
 			}
 			
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				{
+					double wk = 0.0;
+					wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
+					wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
+					wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
+					wk = pow(weight2*wk,weight);
+					wk = max(epsilon2,wk);
+					
+					vector<double> vari(3,0.0);
+					vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					
+					// 대칭행렬
+					for(int ii=0, num=0; ii<3; ++ii){
+						for(int jj=0; jj<3; ++jj){
+							if(jj>=ii){
+								vsum[face.neighbour][num++] += wk * vari[ii]*vari[jj];
+							}
+						}
+					}
+				}
+				
+			}
 		}
 		
 		
+		// // =======================================
+		// // Cell-vertex
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// auto& cell = mesh.cells[i];
+			
+			// for(auto j : cell.stencil){
+				// auto& cellSten = mesh.cells[j];
+					
+				// double distX = cellSten.x - cell.x;
+				// double distY = cellSten.y - cell.y;
+				// double distZ = cellSten.z - cell.z;
+					
+				// double wk = 0.0;
+				// wk += (velocity0[i] > 0.0 ? 1.0 : -1.0) * sufNorVec[i][0]*(-distX);
+				// wk += (velocity0[i] > 0.0 ? 1.0 : -1.0) * sufNorVec[i][1]*(-distY);
+				// wk += (velocity0[i] > 0.0 ? 1.0 : -1.0) * sufNorVec[i][2]*(-distZ);
+				// wk = max(epsilon2,wk);
+				
+				// vector<double> vari(3,0.0);
+				// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+				
+				// // 대칭행렬
+				// for(int ii=0, num=0; ii<3; ++ii){
+					// for(int jj=0; jj<3; ++jj){
+						// if(jj>=ii){
+							// vsum[i][num++] += wk * vari[ii]*vari[jj];
+						// }
+					// }
+				// }
+			// }
+		// }
+		
+		
+		// // processor faces
+		// if(size>1){
+			// vector<vector<double>> vsum_send(6,vector<double>()), vsum_recv(6,vector<double>());
+			// int proc_num=0.0;
+			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// ++proc_num;
+				// }
+			// }
+			// for(int ii=0; ii<6; ++ii){
+				// vsum_send[ii].resize(proc_num,0.0);
+			// }
+		// // cout << "BB" << endl;
+			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					
+					// for(auto j : face.stencil){
+						// auto& cellSten = mesh.cells[j];
+							
+						// double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+						// double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+						// double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+								
+						// double wk = 0.0;
+						// wk += (velocity0_recv[ip] > 0.0 ? 1.0 : -1.0) * sufNorVec_recv[0][ip]*(-distX);
+						// wk += (velocity0_recv[ip] > 0.0 ? 1.0 : -1.0) * sufNorVec_recv[1][ip]*(-distY);
+						// wk += (velocity0_recv[ip] > 0.0 ? 1.0 : -1.0) * sufNorVec_recv[2][ip]*(-distZ);
+						// wk = max(epsilon2,wk);
+						// // if(abs(weightLower_recv[ip])>1.e-8){
+							// // wk /= weightLower_recv[ip];
+						// // }
+						// // else{
+							// // wk = 0.0;
+						// // }
+						
+						// vector<double> vari(3,0.0);
+						// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+						
+						// // 대칭행렬
+						// for(int ii=0, num=0; ii<3; ++ii){
+							// for(int jj=0; jj<3; ++jj){
+								// if(jj>=ii){
+									// vsum_send[num++][ip] += wk * vari[ii]*vari[jj];
+								// }
+							// }
+						// }
+					// }
+					
+					// ++ip;
+				// }
+			// }
+		// // cout << "AA" << endl;
+		
+			// for(int i=0; i<6; ++i){
+				// mpi.setProcsFaceDatas(vsum_send[i], vsum_recv[i],
+							// mesh.countsProcFaces, mesh.countsProcFaces, 
+							// mesh.displsProcFaces, mesh.displsProcFaces);
+			// }
+			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// for(int jj=0; jj<6; ++jj){
+						// vsum[face.owner][jj] += vsum_recv[jj][ip];
+					// }
+					// ++ip;
+				// }
+			// }
+		
+		// }
+	
+		
+		// // boundary face's nodes
+		// for(auto& boundary : mesh.boundary){
+			
+			// if(boundary.neighbProcNo == -1){
+				
+				// int str = boundary.startFace;
+				// int end = str + boundary.nFaces;
+				
+				// for(int i=str; i<end; ++i){
+					// auto& face = mesh.faces[i];
+					// auto& cell = mesh.cells[face.owner];
+					
+					// double distX = face.x - cell.x;
+					// double distY = face.y - cell.y;
+					// double distZ = face.z - cell.z;
+					
+					// double wk = 0.0;
+					// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+					// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+					// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+					// wk = max(epsilon2,wk);
+					// // if(abs(weightLower[face.owner])>1.e-8){
+						// // wk /= weightLower[face.owner];
+					// // }
+					// // else{
+						// // wk = 0.0;
+					// // }
+					
+					// vector<double> vari(3,0.0);
+					// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					
+					// // 대칭행렬
+					// for(int ii=0, num=0; ii<3; ++ii){
+						// for(int jj=0; jj<3; ++jj){
+							// if(jj>=ii){
+								// vsum[face.owner][num++] += wk * vari[ii]*vari[jj];
+							// }
+						// }
+					// }
+					
+				// }
+			// }
+		// }
+			
+		
+		// =======================================
+		// 역행렬 구하기
 		for(int i=0; i<mesh.cells.size(); ++i){
 			SEMO_Cell& cell = mesh.cells[i];
+			
+			
+			
+
+			// // 1차 least-square 저장
+			// double detA = 
+				// vsum[i][0]*vsum[i][3]*vsum[i][5] + vsum[i][1]*vsum[i][4]*vsum[i][2] +
+				// vsum[i][2]*vsum[i][1]*vsum[i][4] - vsum[i][0]*vsum[i][4]*vsum[i][4] -
+				// vsum[i][2]*vsum[i][3]*vsum[i][2] - vsum[i][1]*vsum[i][1]*vsum[i][5];
+				
+			// if(abs(detA)>1.e-50){
+				// // cerr << "| #Error, detA=0.0 at leat-sqare" << endl;
+				// // MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+				// vsum[i][0] = (vsum[i][3] * vsum[i][5] - vsum[i][4] * vsum[i][4]) / detA;    // inv_A(1,1)
+				// vsum[i][1] = (vsum[i][2] * vsum[i][4] - vsum[i][1] * vsum[i][5]) / detA;    // inv_A(1,2) = (2,1)
+				// vsum[i][2] = (vsum[i][1] * vsum[i][4] - vsum[i][2] * vsum[i][3]) / detA;    // inv_A(1,3) = (3,1)
+				// vsum[i][3] = (vsum[i][0] * vsum[i][5] - vsum[i][2] * vsum[i][2]) / detA;    // inv_A(2,2)
+				// vsum[i][4] = (vsum[i][2] * vsum[i][1] - vsum[i][0] * vsum[i][4]) / detA;    // inv_A(2,3) = (3,2)
+				// vsum[i][5] = (vsum[i][0] * vsum[i][3] - vsum[i][1] * vsum[i][1]) / detA;    // inv_A(3,3)
+			// }
+			// else{
+				// for(int ii=0; ii<6; ++ii){
+					// vsum[i][ii] = 0.0;
+				// }
+			// }
+			
 			
 			// 대칭행렬의 역행렬도 대칭행렬
 			vector<vector<double>> U(3,vector<double>(3,0.0));
@@ -957,8 +1497,20 @@ void SEMO_Solvers_Builder::calcCurvature(
 			math.svdcmp(U, D, V);
 			
 			vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
+			// double magD = 0.0;
+			// for (int ii = 0; ii < D.size(); ++ii) {
+				// magD += pow(D[ii],2.0);
+			// }
+			// magD = sqrt(magD)/(double)D.size();
+			// for (int ii = 0; ii < D.size(); ++ii) {
+				// if(magD > 1.e-200){
+					// if (abs(D[ii]) > magD*epsilon ) {
+						// invD[ii][ii] = 1.0/D[ii];
+					// }
+				// }
+			// }
 			for (int ii = 0; ii < D.size(); ++ii) {
-				if (abs(D[ii]) > 1.e-8 ) {
+				if (abs(D[ii]) > epsilon ) {
 					invD[ii][ii] = 1.0/D[ii];
 				}
 			}
@@ -980,72 +1532,77 @@ void SEMO_Solvers_Builder::calcCurvature(
 		}
 		
 		
+		
+
 		// =======================================
 		// 그레디언트 계산
 		vector<vector<double>> grad_tmp(mesh.cells.size(),vector<double>(3,0.0));
 		
-		
-		// internal cells
 		for(int i=0, ip=0; i<mesh.faces.size(); ++i){
 			auto& face = mesh.faces[i];
 			
-			if(face.getType() == SEMO_Types::BOUNDARY_FACE) continue;
-	
-
 			double distX = face.distCells[0];
 			double distY = face.distCells[1];
 			double distZ = face.distCells[2];
 			
-			// double wk = 1.0 / sqrt(pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
-			double wk = 0.0;
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
-			wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
-			wk = max(0.0,wk);
-			if(abs(weightLower[face.owner])>1.e-8){
-				wk /= weightLower[face.owner];
-			}
-			else{
-				wk = 0.0;
-			}
-			
-			double DVar = 0.0;
+			double smoothAiL = smoothAi[face.owner];
+			double smoothAiR = smoothAiL;
 			if(face.getType() == SEMO_Types::INTERNAL_FACE){
-				DVar = smoothAi[face.neighbour] - smoothAi[face.owner];
+				smoothAiR = smoothAi[face.neighbour];
 			}
 			else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-				DVar = smoothAi_recv[ip] - smoothAi[face.owner];
+				smoothAiR = smoothAi_recv[ip];
 			}
+			else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
+				smoothAiR = smoothAiL;
+			}
+
+			{
+				double wk = 0.0;
+				wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+				wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+				wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+				wk = pow(weight2*wk,weight);
+				wk = max(epsilon2,wk);
+				
+				vector<double> vari(3,0.0);
+				vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+				
+				double DVar = 0.0;
+				DVar = smoothAiR - smoothAiL;
 		
-			vector<double> vari(3,0.0);
-			vari[0] = distX; vari[1] = distY; vari[2] = distZ;
-	
-			for(int ii=0; ii<3; ++ii){
-				grad_tmp[face.owner][ii] += wk * vari[ii] * DVar;
-			}
-			if(face.getType() == SEMO_Types::INTERNAL_FACE){
-				
-				wk = 0.0;
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
-				wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
-				wk = max(0.0,wk);
-				if(abs(weightLower[face.neighbour])>1.e-8){
-					wk /= weightLower[face.neighbour];
-				}
-				else{
-					wk = 0.0;
-				}
-				
-				vari[0] *= (-1.0); vari[1] *= (-1.0); vari[2] *= (-1.0);
-				DVar *= (-1.0);
 				for(int ii=0; ii<3; ++ii){
-					grad_tmp[face.neighbour][ii] += wk * vari[ii] * DVar;
+					grad_tmp[face.owner][ii] += wk * vari[ii] * DVar;
 				}
 			}
+			
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				{
+					double wk = 0.0;
+					wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][0]*(distX);
+					wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][1]*(distY);
+					wk += (velocity0[face.neighbour] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.neighbour][2]*(distZ);
+					wk = pow(weight2*wk,weight);
+					wk = max(epsilon2,wk);
+					
+					vector<double> vari(3,0.0);
+					vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					
+					double DVar = 0.0;
+					DVar = smoothAiR - smoothAiL;
+			
+					for(int ii=0; ii<3; ++ii){
+						grad_tmp[face.neighbour][ii] += wk * vari[ii] * DVar;
+					}
+				}
 				
+			}
+			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE) ++ip;
+			
+			
 		}
+		
 		
 		for(int i=0; i<mesh.cells.size(); ++i){
 			SEMO_Cell& cell = mesh.cells[i];
@@ -1071,36 +1628,225 @@ void SEMO_Solvers_Builder::calcCurvature(
 			
 		}
 		
+		
+		
+		
+		// // =======================================
+		// // 그레디언트 계산
+		// vector<vector<double>> grad_tmp(mesh.cells.size(),vector<double>(3,0.0));
+		
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// auto& cell = mesh.cells[i];
+			
+			// for(auto j : cell.stencil){
+				// auto& cellSten = mesh.cells[j];
+					
+				// double distX = cellSten.x - cell.x;
+				// double distY = cellSten.y - cell.y;
+				// double distZ = cellSten.z - cell.z;
+					
+				// double wk = 0.0;
+				// wk += (velocity0[i] > 0.0 ? 1.0 : -1.0) * sufNorVec[i][0]*(-distX);
+				// wk += (velocity0[i] > 0.0 ? 1.0 : -1.0) * sufNorVec[i][1]*(-distY);
+				// wk += (velocity0[i] > 0.0 ? 1.0 : -1.0) * sufNorVec[i][2]*(-distZ);
+				// wk = max(epsilon2,wk);
+				// // if(abs(weightLower[i])>1.e-8){
+					// // wk /= weightLower[i];
+				// // }
+				// // else{
+					// // wk = 0.0;
+				// // }
+				
+
+				// double DVar = 0.0;
+				// DVar = smoothAi[j] - smoothAi[i];
+			
+				// vector<double> vari(3,0.0);
+				// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+		
+				// for(int ii=0; ii<3; ++ii){
+					// grad_tmp[i][ii] += wk * vari[ii] * DVar;
+				// }
+			// }
+		// }
+		
+		// // processor faces
+		// if(size>1){
+			// vector<vector<double>> vsum_send(3,vector<double>()), vsum_recv(3,vector<double>());
+			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// for(int ii=0; ii<3; ++ii){
+						// vsum_send[ii].push_back(0.0);
+					// }
+				// }
+			// }
+			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					
+					// for(auto j : face.stencil){
+						// auto& cellSten = mesh.cells[j];
+							
+						// double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+						// double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+						// double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+								
+						// double wk = 0.0;
+						// wk += (velocity0_recv[ip] > 0.0 ? 1.0 : -1.0) * sufNorVec_recv[0][ip]*(-distX);
+						// wk += (velocity0_recv[ip] > 0.0 ? 1.0 : -1.0) * sufNorVec_recv[1][ip]*(-distY);
+						// wk += (velocity0_recv[ip] > 0.0 ? 1.0 : -1.0) * sufNorVec_recv[2][ip]*(-distZ);
+						// wk = max(epsilon2,wk);
+						// // if(abs(weightLower_recv[ip])>1.e-8){
+							// // wk /= weightLower_recv[ip];
+						// // }
+						// // else{
+							// // wk = 0.0;
+						// // }
+						
+						// double DVar = 0.0;
+						// DVar = smoothAi[j] - smoothAi_recv[ip];
+								
+						// vector<double> vari(3,0.0);
+						// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+				
+						// for(int ii=0; ii<3; ++ii){
+							// vsum_send[ii][ip] += wk * vari[ii] * DVar;
+						// }
+						
+					// }
+					
+					// ++ip;
+				// }
+			// }
+		
+			// for(int i=0; i<3; ++i){
+				// mpi.setProcsFaceDatas(vsum_send[i], vsum_recv[i],
+							// mesh.countsProcFaces, mesh.countsProcFaces, 
+							// mesh.displsProcFaces, mesh.displsProcFaces);
+			// }
+			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				// auto& face = mesh.faces[i];
+				
+				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					// for(int jj=0; jj<3; ++jj){
+						// grad_tmp[face.owner][jj] += vsum_recv[jj][ip];
+					// }
+					// ++ip;
+				// }
+			// }
+		
+		// }
+		
+	
+		
+		// // boundary face's nodes
+		// for(auto& boundary : mesh.boundary){
+			
+			// if(boundary.neighbProcNo == -1){
+				
+				// int str = boundary.startFace;
+				// int end = str + boundary.nFaces;
+				
+				// for(int i=str; i<end; ++i){
+					// auto& face = mesh.faces[i];
+					// auto& cell = mesh.cells[face.owner];
+					
+					// double distX = face.x - cell.x;
+					// double distY = face.y - cell.y;
+					// double distZ = face.z - cell.z;
+					
+					// double wk = 0.0;
+					// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][0]*(-distX);
+					// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][1]*(-distY);
+					// wk += (velocity0[face.owner] > 0.0 ? 1.0 : -1.0) * sufNorVec[face.owner][2]*(-distZ);
+					// wk = max(epsilon2,wk);
+					// // if(abs(weightLower[face.owner])>1.e-8){
+						// // wk /= weightLower[face.owner];
+					// // }
+					// // else{
+						// // wk = 0.0;
+					// // }
+				
+					// double DVar = 0.0;
+							
+					// vector<double> vari(3,0.0);
+					// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+			
+					// // 대칭행렬
+					// for(int ii=0, num=0; ii<3; ++ii){
+						// grad_tmp[face.owner][ii] += wk * vari[ii] * DVar;
+					// }
+					
+				// }
+			// }
+		// }
+			
+		
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// SEMO_Cell& cell = mesh.cells[i];
+			
+			// double tmp0 = 
+				// vsum[i][0] * grad_tmp[i][0] +
+				// vsum[i][1] * grad_tmp[i][1] +
+				// vsum[i][2] * grad_tmp[i][2];
+				
+			// double tmp1 = 
+				// vsum[i][1] * grad_tmp[i][0] +
+				// vsum[i][3] * grad_tmp[i][1] +
+				// vsum[i][4] * grad_tmp[i][2];
+				
+			// double tmp2 = 
+				// vsum[i][2] * grad_tmp[i][0] +
+				// vsum[i][4] * grad_tmp[i][1] +
+				// vsum[i][5] * grad_tmp[i][2];
+				
+			// grad_tmp[i][0] = tmp0;
+			// grad_tmp[i][1] = tmp1;
+			// grad_tmp[i][2] = tmp2;
+			
+		// }
+		
 		// =======================================
 		// Hamilton-Jacobi 방정식 풀기
 		double residual_ls = 0.0;
 		for(int i=0; i<mesh.cells.size(); ++i){
 			SEMO_Cell& cell = mesh.cells[i];
 
-			if(!interfacePresentCell[i]){
+			if(!interfacePresentCell[i])
+			{
 				double magGrad = sqrt(
 					pow(grad_tmp[i][0],2.0)+
 					pow(grad_tmp[i][1],2.0)+
 					pow(grad_tmp[i][2],2.0));
-				// double magGrad = sqrt(
-					// pow(gradSmoothAi[i][0],2.0)+
-					// pow(gradSmoothAi[i][1],2.0)+
-					// pow(gradSmoothAi[i][2],2.0));
 					
-				double resi_tmp = 0.1 * tau_ls_local[i]*velocity0[i]*(1.0-magGrad);
-				// double resi_tmp = 0.1 * tau_ls*velocity0[i]*(1.0-magGrad);
+				double resi_tmp = CFL_LS * tau_ls_local[i]*velocity0[i]*(1.0-magGrad);
+				
+				// double interThick = abs(tanh(weightIterThick*smoothAi[i]));
+				// double resi_tmp = interThick * CFL_LS * tau_ls_local[i]*velocity0[i]*(1.0-magGrad);
+				
 				smoothAi[i] += resi_tmp;
 				residual_ls += resi_tmp*resi_tmp;
 			}
+			
 		}
 		double residual_ls_glob = 0.0;
 		MPI_Allreduce(&residual_ls, &residual_ls_glob, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-		if(rank==0) cout << "| level-set re-initialization residual = " << residual_ls_glob << endl;
+		if(iter==0) saveLSReinitResi[0] = residual_ls_glob;
+		if(iter==LSReinitIterMax-1) saveLSReinitResi[1] = residual_ls_glob;
 
 	}
+	// if(rank==0) cout << "| level-set re-initialization init residual = " << saveLSReinitResi[0] << ", final residual = " << saveLSReinitResi[1] << endl;
 
-
-
+	for(int i=0; i<mesh.cells.size(); ++i){
+		SEMO_Cell& cell = mesh.cells[i];
+		cell.var[controls.LS] = smoothAi[i];
+	}
+	
+	
+	
 
 
 	
@@ -1251,12 +1997,13 @@ void SEMO_Solvers_Builder::calcCurvature(
 	
 	// // ============================================
 	// // Godunov flux 계산
-	// for(int iter=0; iter< 500; ++iter){
+	// for(int iter=0; iter< 10; ++iter){
 		// vector<vector<double>> gradSmoothAi(mesh.cells.size(),vector<double>(9,0.0));
 		// {
-			// int dummy0;
-			// math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
-				// -1, dummy0, smoothAi, gradSmoothAi);
+			// // int dummy0;
+			// // math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
+				// // -1, dummy0, smoothAi, gradSmoothAi);
+			// math.calcGaussGreen(mesh, -1, smoothAi, gradSmoothAi);
 		// }
 		// vector<double> smoothAi_recv;
 		// vector<vector<double>> gradSmoothAi_recv(3,vector<double>());
@@ -1392,6 +2139,12 @@ void SEMO_Solvers_Builder::calcCurvature(
 		// MPI_Allreduce(&residual_ls, &residual_ls_glob, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 		// if(rank==0) cout << "| level-set re-initialization residual = " << residual_ls_glob << endl;
 		
+	// }
+	
+	
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// SEMO_Cell& cell = mesh.cells[i];
+		// cell.var[controls.LS] = smoothAi[i];
 	// }
 	
 	
@@ -1664,14 +2417,17 @@ void SEMO_Solvers_Builder::calcCurvature(
 	//================================================
 	// calc gauss-green gradient
 	// vector<vector<double>> gradAi(mesh.cells.size(),vector<double>(3,0.0));
-	vector<vector<double>> gradAi(mesh.cells.size(),vector<double>(9,0.0));
+	vector<vector<double>> gradAi(mesh.cells.size(),vector<double>(3,0.0));
 	// for(int i=0; i<gradIterMax_LS; ++i)
 	{
 		int dummy0;
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "input", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
 			-1, dummy0, smoothAi, gradAi);
+		// math.calcGaussGreen(mesh, -1, smoothAi, gradAi);
 	}
 	// for(int i=0; i<gradIterMax_GG; ++i){
+	// for(int i=0; i<5; ++i)
+	// {
 		// math.calcGaussGreen(mesh, -1, smoothAi, gradAi);
 	// }
 	
@@ -1844,7 +2600,7 @@ void SEMO_Solvers_Builder::calcCurvature(
 		magGrad = sqrt(magGrad);
 			
 		// if( magGrad > std::numeric_limits<double>::min() ){
-		if( magGrad > 1.e-8 ){
+		if( magGrad > 1.e-15 ){
 			for(int ii=0; ii<3; ++ii){
 				surfNormalVec[ii][i] = gradAi[i][ii]/magGrad;
 			}
@@ -1883,31 +2639,451 @@ void SEMO_Solvers_Builder::calcCurvature(
 	// calc surface normal vector gradients
 	
 	
-	vector<vector<vector<double>>> gradSurfNor_LS;
-	gradSurfNor_LS.resize(3);
-	for(int i=0; i<3; ++i){
-		gradSurfNor_LS[i].resize(mesh.cells.size(),vector<double>(9,0.0));
-	}
-	// for(int i=0; i<gradIterMax_LS; ++i)
-	{
-		int dummy0;
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "input", 
-			-1, dummy0, surfNormalVec[0], gradSurfNor_LS[0]);
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "input", 
-			-1, dummy0, surfNormalVec[1], gradSurfNor_LS[1]);
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "input", 
-			-1, dummy0, surfNormalVec[2], gradSurfNor_LS[2]);
-	}
-	// for(int i=0; i<gradIterMax_GG; ++i){
+	// vector<vector<vector<double>>> gradSurfNor_LS;
+	// gradSurfNor_LS.resize(3);
+	// for(int i=0; i<3; ++i){
+		// gradSurfNor_LS[i].resize(mesh.cells.size(),vector<double>(3,0.0));
+	// }
+	// // for(int i=0; i<gradIterMax_LS; ++i)
+	// {
+		// int dummy0;
+		// math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
+			// -1, dummy0, surfNormalVec[0], gradSurfNor_LS[0]);
+		// math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
+			// -1, dummy0, surfNormalVec[1], gradSurfNor_LS[1]);
+		// math.calcLeastSquare(mesh, "cellVertex", "1st", "input", 
+			// -1, dummy0, surfNormalVec[2], gradSurfNor_LS[2]);
+			
 		// math.calcGaussGreen(mesh, -1, surfNormalVec[0], gradSurfNor_LS[0]);
 		// math.calcGaussGreen(mesh, -1, surfNormalVec[1], gradSurfNor_LS[1]);
 		// math.calcGaussGreen(mesh, -1, surfNormalVec[2], gradSurfNor_LS[2]);
 	// }
+	// // // for(int i=0; i<gradIterMax_GG; ++i){
+	// // for(int i=0; i<5; ++i)
+	// // {
+		// // math.calcGaussGreen(mesh, -1, surfNormalVec[0], gradSurfNor_LS[0]);
+		// // math.calcGaussGreen(mesh, -1, surfNormalVec[1], gradSurfNor_LS[1]);
+		// // math.calcGaussGreen(mesh, -1, surfNormalVec[2], gradSurfNor_LS[2]);
+	// // }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	// //================================================
+	// // calc Curvature (green-gause)
+	// kappa.clear();
+	// kappa.resize(mesh.cells.size(),0.0);
+	// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+		// auto& face = mesh.faces[i];
+		
+		// double wCL = face.wC; double wCR = 1.0 - wCL;
+			
+		// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			
+			// double var = 0.0;
+			// var += (wCL*surfNormalVec[0][face.owner] + wCR*surfNormalVec[0][face.neighbour])*face.unitNormals[0];
+			// var += (wCL*surfNormalVec[1][face.owner] + wCR*surfNormalVec[1][face.neighbour])*face.unitNormals[1];
+			// var += (wCL*surfNormalVec[2][face.owner] + wCR*surfNormalVec[2][face.neighbour])*face.unitNormals[2];
+			
+			// // skewness
+			// // if(boolSkewnessCorrection){
+				// // for(int ii=0; ii<3; ++ii){
+					// // var += wCL*gradSurfNor_LS[ii][face.owner][0]*face.skewness[0];
+					// // var += wCL*gradSurfNor_LS[ii][face.owner][1]*face.skewness[1];
+					// // var += wCL*gradSurfNor_LS[ii][face.owner][2]*face.skewness[2];
+					
+					// // surfVarR[ii] += gradSurfNor_LS[ii][face.neighbour][0]*face.skewness[0];
+					// // surfVarR[ii] += gradSurfNor_LS[ii][face.neighbour][1]*face.skewness[1];
+					// // surfVarR[ii] += gradSurfNor_LS[ii][face.neighbour][2]*face.skewness[2];
+				// // }
+			// // }
+			
+			// kappa[face.owner] -= var * face.area / mesh.cells[face.owner].volume;
+			// kappa[face.neighbour] += var * face.area / mesh.cells[face.neighbour].volume;
+			
+		// }
+		// else if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+			
+			// double var = 0.0;
+			// var += (wCL*surfNormalVec[0][face.owner] + wCR*surfNormalVec_recv[0][ip])*face.unitNormals[0];
+			// var += (wCL*surfNormalVec[1][face.owner] + wCR*surfNormalVec_recv[1][ip])*face.unitNormals[1];
+			// var += (wCL*surfNormalVec[2][face.owner] + wCR*surfNormalVec_recv[2][ip])*face.unitNormals[2];
+			
+			// kappa[face.owner] -= var * face.area / mesh.cells[face.owner].volume;
+			
+			// ++ip;
+		// }
+		// else if(face.getType() == SEMO_Types::BOUNDARY_FACE){
+			
+			// double var = 0.0;
+			// var += (surfNormalVec[0][face.owner])*face.unitNormals[0];
+			// var += (surfNormalVec[1][face.owner])*face.unitNormals[1];
+			// var += (surfNormalVec[2][face.owner])*face.unitNormals[2];
+			
+			// kappa[face.owner] -= var * face.area / mesh.cells[face.owner].volume;
+			
+		// }
+	// }
+	
+	
+	
+	
+	
+	//================================================
+	vector<vector<double>> gradSurfNor_LS(mesh.cells.size(),vector<double>(3,0.0));
+	
+
+	{
+		
+		// =======================================
+		// 리스트 스퀘어 초기화
+		vector<vector<double>> vsum(mesh.cells.size(),vector<double>(6,0.0));
+		
+		for(int i=0; i<mesh.cells.size(); ++i){
+			auto& cell = mesh.cells[i];
+			
+			for(auto j : cell.stencil){
+				auto& cellSten = mesh.cells[j];
+					
+				double distX = cellSten.x - cell.x;
+				double distY = cellSten.y - cell.y;
+				double distZ = cellSten.z - cell.z;
+					
+				double wk = 1.0;
+				
+				vector<double> vari(3,0.0);
+				vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+				
+				// 대칭행렬
+				for(int ii=0, num=0; ii<3; ++ii){
+					for(int jj=0; jj<3; ++jj){
+						if(jj>=ii){
+							vsum[i][num++] += wk * vari[ii]*vari[jj];
+						}
+					}
+				}
+			}
+		}
+		
+		// if(rank==0) cout << "AAAAAAA" << endl;
+		
+		// processor faces
+		if(size>1){
+			vector<vector<double>> vsum_send(6,vector<double>()), vsum_recv(6,vector<double>());
+			int proc_num=0.0;
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					++proc_num;
+				}
+			}
+			for(int ii=0; ii<6; ++ii){
+				vsum_send[ii].resize(proc_num,0.0);
+			}
+		// cout << "BB" << endl;
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					
+					for(auto j : face.stencil){
+						auto& cellSten = mesh.cells[j];
+							
+						double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+						double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+						double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+								
+						double wk = 1.0;
+						
+						vector<double> vari(3,0.0);
+						vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+						
+						// 대칭행렬
+						for(int ii=0, num=0; ii<3; ++ii){
+							for(int jj=0; jj<3; ++jj){
+								if(jj>=ii){
+									vsum_send[num++][ip] += wk * vari[ii]*vari[jj];
+								}
+							}
+						}
+					}
+					
+					++ip;
+				}
+			}
+		
+			for(int i=0; i<6; ++i){
+				mpi.setProcsFaceDatas(vsum_send[i], vsum_recv[i],
+							mesh.countsProcFaces, mesh.countsProcFaces, 
+							mesh.displsProcFaces, mesh.displsProcFaces);
+			}
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					for(int jj=0; jj<6; ++jj){
+						vsum[face.owner][jj] += vsum_recv[jj][ip];
+					}
+					++ip;
+				}
+			}
+		
+		}
+	
+		// if(rank==0) cout << "BBBBBBB" << endl;
+		
+		// boundary face's nodes
+		for(auto& boundary : mesh.boundary){
+			
+			if(boundary.neighbProcNo == -1){
+				
+				int str = boundary.startFace;
+				int end = str + boundary.nFaces;
+				
+				for(int i=str; i<end; ++i){
+					auto& face = mesh.faces[i];
+					auto& cell = mesh.cells[face.owner];
+					
+					double distX = face.x - cell.x;
+					double distY = face.y - cell.y;
+					double distZ = face.z - cell.z;
+					
+					double wk = 1.0;
+					
+					vector<double> vari(3,0.0);
+					vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					
+					// 대칭행렬
+					for(int ii=0, num=0; ii<3; ++ii){
+						for(int jj=0; jj<3; ++jj){
+							if(jj>=ii){
+								vsum[face.owner][num++] += wk * vari[ii]*vari[jj];
+							}
+						}
+					}
+					
+				}
+			}
+		}
+			
+		
+		// 역행렬 구하기
+		for(int i=0; i<mesh.cells.size(); ++i){
+			SEMO_Cell& cell = mesh.cells[i];
+			
+			// 1차 least-square 저장
+			double detA = 
+				vsum[i][0]*vsum[i][3]*vsum[i][5] + vsum[i][1]*vsum[i][4]*vsum[i][2] +
+				vsum[i][2]*vsum[i][1]*vsum[i][4] - vsum[i][0]*vsum[i][4]*vsum[i][4] -
+				vsum[i][2]*vsum[i][3]*vsum[i][2] - vsum[i][1]*vsum[i][1]*vsum[i][5];
+			
+			vector<double> tmp_vsum(6,0.0);
+			tmp_vsum[0] = (vsum[i][3] * vsum[i][5] - vsum[i][4] * vsum[i][4]) / detA;    // inv_A(1,1)
+			tmp_vsum[1] = (vsum[i][2] * vsum[i][4] - vsum[i][1] * vsum[i][5]) / detA;    // inv_A(1,2) = (2,1)
+			tmp_vsum[2] = (vsum[i][1] * vsum[i][4] - vsum[i][2] * vsum[i][3]) / detA;    // inv_A(1,3) = (3,1)
+			tmp_vsum[3] = (vsum[i][0] * vsum[i][5] - vsum[i][2] * vsum[i][2]) / detA;    // inv_A(2,2)
+			tmp_vsum[4] = (vsum[i][2] * vsum[i][1] - vsum[i][0] * vsum[i][4]) / detA;    // inv_A(2,3) = (3,2)
+			tmp_vsum[5] = (vsum[i][0] * vsum[i][3] - vsum[i][1] * vsum[i][1]) / detA;    // inv_A(3,3)
+			
+			for(int ii=0; ii<6; ++ii){
+				vsum[i][ii] = tmp_vsum[ii];
+			}
+			
+		}
+		
+		// if(rank==0) cout << "CCCCCCCCC" << endl;
+		
+		// =======================================
+		// 그레디언트 계산
+		vector<vector<double>> grad_tmp(mesh.cells.size(),vector<double>(3,0.0));
+		
+		for(int i=0; i<mesh.cells.size(); ++i){
+			auto& cell = mesh.cells[i];
+			
+			for(auto j : cell.stencil){
+				auto& cellSten = mesh.cells[j];
+					
+				double distX = cellSten.x - cell.x;
+				double distY = cellSten.y - cell.y;
+				double distZ = cellSten.z - cell.z;
+					
+				double wk = 1.0;
+				
+				vector<double> DVar(3,0.0);
+				DVar[0] = surfNormalVec[0][j] - surfNormalVec[0][i];
+				DVar[1] = surfNormalVec[1][j] - surfNormalVec[1][i];
+				DVar[2] = surfNormalVec[2][j] - surfNormalVec[2][i];
+			
+				vector<double> vari(3,0.0);
+				vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+		
+				for(int ii=0; ii<3; ++ii){
+					gradSurfNor_LS[i][ii] += wk * vari[ii] * DVar[ii];
+				}
+			}
+		}
+		
+		// if(rank==0) cout << "DDDDDDDDDDD" << endl;
+		// processor faces
+		if(size>1){
+			vector<vector<double>> vsum_send(3,vector<double>()), vsum_recv(3,vector<double>());
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					for(int ii=0; ii<3; ++ii){
+						vsum_send[ii].push_back(0.0);
+					}
+				}
+			}
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					
+					for(auto j : face.stencil){
+						auto& cellSten = mesh.cells[j];
+							
+						double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+						double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+						double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+								
+						double wk = 1.0;
+						
+						vector<double> DVar(3,0.0);
+						DVar[0] = surfNormalVec[0][j] - surfNormalVec_recv[0][ip];
+						DVar[1] = surfNormalVec[1][j] - surfNormalVec_recv[1][ip];
+						DVar[2] = surfNormalVec[2][j] - surfNormalVec_recv[2][ip];
+								
+						vector<double> vari(3,0.0);
+						vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+				
+						for(int ii=0; ii<3; ++ii){
+							vsum_send[ii][ip] += wk * vari[ii] * DVar[ii];
+						}
+						
+					}
+					
+					++ip;
+				}
+			}
+		
+			for(int i=0; i<3; ++i){
+				mpi.setProcsFaceDatas(vsum_send[i], vsum_recv[i],
+							mesh.countsProcFaces, mesh.countsProcFaces, 
+							mesh.displsProcFaces, mesh.displsProcFaces);
+			}
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					for(int ii=0; ii<3; ++ii){
+						gradSurfNor_LS[face.owner][ii] += vsum_recv[ii][ip];
+					}
+					++ip;
+				}
+			}
+		// if(rank==0) cout << "EEEEEEEEEE" << endl;
+		
+		}
+		
+	
+		// if(rank==0) cout << "EEEEEEEEEE" << endl;
+		
+		// // boundary face's nodes
+		// for(auto& boundary : mesh.boundary){
+			
+			// if(boundary.neighbProcNo == -1){
+				
+				// int str = boundary.startFace;
+				// int end = str + boundary.nFaces;
+				
+				// for(int i=str; i<end; ++i){
+					// auto& face = mesh.faces[i];
+					// auto& cell = mesh.cells[face.owner];
+					
+					// double distX = face.x - cell.x;
+					// double distY = face.y - cell.y;
+					// double distZ = face.z - cell.z;
+					
+					// double wk = 1.0;
+				
+					// vector<double> DVar(3,0.0);
+					// DVar[0] = surfNormalVec[0][j] - surfNormalVec_recv[0][ip];
+					// DVar[1] = surfNormalVec[1][j] - surfNormalVec_recv[1][ip];
+					// DVar[2] = surfNormalVec[2][j] - surfNormalVec_recv[2][ip];
+							
+					// vector<double> vari(3,0.0);
+					// vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+			
+					// // 대칭행렬
+					// for(int ii=0, num=0; ii<3; ++ii){
+						// grad_tmp[face.owner][ii] += wk * vari[ii] * DVar;
+					// }
+					
+				// }
+			// }
+		// }
+			
+		
+		for(int i=0; i<mesh.cells.size(); ++i){
+			SEMO_Cell& cell = mesh.cells[i];
+			
+			double tmp0 = 
+				vsum[i][0] * gradSurfNor_LS[i][0] +
+				vsum[i][1] * gradSurfNor_LS[i][1] +
+				vsum[i][2] * gradSurfNor_LS[i][2];
+				
+			double tmp1 = 
+				vsum[i][1] * gradSurfNor_LS[i][0] +
+				vsum[i][3] * gradSurfNor_LS[i][1] +
+				vsum[i][4] * gradSurfNor_LS[i][2];
+				
+			double tmp2 = 
+				vsum[i][2] * gradSurfNor_LS[i][0] +
+				vsum[i][4] * gradSurfNor_LS[i][1] +
+				vsum[i][5] * gradSurfNor_LS[i][2];
+				
+			gradSurfNor_LS[i][0] = tmp0;
+			gradSurfNor_LS[i][1] = tmp1;
+			gradSurfNor_LS[i][2] = tmp2;
+			
+		}
+		
+		// cout << "FFFFFFFFFFF" << endl;
+
+	}
+	
+
+	
 	kappa.clear();
 	kappa.resize(mesh.cells.size(),0.0);
 	for(int i=0; i<mesh.cells.size(); ++i){
-		kappa[i] = -(gradSurfNor_LS[0][i][0] + gradSurfNor_LS[1][i][1] + gradSurfNor_LS[2][i][2]);
+		kappa[i] = -(gradSurfNor_LS[i][0] + gradSurfNor_LS[i][1] + gradSurfNor_LS[i][2]);
 	}
+	
+	
+	
+	
+	
+	
+	// kappa.clear();
+	// kappa.resize(mesh.cells.size(),0.0);
+	// for(int i=0; i<mesh.cells.size(); ++i){
+		// kappa[i] = -(gradSurfNor_LS[0][i][0] + gradSurfNor_LS[1][i][1] + gradSurfNor_LS[2][i][2]);
+	// }
+	
+	
+	
 	
 	// vector<vector<double>> gradSurfNor_LS(mesh.cells.size(),vector<double>(3,0.0));
 	// math.calcGaussGreen(mesh, -1, surfNormalVec[0], surfNormalVec[1], surfNormalVec[2], gradSurfNor_LS);
@@ -2111,197 +3287,209 @@ void SEMO_Solvers_Builder::calcCurvature(
 	
 	
 	
-	// //================================================
-	// // smoothing process of Curvature (denner)
+	//================================================
+	// smoothing process of Curvature (denner)
 	
-	// // first smoothing
-	// for(int iter=0; iter<iterFirstSmoothingMax; ++iter)
-	// {
-		// vector<double> smoothUp(mesh.cells.size(),0.0);
-		// vector<double> smoothDown(mesh.cells.size(),0.0);
-		// for(int i=0; i<mesh.cells.size(); ++i){
-			// double weight = pow(1.0-2.0*abs(0.5-smoothAi[i]), 8.0);
-			// smoothUp[i] = kappa[i]*weight;
-			// smoothDown[i] = weight;
-		// }
+	// first smoothing
+	for(int iter=0; iter<iterFirstSmoothingMax; ++iter)
+	{
+		vector<double> smoothUp(mesh.cells.size(),0.0);
+		vector<double> smoothDown(mesh.cells.size(),0.0);
+		for(int i=0; i<mesh.cells.size(); ++i){
+			// double weight = pow(1.0-2.0*abs(0.5-orgAi[i]), 8.0);
+			double weight = 1.0-abs(tanh(tanhWeight*smoothAi[i]));
+			smoothUp[i] = kappa[i]*weight;
+			smoothDown[i] = weight;
+		}
 		
-		// for(int i=0; i<mesh.faces.size(); ++i){
-			// auto& face = mesh.faces[i];
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
 			
-			// double wCL = face.wC; double wCR = 1.0 - wCL;
+			double wCL = face.wC; double wCR = 1.0 - wCL;
 			
-			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
 				
-				// double weightL = pow(1.0-2.0*abs(0.5-smoothAi[face.owner]), 8.0);
-				// double weightR = pow(1.0-2.0*abs(0.5-smoothAi[face.neighbour]), 8.0);
+				// double weightL = pow(1.0-2.0*abs(0.5-orgAi[face.owner]), 8.0);
+				// double weightR = pow(1.0-2.0*abs(0.5-orgAi[face.neighbour]), 8.0);
+				double weightL = 1.0-abs(tanh(tanhWeight*smoothAi[face.owner]));
+				double weightR = 1.0-abs(tanh(tanhWeight*smoothAi[face.neighbour]));
 			
-				// smoothUp[face.owner] += weightR*kappa[face.neighbour];
-				// smoothDown[face.owner] += weightR;
+				smoothUp[face.owner] += weightR*kappa[face.neighbour];
+				smoothDown[face.owner] += weightR;
 				
-				// smoothUp[face.neighbour] += weightL*kappa[face.owner];
-				// smoothDown[face.neighbour] += weightL;
+				smoothUp[face.neighbour] += weightL*kappa[face.owner];
+				smoothDown[face.neighbour] += weightL;
 				
-				// // double avgVar = wCL*smoothAi[face.owner] + wCR*smoothAi[face.neighbour];
-				// // double weight = pow(1.0-2.0*avgVar, 8.0) * face.area;
-				// // double avgKappa = wCL*kappa[face.owner] + wCR*kappa[face.neighbour];
+				// double avgVar = wCL*smoothAi[face.owner] + wCR*smoothAi[face.neighbour];
+				// double weight = pow(1.0-2.0*avgVar, 8.0) * face.area;
+				// double avgKappa = wCL*kappa[face.owner] + wCR*kappa[face.neighbour];
 			
-				// // smoothUp[face.owner] += weight*avgKappa;
-				// // smoothDown[face.owner] += weight;
+				// smoothUp[face.owner] += weight*avgKappa;
+				// smoothDown[face.owner] += weight;
 				
-				// // smoothUp[face.neighbour] += weight*avgKappa;
-				// // smoothDown[face.neighbour] += weight;
+				// smoothUp[face.neighbour] += weight*avgKappa;
+				// smoothDown[face.neighbour] += weight;
 			
-			// }
+			}
 			
-		// }
+		}
 		
-		// if(size>1){
-			// // processor faces
-			// vector<double> sendValues;
-			// for(int i=0; i<mesh.faces.size(); ++i){
-				// auto& face = mesh.faces[i];
+		if(size>1){
+			// processor faces
+			vector<double> sendValues, orgAi_send;
+			for(int i=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
 				
-				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-					// sendValues.push_back(kappa[face.owner]);
-				// }
-			// }
-			// vector<double> recvValues;
-			// mpi.setProcsFaceDatas(
-						// sendValues, recvValues,
-						// mesh.countsProcFaces, mesh.countsProcFaces, 
-						// mesh.displsProcFaces, mesh.displsProcFaces);
-			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
-				// auto& face = mesh.faces[i];
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					sendValues.push_back(kappa[face.owner]);
+					// orgAi_send.push_back(orgAi[face.owner]);
+				}
+			}
+			vector<double> recvValues, orgAi_recv;
+			mpi.setProcsFaceDatas(
+						sendValues, recvValues,
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
 			
-				// double wCL = face.wC; double wCR = 1.0 - wCL;
+				double wCL = face.wC; double wCR = 1.0 - wCL;
 				
-				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
-					// double weightR = pow(1.0-2.0*abs(0.5-smoothAi_recv[ip]), 8.0);
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
+					// double weightR = pow(1.0-2.0*abs(0.5-orgAi_recv[ip]), 8.0);
+					double weightR = 1.0-abs(tanh(tanhWeight*smoothAi_recv[ip]));
 					
-					// smoothUp[face.owner] += weightR*recvValues[ip];
-					// smoothDown[face.owner] += weightR;
+					smoothUp[face.owner] += weightR*recvValues[ip];
+					smoothDown[face.owner] += weightR;
 					
-					// // double avgVar = wCL*smoothAi[face.owner] + wCR*smoothAi_recv[ip];
-					// // double weight = pow(1.0-2.0*avgVar, 8.0) * face.area;
-					// // double avgKappa = wCL*kappa[face.owner] + wCR*recvValues[ip];
+					// double avgVar = wCL*smoothAi[face.owner] + wCR*smoothAi_recv[ip];
+					// double weight = pow(1.0-2.0*avgVar, 8.0) * face.area;
+					// double avgKappa = wCL*kappa[face.owner] + wCR*recvValues[ip];
 					
-					// // smoothUp[face.owner] += weight*avgKappa;
-					// // smoothDown[face.owner] += weight;
+					// smoothUp[face.owner] += weight*avgKappa;
+					// smoothDown[face.owner] += weight;
 					
-					// ++ip;
-				// }
-			// }
+					++ip;
+				}
+			}
 			
-		// }
+		}
 	
-		// for(int i=0; i<mesh.cells.size(); ++i){
-			// if( abs(smoothDown[i]) > std::numeric_limits<double>::min() ){
-				// kappa[i] = smoothUp[i]/smoothDown[i];
+		for(int i=0; i<mesh.cells.size(); ++i){
+			if( abs(smoothDown[i]) > std::numeric_limits<double>::min() ){
+				kappa[i] = smoothUp[i]/smoothDown[i];
+			}
+			// else{
+				// kappa[i] = 0.0;
 			// }
-			// // else{
-				// // kappa[i] = 0.0;
-			// // }
-		// }
+		}
 		
-	// }
+	}
 	
 	
 	
 	
-	// // second smoothing
-	// for(int iter=0; iter<iterSecondSmoothingMax; ++iter)
-	// {
-		// vector<double> smoothUp(mesh.cells.size(),0.0);
-		// vector<double> smoothDown(mesh.cells.size(),0.0);
-		// for(int i=0; i<mesh.cells.size(); ++i){
-			// double weight = pow(1.0-2.0*abs(0.5-smoothAi[i]), 8.0);
-			// smoothUp[i] = kappa[i]*weight;
-			// smoothDown[i] = weight;
-		// }
+	// second smoothing
+	for(int iter=0; iter<iterSecondSmoothingMax; ++iter)
+	{
+		vector<double> smoothUp(mesh.cells.size(),0.0);
+		vector<double> smoothDown(mesh.cells.size(),0.0);
+		for(int i=0; i<mesh.cells.size(); ++i){
+			// double weight = pow(1.0-2.0*abs(0.5-orgAi[i]), 8.0);
+			double weight = 1.0-abs(tanh(tanhWeight*smoothAi[i]));
+			smoothUp[i] = kappa[i]*weight;
+			smoothDown[i] = weight;
+		}
 		
-		// for(int i=0; i<mesh.faces.size(); ++i){
-			// auto& face = mesh.faces[i];
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
 			
-			// double wCL = face.wC; double wCR = 1.0 - wCL;
+			double wCL = face.wC; double wCR = 1.0 - wCL;
 			
-			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
 				
-				// double weightL = pow(1.0-2.0*abs(0.5-smoothAi[face.owner]), 8.0);
-				// double weightR = pow(1.0-2.0*abs(0.5-smoothAi[face.neighbour]), 8.0);
-				// double weightL_m = 0.0;
-				// weightL_m += surfNormalVec[0][face.neighbour]*face.unitNomalsPN[0];
-				// weightL_m += surfNormalVec[1][face.neighbour]*face.unitNomalsPN[1];
-				// weightL_m += surfNormalVec[2][face.neighbour]*face.unitNomalsPN[2];
-				// weightL_m = abs(weightL_m);
-				// weightL_m = pow(weightL_m, 8.0);
-				// double weightR_m = 0.0;
-				// weightR_m += surfNormalVec[0][face.owner]*face.unitNomalsPN[0];
-				// weightR_m += surfNormalVec[1][face.owner]*face.unitNomalsPN[1];
-				// weightR_m += surfNormalVec[2][face.owner]*face.unitNomalsPN[2];
-				// weightR_m = abs(weightR_m);
-				// weightR_m = pow(weightR_m, 8.0);
-			
-				// smoothUp[face.owner] += weightR*weightR_m*kappa[face.neighbour];
-				// smoothUp[face.neighbour] += weightL*weightL_m*kappa[face.owner];
+				// double weightL = pow(1.0-2.0*abs(0.5-orgAi[face.owner]), 8.0);
+				// double weightR = pow(1.0-2.0*abs(0.5-orgAi[face.neighbour]), 8.0);
+				double weightL = 1.0-abs(tanh(tanhWeight*smoothAi[face.owner]));
+				double weightR = 1.0-abs(tanh(tanhWeight*smoothAi[face.neighbour]));
 				
-				// smoothDown[face.owner] += weightR*weightR_m;
-				// smoothDown[face.neighbour] += weightL*weightL_m;
+				double weightL_m = 0.0;
+				weightL_m += surfNormalVec[0][face.neighbour]*face.unitNomalsPN[0];
+				weightL_m += surfNormalVec[1][face.neighbour]*face.unitNomalsPN[1];
+				weightL_m += surfNormalVec[2][face.neighbour]*face.unitNomalsPN[2];
+				weightL_m = abs(weightL_m);
+				weightL_m = pow(weightL_m, 8.0);
+				double weightR_m = 0.0;
+				weightR_m += surfNormalVec[0][face.owner]*face.unitNomalsPN[0];
+				weightR_m += surfNormalVec[1][face.owner]*face.unitNomalsPN[1];
+				weightR_m += surfNormalVec[2][face.owner]*face.unitNomalsPN[2];
+				weightR_m = abs(weightR_m);
+				weightR_m = pow(weightR_m, 8.0);
 			
-			// }
+				smoothUp[face.owner] += weightR*weightR_m*kappa[face.neighbour];
+				smoothUp[face.neighbour] += weightL*weightL_m*kappa[face.owner];
+				
+				smoothDown[face.owner] += weightR*weightR_m;
+				smoothDown[face.neighbour] += weightL*weightL_m;
 			
-		// }
+			}
+			
+		}
 		
-		// if(size>1){
-			// // processor faces
-			// vector<double> sendValues;
-			// for(int i=0; i<mesh.faces.size(); ++i){
-				// auto& face = mesh.faces[i];
+		if(size>1){
+			// processor faces
+			vector<double> sendValues, orgAi_send;
+			for(int i=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
 				
-				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){
-					// sendValues.push_back(kappa[face.owner]);
-				// }
-			// }
-			// vector<double> recvValues;
-			// mpi.setProcsFaceDatas(
-						// sendValues, recvValues,
-						// mesh.countsProcFaces, mesh.countsProcFaces, 
-						// mesh.displsProcFaces, mesh.displsProcFaces);
-			// for(int i=0, ip=0; i<mesh.faces.size(); ++i){
-				// auto& face = mesh.faces[i];
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					sendValues.push_back(kappa[face.owner]);
+					// orgAi_send.push_back(orgAi[face.owner]);
+				}
+			}
+			vector<double> recvValues, orgAi_recv;
+			mpi.setProcsFaceDatas(
+						sendValues, recvValues,
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+			for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
 			
-				// double wCL = face.wC; double wCR = 1.0 - wCL;
+				double wCL = face.wC; double wCR = 1.0 - wCL;
 				
-				// if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
-					// double weightR = pow(1.0-2.0*abs(0.5-smoothAi_recv[ip]), 8.0);
-					// double weightR_m = 0.0;
-					// // weightR_m += surfNormalVec_recv[0][ip]*face.unitNomalsPN[0];
-					// // weightR_m += surfNormalVec_recv[1][ip]*face.unitNomalsPN[1];
-					// // weightR_m += surfNormalVec_recv[2][ip]*face.unitNomalsPN[2];
-					// weightR_m += surfNormalVec[0][face.owner]*face.unitNomalsPN[0];
-					// weightR_m += surfNormalVec[1][face.owner]*face.unitNomalsPN[1];
-					// weightR_m += surfNormalVec[2][face.owner]*face.unitNomalsPN[2];
-					// weightR_m = abs(weightR_m);
-					// weightR_m = pow(weightR_m, 8.0);
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){ 
+					// double weightR = pow(1.0-2.0*abs(0.5-orgAi_recv[ip]), 8.0);
+					double weightR = 1.0-abs(tanh(tanhWeight*smoothAi_recv[ip]));
 					
-					// smoothUp[face.owner] += weightR*weightR_m*recvValues[ip];
-					// smoothDown[face.owner] += weightR*weightR_m;
+					double weightR_m = 0.0;
+					// weightR_m += surfNormalVec_recv[0][ip]*face.unitNomalsPN[0];
+					// weightR_m += surfNormalVec_recv[1][ip]*face.unitNomalsPN[1];
+					// weightR_m += surfNormalVec_recv[2][ip]*face.unitNomalsPN[2];
+					weightR_m += surfNormalVec[0][face.owner]*face.unitNomalsPN[0];
+					weightR_m += surfNormalVec[1][face.owner]*face.unitNomalsPN[1];
+					weightR_m += surfNormalVec[2][face.owner]*face.unitNomalsPN[2];
+					weightR_m = abs(weightR_m);
+					weightR_m = pow(weightR_m, 8.0);
 					
-					// ++ip;
-				// }
-			// }
+					smoothUp[face.owner] += weightR*weightR_m*recvValues[ip];
+					smoothDown[face.owner] += weightR*weightR_m;
+					
+					++ip;
+				}
+			}
 			
-		// }
+		}
 	
-		// for(int i=0; i<mesh.cells.size(); ++i){
-			// if( abs(smoothDown[i]) > std::numeric_limits<double>::min() ){
-				// kappa[i] = smoothUp[i]/smoothDown[i];
+		for(int i=0; i<mesh.cells.size(); ++i){
+			if( abs(smoothDown[i]) > std::numeric_limits<double>::min() ){
+				kappa[i] = smoothUp[i]/smoothDown[i];
+			}
+			// else{
+				// kappa[i] = 0.0;
 			// }
-			// // else{
-				// // kappa[i] = 0.0;
-			// // }
-		// }
+		}
 		
-	// }
+	}
 	
 	
 	

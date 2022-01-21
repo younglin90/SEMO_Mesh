@@ -64,7 +64,7 @@ void SEMO_Solvers_Builder::sourceTerms(
 	math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradAi);
 	
 	vector<double> kappa;
-	this->calcCurvature(mesh, controls.VF[0], kappa);
+	this->calcCurvature(mesh, controls, controls.VF[0], kappa);
 	
 	for(int i=0; i<mesh.cells.size(); ++i){
 		SEMO_Cell& cell = mesh.cells[i];

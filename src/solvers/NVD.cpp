@@ -1109,7 +1109,7 @@ void SEMO_Solvers_Builder::calcMSTACS(
 	
 	// vector<double> corantNo;
 	double tmpCFL = 1.0;
-	double eps = 1.e-8; 
+	double eps = 1.e-12; 
 
 	vector<double> corantNo(mesh.cells.size(),-1.e80);
 	for(int i=0; i<mesh.cells.size(); ++i){
@@ -1438,20 +1438,20 @@ void SEMO_Solvers_Builder::calcMSTACS(
 			cosTheta += mfLR[1]*face.unitNormals[1];
 			cosTheta += mfLR[2]*face.unitNormals[2];
 			// if(LR==0){
-				// cosTheta = mfL[0]*face.unitNormals[0];
-				// cosTheta += mfL[1]*face.unitNormals[1];
-				// cosTheta += mfL[2]*face.unitNormals[2];
-				// // cosTheta = mfL[0]*face.unitNomalsPN[0];
-				// // cosTheta += mfL[1]*face.unitNomalsPN[1];
-				// // cosTheta += mfL[2]*face.unitNomalsPN[2];
+				// // cosTheta = mfL[0]*face.unitNormals[0];
+				// // cosTheta += mfL[1]*face.unitNormals[1];
+				// // cosTheta += mfL[2]*face.unitNormals[2];
+				// cosTheta = mfL[0]*face.unitNomalsPN[0];
+				// cosTheta += mfL[1]*face.unitNomalsPN[1];
+				// cosTheta += mfL[2]*face.unitNomalsPN[2];
 			// }
 			// else{
-				// cosTheta = mfR[0]*face.unitNormals[0];
-				// cosTheta += mfR[1]*face.unitNormals[1];
-				// cosTheta += mfR[2]*face.unitNormals[2];
-				// // cosTheta = mfR[0]*face.unitNomalsPN[0];
-				// // cosTheta += mfR[1]*face.unitNomalsPN[1];
-				// // cosTheta += mfR[2]*face.unitNomalsPN[2];
+				// // cosTheta = mfR[0]*face.unitNormals[0];
+				// // cosTheta += mfR[1]*face.unitNormals[1];
+				// // cosTheta += mfR[2]*face.unitNormals[2];
+				// cosTheta = mfR[0]*face.unitNomalsPN[0];
+				// cosTheta += mfR[1]*face.unitNomalsPN[1];
+				// cosTheta += mfR[2]*face.unitNomalsPN[2];
 			// }
 			cosTheta = abs(cosTheta);
 			
@@ -1549,14 +1549,22 @@ void SEMO_Solvers_Builder::calcMSTACS(
 
 
 			// // Hyper-C
-			// if(tildeCd>=0.0 && tildeCd<1.0*wCLR){
-				// double tildeCf = min(1.0*wCLR,tildeCd/coDD);
+			// double gamma_f_Hyper_C = 0.0;
+			// if(tildeCd>=0.0 && tildeCd<1.0){
+				// double tildeCf = min(1.0,tildeCd/coDD);
+				// gamma_f_Hyper_C = (tildeCf - tildeCd) / (1.0 - tildeCd);
+			// }
+			// else{
+				// gamma_f_Hyper_C = 0.0;
+			// }
+			// // ULTIMATE QUICKEST (UQ)
+			// if(tildeCd>=0.0 && tildeCd<1.0){
+				// double tildeCf = min((8.0*coDD*tildeCd+(1.0-coDD)*(6.0*tildeCd+3.0))/8.0,gamma_f_Hyper_C);
 				// gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
 			// }
 			// else{
 				// gamma_f = 0.0;
 			// }
-			// gamma_f *= 1.0/wCLR;
 
 
 			// // BD-FBICS
@@ -1684,6 +1692,14 @@ void SEMO_Solvers_Builder::calcMSTACS(
 			// }
 			
 			
+			// // Hyper-C
+			// if(tildeCd>=0.0 && tildeCd<1.0){
+				// double tildeCf = min(1.0,tildeCd/coDD);
+				// gamma_f = (tildeCf - tildeCd) / (1.0 - tildeCd);
+			// }
+			// else{
+				// gamma_f = 0.0;
+			// }
 			
 			// // HR-FBICS
 			// if(tildeCd>=0.0 && tildeCd<0.125) {
@@ -1797,7 +1813,7 @@ void SEMO_Solvers_Builder::calcMSTACS(
 			double gamma_diff_f = gamma_f;
 			
 			
-			
+			// gamF = 1.0;
 			
 			double vf = gamF*vfCompressive + (1.0-gamF)*vfDiffusive;
 			

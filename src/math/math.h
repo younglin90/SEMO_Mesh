@@ -40,6 +40,14 @@ class SEMO_Utility_Math{
 			vector<double>& phi,
 			vector<vector<double>>& gradient
 			);
+		
+		void calcLeastSquareOnlyBoundaryCells(
+			SEMO_Mesh_Builder& mesh,
+			string sCellorInp,
+			int cn, int fn,
+			vector<double>& phi,
+			vector<vector<double>>& gradient
+			);
 			
 
 		void printMatrix(vector<vector<double>>& a);

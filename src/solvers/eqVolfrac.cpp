@@ -25,7 +25,10 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 	
 	bool boolSkewnessCorrection = true;
 	// bool boolSkewnessCorrection = false;
+	bool boolLimiters = true;
+	// bool boolLimiters = false;
 	int gradIterMax = 1;
+	int gradBoundaryIterMax = 0;
 	
 	SEMO_Utility_Math math;
 	
@@ -33,14 +36,7 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 	setCellVarMinMax(mesh, controls.U, controls.maximumU, controls.minimumU);
 	setCellVarMinMax(mesh, controls.V, controls.maximumV, controls.minimumV);
 	setCellVarMinMax(mesh, controls.W, controls.maximumW, controls.minimumW);
-	
-	
-	
-	// vector<vector<double>> gradP(mesh.cells.size(),vector<double>(3,0.0));
-	// vector<vector<double>> gradU(mesh.cells.size(),vector<double>(3,0.0));
-	// vector<vector<double>> gradV(mesh.cells.size(),vector<double>(3,0.0));
-	// vector<vector<double>> gradW(mesh.cells.size(),vector<double>(3,0.0));
-	
+		
 	// mesh.cellsGradientVar[controls.P].clear();
 	// mesh.cellsGradientVar[controls.U].clear();
 	// mesh.cellsGradientVar[controls.V].clear();
@@ -48,36 +44,108 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 	// mesh.cellsGradientVar[controls.T].clear();
 	// mesh.cellsGradientVar[controls.VF[0]].clear();
 	
-	mesh.cellsGradientVar[controls.P].resize(mesh.cells.size(),vector<double>(9,0.0));
-	mesh.cellsGradientVar[controls.U].resize(mesh.cells.size(),vector<double>(9,0.0));
-	mesh.cellsGradientVar[controls.V].resize(mesh.cells.size(),vector<double>(9,0.0));
-	mesh.cellsGradientVar[controls.W].resize(mesh.cells.size(),vector<double>(9,0.0));
-	mesh.cellsGradientVar[controls.VF[0]].resize(mesh.cells.size(),vector<double>(9,0.0));
+	mesh.cellsGradientVar[controls.P].resize(mesh.cells.size(),vector<double>(3,0.0));
+	mesh.cellsGradientVar[controls.U].resize(mesh.cells.size(),vector<double>(3,0.0));
+	mesh.cellsGradientVar[controls.V].resize(mesh.cells.size(),vector<double>(3,0.0));
+	mesh.cellsGradientVar[controls.W].resize(mesh.cells.size(),vector<double>(3,0.0));
+	mesh.cellsGradientVar[controls.VF[0]].resize(mesh.cells.size(),vector<double>(3,0.0));
+	for(auto& boundary : mesh.boundary){
+		if(boundary.neighbProcNo == -1){
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			for(int i=str; i<end; ++i){
+				auto& face = mesh.faces[i];
+				for(int ii=0; ii<3; ++ii){
+					mesh.cellsGradientVar[controls.P][face.owner][ii] = 0.0;
+					mesh.cellsGradientVar[controls.U][face.owner][ii] = 0.0;
+					mesh.cellsGradientVar[controls.V][face.owner][ii] = 0.0;
+					mesh.cellsGradientVar[controls.W][face.owner][ii] = 0.0;
+					mesh.cellsGradientVar[controls.VF[0]][face.owner][ii] = 0.0;
+				}
+			}
+		}
+	}
+	
 	
 	for(int iter=0; iter<gradIterMax; ++iter){
-		
-		// math.calcGaussGreen(mesh, controls.P, controls.fP, mesh.cellsGradientVar[controls.P]);
-		// math.calcGaussGreen(mesh, controls.P, controls.fP, mesh.cellsGradientVar[controls.P]);
-		// math.calcGaussGreen(mesh, controls.P, controls.fP, mesh.cellsGradientVar[controls.P]);
-		
 		// math.calcGaussGreen(mesh, controls.P, controls.fP, mesh.cellsGradientVar[controls.P]);
 		// math.calcGaussGreen(mesh, controls.U, controls.fU, mesh.cellsGradientVar[controls.U]);
 		// math.calcGaussGreen(mesh, controls.V, controls.fV, mesh.cellsGradientVar[controls.V]);
 		// math.calcGaussGreen(mesh, controls.W, controls.fW, mesh.cellsGradientVar[controls.W]);
 		// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], mesh.cellsGradientVar[controls.VF[0]]);
 			
+		// vector<double> dummyVec;
+		// math.calcLeastSquare(mesh, "face", "1st", "cell", 
+			// controls.P, controls.fP, dummyVec, mesh.cellsGradientVar[controls.P]);
+		// math.calcLeastSquare(mesh, "face", "1st", "cell", 
+			// controls.U, controls.fU, dummyVec, mesh.cellsGradientVar[controls.U]);
+		// math.calcLeastSquare(mesh, "face", "1st", "cell", 
+			// controls.V, controls.fV, dummyVec, mesh.cellsGradientVar[controls.V]);
+		// math.calcLeastSquare(mesh, "face", "1st", "cell", 
+			// controls.W, controls.fW, dummyVec, mesh.cellsGradientVar[controls.W]);
+		// math.calcLeastSquare(mesh, "face", "1st", "cell", 
+			// controls.VF[0], controls.fVF[0], dummyVec, mesh.cellsGradientVar[controls.VF[0]]);
+			
 		vector<double> dummyVec;
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "cell", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.P, controls.fP, dummyVec, mesh.cellsGradientVar[controls.P]);
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "cell", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.U, controls.fU, dummyVec, mesh.cellsGradientVar[controls.U]);
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "cell", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.V, controls.fV, dummyVec, mesh.cellsGradientVar[controls.V]);
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "cell", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.W, controls.fW, dummyVec, mesh.cellsGradientVar[controls.W]);
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "cell", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.VF[0], controls.fVF[0], dummyVec, mesh.cellsGradientVar[controls.VF[0]]);
 	}
+	
+	
+	for(int iter=0; iter<gradBoundaryIterMax; ++iter)
+	{
+		vector<double> dummyVec;
+		math.calcLeastSquareOnlyBoundaryCells(mesh, "cell", controls.P, controls.fP, 
+			dummyVec, mesh.cellsGradientVar[controls.P]);
+		math.calcLeastSquareOnlyBoundaryCells(mesh, "cell", controls.U, controls.fU, 
+			dummyVec, mesh.cellsGradientVar[controls.U]);
+		math.calcLeastSquareOnlyBoundaryCells(mesh, "cell", controls.V, controls.fV, 
+			dummyVec, mesh.cellsGradientVar[controls.V]);
+		math.calcLeastSquareOnlyBoundaryCells(mesh, "cell", controls.W, controls.fW, 
+			dummyVec, mesh.cellsGradientVar[controls.W]);
+		math.calcLeastSquareOnlyBoundaryCells(mesh, "cell", controls.VF[0], controls.fVF[0], 
+			dummyVec, mesh.cellsGradientVar[controls.VF[0]]);
+	}
+	
+	
+	// for(int iter=0; iter<gradBoundaryIterMax; ++iter){
+		// // boundary face's nodes
+		// for(auto& boundary : mesh.boundary){
+			// if(boundary.neighbProcNo == -1){
+				// vector<int> target(5,0);
+				// target[0] = controls.P;
+				// target[1] = controls.U;
+				// target[2] = controls.V;
+				// target[3] = controls.W;
+				// target[4] = controls.VF[0];
+				// for(auto& tar : target){
+					// if(boundary.type[tar] != "zeroGradient") continue;
+					// int str = boundary.startFace;
+					// int end = str + boundary.nFaces;
+					// for(int i=str; i<end; ++i){
+						// auto& face = mesh.faces[i];
+						// auto& cell = mesh.cells[face.owner];
+						// double varF = 
+							// mesh.cellsGradientVar[tar][face.owner][0]*(face.x-cell.x) +
+							// mesh.cellsGradientVar[tar][face.owner][1]*(face.y-cell.y) +
+							// mesh.cellsGradientVar[tar][face.owner][2]*(face.z-cell.z);
+						// for(int j=0; j<3; ++j){
+							// mesh.cellsGradientVar[tar][face.owner][j] += 
+								// varF*face.unitNormals[j]*face.area / cell.volume;
+						// }
+					// }
+				// }
+			// }
+		// }
+	// }
 	
 	// vector<vector<double>> gradP_recv;
 	// vector<vector<double>> gradU_recv, gradV_recv, gradW_recv;
@@ -185,12 +253,12 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		id = step_loc*(B_n*0+0) + i_loc; i_glo = str_glo + step_loc*0 + i_loc; j_glo = str_glo + step_loc*0 + i_loc;
 		A_rows[id] = i_glo; A_cols[id] = j_glo;
 		
-		A_vals[id] = volume/timeStep;
-		// A_vals[id] = 1.5*volume/timeStep;
+		// A_vals[id] = volume/timeStep;
+		A_vals[id] = 1.5*volume/timeStep;
 		// A_vals[id] = (1.0+beta_phi*coeff_old1)*volume/timeStep;
 		
-		B[step_loc*0 + i_loc] = -(VF - oldVF)*volume/timeStep;
-		// B[step_loc*0 + i_loc] = -(1.5*VF - 2.0*oldVF + 0.5*old2VF)*volume/timeStep;
+		// B[step_loc*0 + i_loc] = -(VF - oldVF)*volume/timeStep;
+		B[step_loc*0 + i_loc] = -(1.5*VF - 2.0*oldVF + 0.5*old2VF)*volume/timeStep;
 		// B[step_loc*0 + i_loc] = -(cons_np12 - cons_nm12)*volume/timeStep;
 		
 		
@@ -222,6 +290,8 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 		
 		double wCL = face.wC;
 		double wCR = 1.0-wCL;
+		// double wCL = 0.5;
+		// double wCR = 0.5;
 	
 		double VFL_HO = face.varL[controls.fVF[0]];
 		double VFR_HO = face.varR[controls.fVF[0]];
@@ -373,7 +443,6 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 			// nonOrtholimiter = 0.0;
 		// }
 		
-		
 		if(boolSkewnessCorrection){
 			// calcInterpolVelSkewness(UnF, gradUL, gradUR, gradVL, gradVR, gradWL, gradWR,
 				// wCL, wCR, 
@@ -392,24 +461,45 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 				VR_skew += gradVR[ii]*face.vecSkewness[ii];
 				WL_skew += gradWL[ii]*face.vecSkewness[ii];
 				WR_skew += gradWR[ii]*face.vecSkewness[ii];
-				
-				// UL_skew += gradUL[ii]*face.vecPF[ii];
-				// UR_skew += gradUR[ii]*face.vecNF[ii];
-				// VL_skew += gradVL[ii]*face.vecPF[ii];
-				// VR_skew += gradVR[ii]*face.vecNF[ii];
-				// WL_skew += gradWL[ii]*face.vecPF[ii];
-				// WR_skew += gradWR[ii]*face.vecNF[ii];
 			}
-			UL_skew = max(minimumUL,min(maximumUL,UL_skew));
-			UR_skew = max(minimumUR,min(maximumUR,UR_skew));
-			VL_skew = max(minimumVL,min(maximumVL,VL_skew));
-			VR_skew = max(minimumVR,min(maximumVR,VR_skew));
-			WL_skew = max(minimumWL,min(maximumWL,WL_skew));
-			WR_skew = max(minimumWR,min(maximumWR,WR_skew));
+			if(boolLimiters){
+				UL_skew = max(minimumUL,min(maximumUL,UL_skew));
+				UR_skew = max(minimumUR,min(maximumUR,UR_skew));
+				VL_skew = max(minimumVL,min(maximumVL,VL_skew));
+				VR_skew = max(minimumVR,min(maximumVR,VR_skew));
+				WL_skew = max(minimumWL,min(maximumWL,WL_skew));
+				WR_skew = max(minimumWR,min(maximumWR,WR_skew));
+			}
 			
 			UnL = UL_skew*nvec[0] + VL_skew*nvec[1] + WL_skew*nvec[2];
 			UnR = UR_skew*nvec[0] + VR_skew*nvec[1] + WR_skew*nvec[2];
 			UnF = wCL*UnL+wCR*UnR;
+			
+			
+			// double UL_skew = UL;
+			// double VL_skew = VL;
+			// double WL_skew = WL;
+			// double UR_skew = UR;
+			// double VR_skew = VR;
+			// double WR_skew = WR;
+			// for(int ii=0; ii<3; ++ii){
+				// UL_skew += gradUL[ii]*face.vecPF[ii];
+				// VL_skew += gradVL[ii]*face.vecPF[ii];
+				// WL_skew += gradWL[ii]*face.vecPF[ii];
+				// UR_skew += gradUR[ii]*face.vecNF[ii];
+				// VR_skew += gradVR[ii]*face.vecNF[ii];
+				// WR_skew += gradWR[ii]*face.vecNF[ii];
+			// }
+			// if(boolLimiters){
+				// UL_skew = max(minimumUL,min(maximumUL,UL_skew));
+				// UR_skew = max(minimumUR,min(maximumUR,UR_skew));
+				// VL_skew = max(minimumVL,min(maximumVL,VL_skew));
+				// VR_skew = max(minimumVR,min(maximumVR,VR_skew));
+				// WL_skew = max(minimumWL,min(maximumWL,WL_skew));
+				// WR_skew = max(minimumWR,min(maximumWR,WR_skew));
+			// }
+			// UnL = UL_skew*nvec[0] + VL_skew*nvec[1] + WL_skew*nvec[2];
+			// UnR = UR_skew*nvec[0] + VR_skew*nvec[1] + WR_skew*nvec[2];
 			// UnF = 0.5*UnL+0.5*UnR;
 		}
 		calcInterpolVelPressure(UnF, 
@@ -426,14 +516,14 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 			alpha,
 			nvec,
 			face.unitNomalsPN);
-		// calcInterpolVelSurfTens(UnF, srcSFT_L, srcSFT_R,
-			// RhoL, RhoR, wCL, wCR, 
-			// controls.timeStep,
-			// species[0].sigma, kappaL, kappaR,
-			// VFL, VFR,
-			// alpha, dPN,
-			// nvec,
-			// face.unitNomalsPN);
+		calcInterpolVelSurfTens(UnF, srcSFT_L, srcSFT_R,
+			RhoL, RhoR, wCL, wCR, 
+			controls.timeStep,
+			species[0].sigma, kappaL, kappaR,
+			VFL, VFR,
+			alpha, dPN,
+			nvec,
+			face.unitNomalsPN);
 		// calcInterpolVelUnsteady(UnF, 
 			// wCL, wCR, 
 			// face.var[controls.Un],
@@ -528,8 +618,13 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 			
 			for(int i=str; i<end; ++i){
 				auto& face = mesh.faces[i];
+				auto& cell = mesh.cells[face.owner];
 				
 				double area = face.area;
+				vector<double> nvec(3,0.0);
+				nvec[0] = face.unitNormals[0];
+				nvec[1] = face.unitNormals[1];
+				nvec[2] = face.unitNormals[2];
 		
 				double UnL = face.varL[controls.fU]*face.unitNormals[0] + 
 							 face.varL[controls.fV]*face.unitNormals[1] + 
@@ -563,12 +658,91 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 						mesh.cells[face.owner].var[controls.U]*face.unitNormals[0] +
 						mesh.cells[face.owner].var[controls.V]*face.unitNormals[1] +
 						mesh.cells[face.owner].var[controls.W]*face.unitNormals[2];
-					coeffVF = (ownNorVel > 1.0) ? 1.0 : 0.0;
+					coeffVF = (ownNorVel > 0.0) ? 1.0 : 0.0;
+				}
+				else if( boundary.type[controls.VF[0]] == "function" ){
+					coeffVF = 0.0;
 				}
 				else {
 					cerr << "| #Error : not defined B.C., var = " << controls.VF[0] << endl;
 					MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 				}
+				
+				
+				// interpolation
+				// {
+					// double UR = cell.var[controls.U];
+					// double VR = cell.var[controls.V];
+					// double WR = cell.var[controls.W];
+					// double ownNorVel = UR*face.unitNormals[0] +
+									   // VR*face.unitNormals[1] +
+									   // WR*face.unitNormals[2];
+					// if(  boundary.type[controls.U] == "zeroGradient" ||
+						// (boundary.type[controls.U] == "inletOutlet" && ownNorVel > 0.0) ){
+					
+						// UR += mesh.cellsGradientVar[controls.U][face.owner][0]*(face.x-cell.x);
+						// UR += mesh.cellsGradientVar[controls.U][face.owner][1]*(face.y-cell.y);
+						// UR += mesh.cellsGradientVar[controls.U][face.owner][2]*(face.z-cell.z);
+						
+						// VR += mesh.cellsGradientVar[controls.V][face.owner][0]*(face.x-cell.x);
+						// VR += mesh.cellsGradientVar[controls.V][face.owner][1]*(face.y-cell.y);
+						// VR += mesh.cellsGradientVar[controls.V][face.owner][2]*(face.z-cell.z);
+						
+						// WR += mesh.cellsGradientVar[controls.W][face.owner][0]*(face.x-cell.x);
+						// WR += mesh.cellsGradientVar[controls.W][face.owner][1]*(face.y-cell.y);
+						// WR += mesh.cellsGradientVar[controls.W][face.owner][2]*(face.z-cell.z);
+						
+						// // UF = UR;
+						// // VF = VR;
+						// // WF = WR;
+						
+						// UnF = UR*nvec[0]+VR*nvec[1]+WR*nvec[2];
+					// }
+				// }
+				
+				// face->cell interpolation
+				double dPN = 0.5 * face.magPN;
+				double alpha = face.alphaF;
+				
+				if( boundary.type[controls.P] == "fixedValue" ){
+					double orgPL = mesh.cells[face.owner].var[controls.P];
+					double orgPR = boundary.var[controls.P];
+					
+					UnF -= alpha * tmp1*(orgPR-orgPL)/dPN;
+					for(int ii=0; ii<3; ++ii){
+						UnF += alpha * tmp1 * 
+							mesh.cellsGradientVar[controls.P][face.owner][ii]*face.unitNomalsPN[ii];
+					}
+				}
+				// {
+					
+					// if( boundary.type[controls.P] == "fixedValue" ){
+						// double orgPL = mesh.cells[face.owner].var[controls.P];
+						// double orgPR = boundary.var[controls.P];
+						
+						// UnF -= alpha * tmp1*(orgPR-orgPL)/dPN;
+						// for(int ii=0; ii<3; ++ii){
+							// UnF += alpha * tmp1 * 
+								// mesh.cellsGradientVar[controls.P][face.owner][ii]*face.unitNomalsPN[ii];
+						// }
+					// }
+					
+					
+					// if( boundary.type[controls.U] == "inletOutlet" ){
+						// double ownNorVel =  
+							// mesh.cells[face.owner].var[controls.U]*face.unitNormals[0] +
+							// mesh.cells[face.owner].var[controls.V]*face.unitNormals[1] +
+							// mesh.cells[face.owner].var[controls.W]*face.unitNormals[2];
+						// if(ownNorVel<0.0){
+							// double magVel = boundary.var[controls.U];
+							// UnF = magVel;
+							// // UF = magVel*nvec[0];
+							// // VF = magVel*nvec[1];
+							// // WF = magVel*nvec[2];	
+						// }
+						
+					// }
+				// }
 				
 				
 				int str_glo = mesh.startCellGlobal*B_n;
@@ -584,10 +758,7 @@ double SEMO_Solvers_Builder::calcVolfracEq(
 				// convective term
 				B[step_loc*0 + i_loc_L] -= ( VFF * UnF * area );
 			}
-			
-			
 		}
-		
 	}
 	
 	

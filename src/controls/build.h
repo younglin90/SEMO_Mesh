@@ -72,6 +72,8 @@ class SEMO_Controls_Builder{
 		int Ht;
 		vector<int> indicatorAMR;
 		
+		// level-set
+		int LS;
 
 		// vector<int> Q;
 		vector<int> Qn;

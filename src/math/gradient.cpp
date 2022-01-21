@@ -13,7 +13,11 @@ void SEMO_Utility_Math::initLeastSquare(
 	
 	
 	double weight = 1.0;
+	// double weight = 0.0;
 		
+	double epsilon = std::numeric_limits<double>::min();
+	double epsilon2 = 1.e-5;
+	double variMax = 0.0;
 	
 	
 	// ===================================
@@ -38,6 +42,10 @@ void SEMO_Utility_Math::initLeastSquare(
 			vari[3] = 0.5*distX*distX; vari[4] = distX*distY; vari[5] = distX*distZ;
 			vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
 			vari[8] = 0.5*distZ*distZ;
+			
+			for(int ii=3; ii<9; ++ii){
+				vari[ii] = max(variMax,vari[ii]);
+			}
 			
 			// 대칭행렬
 			for(int ii=0, num=0; ii<9; ++ii){
@@ -81,76 +89,151 @@ void SEMO_Utility_Math::initLeastSquare(
 			
 			cell.coeffLeastSquare1stFaceStencil[0] = 
 				(vsum[i][9] * vsum[i][17] - vsum[i][10] * vsum[i][10]) / detA;    // inv_A(1,1)
-				
 			cell.coeffLeastSquare1stFaceStencil[1] = 
 				(vsum[i][2] * vsum[i][10] - vsum[i][1] * vsum[i][17]) / detA;    // inv_A(1,2) = (2,1)
-				
 			cell.coeffLeastSquare1stFaceStencil[2] = 
 				(vsum[i][1] * vsum[i][10] - vsum[i][2] * vsum[i][9]) / detA;    // inv_A(1,3) = (3,1)
-				
 			cell.coeffLeastSquare1stFaceStencil[3] = 
 				(vsum[i][0] * vsum[i][17] - vsum[i][2] * vsum[i][2]) / detA;    // inv_A(2,2)
-				
 			cell.coeffLeastSquare1stFaceStencil[4] = 
 				(vsum[i][2] * vsum[i][1] - vsum[i][0] * vsum[i][10]) / detA;    // inv_A(2,3) = (3,2)
-				
 			cell.coeffLeastSquare1stFaceStencil[5] = 
 				(vsum[i][0] * vsum[i][9] - vsum[i][1] * vsum[i][1]) / detA;    // inv_A(3,3)
 			
 			
+			// {
+				
+				// // 1차 least-square 저장
+				// // 대칭행렬의 역행렬도 대칭행렬
+				// vector<vector<double>> U(3,vector<double>(3,0.0));
+				// // vector<int> str(3,0);
+				// // for(int ii=0, num=0; ii<3; ++ii){
+					// // str[ii] = num;
+					// // for(int jj=0; jj<3; ++jj){
+						// // if(jj>=ii){
+							// // U[ii][jj] = vsum[i][num++];
+						// // }
+						// // else{
+							// // int newNum = str[jj] + ii - jj;
+							// // U[ii][jj] = vsum[i][newNum];
+						// // }
+					// // }
+				// // }
+				// U[0][0] = vsum[i][0];
+				// U[0][1] = vsum[i][1];
+				// U[0][2] = vsum[i][2];
+				
+				// U[1][0] = U[0][1];
+				// U[1][1] = vsum[i][9];
+				// U[1][2] = vsum[i][10];
+				
+				// U[2][0] = U[0][2];
+				// U[2][1] = U[1][2];
+				// U[2][2] = vsum[i][17];
+				
+			
+				// // SVD 수도 역행렬 구하기
+				// vector<double> D(U[0].size());
+				// vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
+				
+				// SEMO_Utility_Math::svdcmp(U, D, V);
+				
+				
+				// vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
+				// for (int ii = 0; ii < D.size(); ++ii) {
+					// if (abs(D[ii]) > epsilon ) {
+						// invD[ii][ii] = 1.0/D[ii];
+					// }
+				// }
 		
-		
-			// 2차 least-square 저장
-			// 대칭행렬의 역행렬도 대칭행렬
-			vector<vector<double>> U(9,vector<double>(9,0.0));
-			vector<int> str(9,0);
-			for(int ii=0, num=0; ii<9; ++ii){
-				str[ii] = num;
-				for(int jj=0; jj<9; ++jj){
-					if(jj>=ii){
-						U[ii][jj] = vsum[i][num++];
+				// vector<vector<double>> transU;
+				// SEMO_Utility_Math::transpose(U, transU);
+				// vector<vector<double>> out;
+				// SEMO_Utility_Math::matmul(invD, transU, out);
+				// vector<vector<double>> pseudoInvMatrix;
+				// SEMO_Utility_Math::matmul(V, out, pseudoInvMatrix);
+				
+				// // 3x3 대칭행렬이라 총 6개만 저장하면 됨
+				// cell.coeffLeastSquare1stFaceStencil.clear();
+				// cell.coeffLeastSquare1stFaceStencil.resize(6,0.0);
+				// // 대칭행렬 저장
+				// for(int ii=0, num=0; ii<3; ++ii){
+					// for(int jj=0; jj<3; ++jj){
+						// if(jj>=ii){
+							// // cout << pseudoInvMatrix[ii][jj] << endl;
+							// cell.coeffLeastSquare1stFaceStencil[num++] = pseudoInvMatrix[ii][jj];
+						// }
+					// }
+				// }
+				
+			// }	
+			
+			
+			
+			{
+				// 2차 least-square 저장
+				// 대칭행렬의 역행렬도 대칭행렬
+				vector<vector<double>> U(9,vector<double>(9,0.0));
+				vector<int> str(9,0);
+				for(int ii=0, num=0; ii<9; ++ii){
+					str[ii] = num;
+					for(int jj=0; jj<9; ++jj){
+						if(jj>=ii){
+							U[ii][jj] = vsum[i][num++];
+						}
+						else{
+							int newNum = str[jj] + ii - jj;
+							// cout << ii << " " << jj << " " << newNum << endl;
+							U[ii][jj] = vsum[i][newNum];
+						}
+						// cout << "A(" << ii+1 << "," << jj+1 << ")=" << U[ii][jj] << endl;
 					}
-					else{
-						int newNum = str[jj] + ii - jj;
-						// cout << ii << " " << jj << " " << newNum << endl;
-						U[ii][jj] = vsum[i][newNum];
+				}
+				
+			
+				// SVD 수도 역행렬 구하기
+				vector<double> D(U[0].size());
+				vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
+				
+				SEMO_Utility_Math::svdcmp(U, D, V);
+				
+				
+				vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
+				// double magD = 0.0;
+				// for (int ii = 0; ii < D.size(); ++ii) {
+					// magD += pow(D[ii],2.0);
+				// }
+				// magD = sqrt(magD)/(double)D.size();
+				// for (int ii = 0; ii < D.size(); ++ii) {
+					// if(magD > 1.e-200){
+						// if (abs(D[ii]) > magD*epsilon ) {
+							// invD[ii][ii] = 1.0/D[ii];
+						// }
+					// }
+				// }
+				for (int ii = 0; ii < D.size(); ++ii) {
+					if (abs(D[ii]) > epsilon2 ) {
+						invD[ii][ii] = 1.0/D[ii];
 					}
-					// cout << "A(" << ii+1 << "," << jj+1 << ")=" << U[ii][jj] << endl;
 				}
-			}
-			
 		
-			// SVD 수도 역행렬 구하기
-			vector<double> D(U[0].size());
-			vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
-			
-			SEMO_Utility_Math::svdcmp(U, D, V);
-			
-			
-			vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
-			for (int ii = 0; ii < D.size(); ++ii) {
-				if (abs(D[ii]) > 1.e-4 ) {
-					invD[ii][ii] = 1.0/D[ii];
-				}
-			}
-	
-			vector<vector<double>> transU;
-			SEMO_Utility_Math::transpose(U, transU);
-			vector<vector<double>> out;
-			SEMO_Utility_Math::matmul(invD, transU, out);
-			vector<vector<double>> pseudoInvMatrix;
-			SEMO_Utility_Math::matmul(V, out, pseudoInvMatrix);
-			
-			// 9x9 대칭행렬이라 총 45개만 저장하면 됨
-			cell.coeffLeastSquare2ndFaceStencil.clear();
-			cell.coeffLeastSquare2ndFaceStencil.resize(45,0.0);
-			
-			// 대칭행렬 저장
-			for(int ii=0, num=0; ii<9; ++ii){
-				for(int jj=0; jj<9; ++jj){
-					if(jj>=ii){
-						// cout << pseudoInvMatrix[ii][jj] << endl;
-						cell.coeffLeastSquare2ndFaceStencil[num++] = pseudoInvMatrix[ii][jj];
+				vector<vector<double>> transU;
+				SEMO_Utility_Math::transpose(U, transU);
+				vector<vector<double>> out;
+				SEMO_Utility_Math::matmul(invD, transU, out);
+				vector<vector<double>> pseudoInvMatrix;
+				SEMO_Utility_Math::matmul(V, out, pseudoInvMatrix);
+				
+				// 9x9 대칭행렬이라 총 45개만 저장하면 됨
+				cell.coeffLeastSquare2ndFaceStencil.clear();
+				cell.coeffLeastSquare2ndFaceStencil.resize(45,0.0);
+				// 대칭행렬 저장
+				for(int ii=0, num=0; ii<9; ++ii){
+					for(int jj=0; jj<9; ++jj){
+						if(jj>=ii){
+							// cout << pseudoInvMatrix[ii][jj] << endl;
+							cell.coeffLeastSquare2ndFaceStencil[num++] = pseudoInvMatrix[ii][jj];
+						}
 					}
 				}
 			}
@@ -191,6 +274,10 @@ void SEMO_Utility_Math::initLeastSquare(
 				vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
 				vari[8] = 0.5*distZ*distZ;
 				
+				for(int ii=3; ii<9; ++ii){
+					vari[ii] = max(variMax,vari[ii]);
+				}
+			
 				// 대칭행렬
 				for(int ii=0, num=0; ii<9; ++ii){
 					for(int jj=0; jj<9; ++jj){
@@ -234,6 +321,10 @@ void SEMO_Utility_Math::initLeastSquare(
 						vari[3] = 0.5*distX*distX; vari[4] = distX*distY; vari[5] = distX*distZ;
 						vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
 						vari[8] = 0.5*distZ*distZ;
+						
+						for(int ii=3; ii<9; ++ii){
+							vari[ii] = max(variMax,vari[ii]);
+						}
 						
 						// 대칭행렬
 						for(int ii=0, num=0; ii<9; ++ii){
@@ -290,6 +381,10 @@ void SEMO_Utility_Math::initLeastSquare(
 					vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
 					vari[8] = 0.5*distZ*distZ;
 					
+					for(int ii=3; ii<9; ++ii){
+						vari[ii] = max(variMax,vari[ii]);
+					}
+							
 					// 대칭행렬
 					for(int ii=0, num=0; ii<9; ++ii){
 						for(int jj=0; jj<9; ++jj){
@@ -307,7 +402,7 @@ void SEMO_Utility_Math::initLeastSquare(
 			SEMO_Cell& cell = mesh.cells[i];
 			
 			
-			// 1차 least-square 저장
+			// // 1차 least-square 저장
 			double detA = 
 				vsum[i][0]*vsum[i][9]*vsum[i][17] + vsum[i][1]*vsum[i][10]*vsum[i][2]
 			  + vsum[i][2]*vsum[i][1]*vsum[i][10] - vsum[i][0]*vsum[i][10]*vsum[i][10]
@@ -323,76 +418,162 @@ void SEMO_Utility_Math::initLeastSquare(
 			
 			cell.coeffLeastSquare1stCellVetexStencil[0] = 
 				(vsum[i][9] * vsum[i][17] - vsum[i][10] * vsum[i][10]) / detA;    // inv_A(1,1)
-				
 			cell.coeffLeastSquare1stCellVetexStencil[1] = 
 				(vsum[i][2] * vsum[i][10] - vsum[i][1] * vsum[i][17]) / detA;    // inv_A(1,2) = (2,1)
-				
 			cell.coeffLeastSquare1stCellVetexStencil[2] = 
 				(vsum[i][1] * vsum[i][10] - vsum[i][2] * vsum[i][9]) / detA;    // inv_A(1,3) = (3,1)
-				
 			cell.coeffLeastSquare1stCellVetexStencil[3] = 
 				(vsum[i][0] * vsum[i][17] - vsum[i][2] * vsum[i][2]) / detA;    // inv_A(2,2)
-				
 			cell.coeffLeastSquare1stCellVetexStencil[4] = 
 				(vsum[i][2] * vsum[i][1] - vsum[i][0] * vsum[i][10]) / detA;    // inv_A(2,3) = (3,2)
-				
 			cell.coeffLeastSquare1stCellVetexStencil[5] = 
 				(vsum[i][0] * vsum[i][9] - vsum[i][1] * vsum[i][1]) / detA;    // inv_A(3,3)
 			
+
+			// {
+				
+				// // 1차 least-square 저장
+				// // 대칭행렬의 역행렬도 대칭행렬
+				// vector<vector<double>> U(3,vector<double>(3,0.0));
+				// // vector<int> str(3,0);
+				// // for(int ii=0, num=0; ii<3; ++ii){
+					// // str[ii] = num;
+					// // for(int jj=0; jj<3; ++jj){
+						// // if(jj>=ii){
+							// // U[ii][jj] = vsum[i][num++];
+						// // }
+						// // else{
+							// // int newNum = str[jj] + ii - jj;
+							// // U[ii][jj] = vsum[i][newNum];
+						// // }
+					// // }
+				// // }
+				// U[0][0] = vsum[i][0];
+				// U[0][1] = vsum[i][1];
+				// U[0][2] = vsum[i][2];
+				
+				// U[1][0] = U[0][1];
+				// U[1][1] = vsum[i][9];
+				// U[1][2] = vsum[i][10];
+				
+				// U[2][0] = U[0][2];
+				// U[2][1] = U[1][2];
+				// U[2][2] = vsum[i][17];
+				
 			
-			
+				// // SVD 수도 역행렬 구하기
+				// vector<double> D(U[0].size());
+				// vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
+				
+				// SEMO_Utility_Math::svdcmp(U, D, V);
+				
+				
+				// vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
+				// for (int ii = 0; ii < D.size(); ++ii) {
+					// if (abs(D[ii]) > epsilon ) {
+						// invD[ii][ii] = 1.0/D[ii];
+					// }
+				// }
 		
-			// 2차 least-square 저장
-			// 대칭행렬의 역행렬도 대칭행렬
-			vector<vector<double>> U(9,vector<double>(9,0.0));
-			vector<int> str(9,0);
-			for(int ii=0, num=0; ii<9; ++ii){
-				str[ii] = num;
-				for(int jj=0; jj<9; ++jj){
-					if(jj>=ii){
-						U[ii][jj] = vsum[i][num++];
-					}
-					else{
-						int newNum = str[jj] + ii - jj;
-						// cout << ii << " " << jj << " " << newNum << endl;
-						U[ii][jj] = vsum[i][newNum];
-					}
-					// cout << "A(" << ii+1 << "," << jj+1 << ")=" << U[ii][jj] << endl;
-				}
-			}
+				// vector<vector<double>> transU;
+				// SEMO_Utility_Math::transpose(U, transU);
+				// vector<vector<double>> out;
+				// SEMO_Utility_Math::matmul(invD, transU, out);
+				// vector<vector<double>> pseudoInvMatrix;
+				// SEMO_Utility_Math::matmul(V, out, pseudoInvMatrix);
+				
+				// // 3x3 대칭행렬이라 총 6개만 저장하면 됨
+				// cell.coeffLeastSquare1stCellVetexStencil.clear();
+				// cell.coeffLeastSquare1stCellVetexStencil.resize(6,0.0);
+				// // 대칭행렬 저장
+				// for(int ii=0, num=0; ii<3; ++ii){
+					// for(int jj=0; jj<3; ++jj){
+						// if(jj>=ii){
+							// // cout << pseudoInvMatrix[ii][jj] << endl;
+							// cell.coeffLeastSquare1stCellVetexStencil[num++] = pseudoInvMatrix[ii][jj];
+						// }
+					// }
+				// }
+				
+			// }	
 			
+			
+			{
+				// 2차 least-square 저장
+				// 대칭행렬의 역행렬도 대칭행렬
+				vector<vector<double>> U(9,vector<double>(9,0.0));
+				vector<int> str(9,0);
+				for(int ii=0, num=0; ii<9; ++ii){
+					str[ii] = num;
+					for(int jj=0; jj<9; ++jj){
+						if(jj>=ii){
+							U[ii][jj] = vsum[i][num++];
+						}
+						else{
+							int newNum = str[jj] + ii - jj;
+							// cout << ii << " " << jj << " " << newNum << endl;
+							U[ii][jj] = vsum[i][newNum];
+						}
+						// cout << "A(" << ii+1 << "," << jj+1 << ")=" << U[ii][jj] << endl;
+					}
+				}
+				
+			
+				// SVD 수도 역행렬 구하기
+				vector<double> D(U[0].size());
+				vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
+				
+				SEMO_Utility_Math::svdcmp(U, D, V);
+				
+				
+				vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
+				// double magD = 0.0;
+				// for (int ii = 0; ii < D.size(); ++ii) {
+					// magD += pow(D[ii],2.0);
+				// }
+				// magD = sqrt(magD)/(double)D.size();
+				// for (int ii = 0; ii < D.size(); ++ii) {
+					// if(magD > 1.e-200){
+						// if (abs(D[ii]) > magD*epsilon ) {
+							// invD[ii][ii] = 1.0/D[ii];
+						// }
+					// }
+				// }
+				for (int ii = 0; ii < D.size(); ++ii) {
+					if (abs(D[ii]) > epsilon2 ) {
+						invD[ii][ii] = 1.0/D[ii];
+					}
+				}
 		
-			// SVD 수도 역행렬 구하기
-			vector<double> D(U[0].size());
-			vector<vector<double>> V(U[0].size(), vector<double>(U[0].size(), 0.0));
-			
-			SEMO_Utility_Math::svdcmp(U, D, V);
-			
-			
-			vector<vector<double>> invD(D.size(), vector<double>(D.size(), 0.0));
-			for (int ii = 0; ii < D.size(); ++ii) {
-				if (abs(D[ii]) > 1.e-8 ) {
-					invD[ii][ii] = 1.0/D[ii];
-				}
-			}
-	
-			vector<vector<double>> transU;
-			SEMO_Utility_Math::transpose(U, transU);
-			vector<vector<double>> out;
-			SEMO_Utility_Math::matmul(invD, transU, out);
-			vector<vector<double>> pseudoInvMatrix;
-			SEMO_Utility_Math::matmul(V, out, pseudoInvMatrix);
-			
-			// 9x9 대칭행렬이라 총 45개만 저장하면 됨
-			cell.coeffLeastSquare2ndCellVertexStencil.clear();
-			cell.coeffLeastSquare2ndCellVertexStencil.resize(45,0.0);
-			
-			// 대칭행렬 저장
-			for(int ii=0, num=0; ii<9; ++ii){
-				for(int jj=0; jj<9; ++jj){
-					if(jj>=ii){
-						// cout << pseudoInvMatrix[ii][jj] << " " << pseudoInvMatrix[jj][ii] << endl;
-						cell.coeffLeastSquare2ndCellVertexStencil[num++] = pseudoInvMatrix[ii][jj];
+				vector<vector<double>> transU;
+				SEMO_Utility_Math::transpose(U, transU);
+				vector<vector<double>> out;
+				SEMO_Utility_Math::matmul(invD, transU, out);
+				vector<vector<double>> pseudoInvMatrix;
+				SEMO_Utility_Math::matmul(V, out, pseudoInvMatrix);
+				
+				
+				// // 대칭행렬 저장
+				// cell.coeffLeastSquare1stCellVetexStencil.clear();
+				// cell.coeffLeastSquare1stCellVetexStencil.resize(6,0.0);
+				// for(int ii=0, num=0; ii<3; ++ii){
+					// for(int jj=0; jj<3; ++jj){
+						// if(jj>=ii){
+							// // cout << pseudoInvMatrix[ii][jj] << " " << pseudoInvMatrix[jj][ii] << endl;
+							// cell.coeffLeastSquare1stCellVetexStencil[num++] = pseudoInvMatrix[ii][jj];
+						// }
+					// }
+				// }
+				
+				// 9x9 대칭행렬이라 총 45개만 저장하면 됨
+				cell.coeffLeastSquare2ndCellVertexStencil.clear();
+				cell.coeffLeastSquare2ndCellVertexStencil.resize(45,0.0);
+				for(int ii=0, num=0; ii<9; ++ii){
+					for(int jj=0; jj<9; ++jj){
+						if(jj>=ii){
+							// cout << pseudoInvMatrix[ii][jj] << " " << pseudoInvMatrix[jj][ii] << endl;
+							cell.coeffLeastSquare2ndCellVertexStencil[num++] = pseudoInvMatrix[ii][jj];
+						}
 					}
 				}
 			}
@@ -419,6 +600,7 @@ void SEMO_Utility_Math::calcLeastSquare(
 	
 	
 	double weight = 1.0;
+	// double weight = 0.0;
 	
 	
     int rank = MPI::COMM_WORLD.Get_rank(); 
@@ -826,28 +1008,28 @@ void SEMO_Utility_Math::calcLeastSquare(
 				double DVar = 0.0;
 				if(sCellorInp=="cell"){
 					DVar = face.varR[fn] - cell.var[cn];
-					if(boundary.type[cn] == "zeroGradient"){
-						DVar += gradient[face.owner][0]*(face.x-cell.x);
-						DVar += gradient[face.owner][1]*(face.y-cell.y);
-						DVar += gradient[face.owner][2]*(face.z-cell.z);
-					}
+					// if(boundary.type[cn] == "zeroGradient"){
+						// DVar += gradient[face.owner][0]*(face.x-cell.x);
+						// DVar += gradient[face.owner][1]*(face.y-cell.y);
+						// DVar += gradient[face.owner][2]*(face.z-cell.z);
+					// }
 				}
 				else if(sCellorInp=="input"){
 					if(cn==-1){
-						DVar += gradient[face.owner][0]*(face.x-cell.x);
-						DVar += gradient[face.owner][1]*(face.y-cell.y);
-						DVar += gradient[face.owner][2]*(face.z-cell.z);
+						// DVar += gradient[face.owner][0]*(face.x-cell.x);
+						// DVar += gradient[face.owner][1]*(face.y-cell.y);
+						// DVar += gradient[face.owner][2]*(face.z-cell.z);
 					}
 					else{
 						if(boundary.type[cn] == "fixedValue"){
 							DVar = boundary.var[cn] - phi[face.owner];
 						}
 						
-						if(boundary.type[cn] == "zeroGradient"){
-							DVar += gradient[face.owner][0]*(face.x-cell.x);
-							DVar += gradient[face.owner][1]*(face.y-cell.y);
-							DVar += gradient[face.owner][2]*(face.z-cell.z);
-						}
+						// if(boundary.type[cn] == "zeroGradient"){
+							// DVar += gradient[face.owner][0]*(face.x-cell.x);
+							// DVar += gradient[face.owner][1]*(face.y-cell.y);
+							// DVar += gradient[face.owner][2]*(face.z-cell.z);
+						// }
 					}
 				}
 				else{
@@ -1014,6 +1196,288 @@ void SEMO_Utility_Math::calcLeastSquare(
 	
 	
 }
+
+
+
+
+
+
+
+
+
+
+void SEMO_Utility_Math::calcLeastSquareOnlyBoundaryCells(
+	SEMO_Mesh_Builder& mesh,
+	string sCellorInp,
+	int cn, int fn,
+	vector<double>& phi,
+	vector<vector<double>>& gradient
+	) {
+	
+	
+	double weight = 1.0;
+	
+	
+    int rank = MPI::COMM_WORLD.Get_rank(); 
+    int size = MPI::COMM_WORLD.Get_size();
+	
+	SEMO_MPI_Builder mpi;
+	
+	vector<vector<double>> grad_tmp(mesh.cells.size(),vector<double>(3,0.0));
+	
+
+	// internal cells
+	for(auto& boundary : mesh.boundary){
+		if(boundary.neighbProcNo == -1){
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			for(int i=str; i<end; ++i){
+				auto& face = mesh.faces[i];
+				auto& cell = mesh.cells[face.owner];
+				
+				{
+					double DVar = 0.0;
+					if(sCellorInp=="cell"){
+						DVar = face.varR[fn] - cell.var[cn];
+						if(
+						boundary.type[cn] == "zeroGradient" ||
+						boundary.type[cn] == "inletOutlet" 
+						){
+							DVar += gradient[face.owner][0]*(face.x-cell.x);
+							DVar += gradient[face.owner][1]*(face.y-cell.y);
+							DVar += gradient[face.owner][2]*(face.z-cell.z);
+						}
+					}
+					else if(sCellorInp=="input"){
+						if(cn==-1){
+							DVar += gradient[face.owner][0]*(face.x-cell.x);
+							DVar += gradient[face.owner][1]*(face.y-cell.y);
+							DVar += gradient[face.owner][2]*(face.z-cell.z);
+						}
+						else{
+							if(boundary.type[cn] == "fixedValue"){
+								DVar = boundary.var[cn] - phi[face.owner];
+							}
+							
+							if(
+							boundary.type[cn] == "zeroGradient" ||
+							boundary.type[cn] == "inletOutlet" 
+							){
+								DVar += gradient[face.owner][0]*(face.x-cell.x);
+								DVar += gradient[face.owner][1]*(face.y-cell.y);
+								DVar += gradient[face.owner][2]*(face.z-cell.z);
+							}
+						}
+					}
+					else{
+						cout << endl; cout << endl;
+						cout << "| Error, sCellorInp not defined" << endl;
+						cout << endl; cout << endl;
+						MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+					}
+				
+						
+					double distX = face.x - cell.x;
+					double distY = face.y - cell.y;
+					double distZ = face.z - cell.z;
+					
+					// double wk = 1.0;
+					double wk = 1.0 / (pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+					wk = pow(wk,weight);
+					
+					vector<double> vari(9,0.0);
+					vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					vari[3] = 0.5*distX*distX; vari[4] = distX*distY; vari[5] = distX*distZ;
+					vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
+					vari[8] = 0.5*distZ*distZ;
+					
+					for(int ii=0; ii<3; ++ii){
+						grad_tmp[face.owner][ii] += wk * vari[ii] * DVar;
+					}
+				}
+					
+				
+			
+				for(auto j : cell.stencil){
+					auto& cellSten = mesh.cells[j];
+						
+					double distX = cellSten.x - cell.x;
+					double distY = cellSten.y - cell.y;
+					double distZ = cellSten.z - cell.z;
+					
+					// double wk = 1.0;
+					double wk = 1.0 / (pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+					wk = pow(wk,weight);
+						
+					double DVar = 0.0;
+					if(sCellorInp=="cell"){
+						DVar = cellSten.var[cn] - cell.var[cn];
+					}
+					else if(sCellorInp=="input"){
+						DVar = phi[j] - phi[face.owner];
+					}
+					else{
+						cout << endl; cout << endl;
+						cout << "| Error, sCellorInp not defined" << endl;
+						cout << endl; cout << endl;
+						MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+					}
+					
+					vector<double> vari(9,0.0);
+					vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					vari[3] = 0.5*distX*distX; vari[4] = distX*distY; vari[5] = distX*distZ;
+					vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
+					vari[8] = 0.5*distZ*distZ;
+
+					for(int jj=0; jj<3; ++jj){
+						grad_tmp[face.owner][jj] += wk * vari[jj] * DVar;
+					}
+				}
+				
+			}
+		}
+	}
+	
+	// processor faces
+	if(size>1){
+
+		int proc_num=0;
+		vector<double> var_send, var_recv;
+		for(int i=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				if(sCellorInp=="cell"){
+					var_send.push_back(mesh.cells[face.owner].var[cn]);
+				}
+				else if(sCellorInp=="input"){
+					var_send.push_back(phi[face.owner]);
+				}
+				else{
+					cout << endl; cout << endl;
+					cout << "| Error, sCellorInp not defined" << endl;
+					cout << endl; cout << endl;
+					MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+				}
+				++proc_num;
+			}
+		}
+		mpi.setProcsFaceDatas(var_send, var_recv,
+					mesh.countsProcFaces, mesh.countsProcFaces, 
+					mesh.displsProcFaces, mesh.displsProcFaces);
+		var_send.clear();
+		
+
+		vector<vector<double>> gradient_send, gradient_recv;
+		gradient_send.resize(3);
+		gradient_recv.resize(3);
+		for(int i=0; i<3; ++i){
+			gradient_send[i].resize(proc_num,0.0);
+		}
+		
+		for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				
+				for(auto j : face.stencil){
+					auto& cellSten = mesh.cells[j];
+						
+					double DVar = 0.0;
+					if(sCellorInp=="cell"){
+						DVar = cellSten.var[cn] - var_recv[ip];
+					}
+					else if(sCellorInp=="input"){
+						DVar = phi[j] - var_recv[ip];
+					}
+					else{
+						cout << endl;
+						cout << endl;
+						cout << "| Error, sCellorInp not defined" << endl;
+						cout << endl;
+						cout << endl;
+						MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+					}
+						
+					double distX = cellSten.x - (mesh.cells[face.owner].x + face.distCells[0]);
+					double distY = cellSten.y - (mesh.cells[face.owner].y + face.distCells[1]);
+					double distZ = cellSten.z - (mesh.cells[face.owner].z + face.distCells[2]);
+					
+					// double wk = 1.0;
+					double wk = 1.0 / (pow(distX,2.0)+pow(distY,2.0)+pow(distZ,2.0));
+					wk = pow(wk,weight);
+						
+					vector<double> vari(9,0.0);
+					vari[0] = distX; vari[1] = distY; vari[2] = distZ;
+					vari[3] = 0.5*distX*distX; vari[4] = distX*distY; vari[5] = distX*distZ;
+					vari[6] = 0.5*distY*distY; vari[7] = distY*distZ;
+					vari[8] = 0.5*distZ*distZ;
+
+					for(int jj=0; jj<3; ++jj){
+						gradient_send[jj][ip] += wk * vari[jj] * DVar;
+					}
+		
+				}
+				
+				++ip;
+			}
+		}
+	
+		for(int i=0; i<3; ++i){
+			mpi.setProcsFaceDatas(gradient_send[i], gradient_recv[i],
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+		}
+		for(int i=0, ip=0; i<mesh.faces.size(); ++i){
+			auto& face = mesh.faces[i];
+			
+			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+				for(int jj=0; jj<3; ++jj){
+					grad_tmp[face.owner][jj] += gradient_recv[jj][ip];
+				}
+				++ip;
+			}
+		}
+		
+	}
+	
+	
+	
+	for(auto& boundary : mesh.boundary){
+		if(boundary.neighbProcNo == -1){
+			int str = boundary.startFace;
+			int end = str + boundary.nFaces;
+			for(int i=str; i<end; ++i){
+				auto& face = mesh.faces[i];
+				auto& cell = mesh.cells[face.owner];
+				
+				// 대칭행렬
+				vector<int> str(3,0);
+				for(int ii=0, num=0; ii<3; ++ii){
+					str[ii] = num;
+					double tmp0 = 0.0;
+					for(int jj=0; jj<3; ++jj){
+						if(jj>=ii){
+							tmp0 += cell.coeffLeastSquare1stCellVetexStencil[num++] * grad_tmp[face.owner][jj];
+						}
+						else{
+							int newNum = str[jj] + ii - jj;
+							tmp0 += cell.coeffLeastSquare1stCellVetexStencil[newNum] * grad_tmp[face.owner][jj];
+						}
+					}
+					gradient[face.owner][ii] = tmp0;
+				}
+			}
+		}
+	}
+	
+	
+}
+
+
+
+
+
 
 
 
@@ -1407,6 +1871,8 @@ void SEMO_Utility_Math::calcGaussGreen(
 			
 			double wCL = face.wC;
 			double wCR = 1.0 - wCL;
+			// double wCL = 0.5;
+			// double wCR = 0.5;
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				
@@ -1444,8 +1910,9 @@ void SEMO_Utility_Math::calcGaussGreen(
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			double wCL = face.wC;
-			// double wCL = 0.5;
 			double wCR = 1.0 - wCL;
+			// double wCL = 0.5;
+			// double wCR = 0.5;
 			
 			double varF = wCL*mesh.cells[face.owner].var[cn] + wCR*mesh.cells[face.neighbour].var[cn];
 			
@@ -1585,6 +2052,8 @@ void SEMO_Utility_Math::calcGaussGreen(
 			
 			double wCL = face.wC;
 			double wCR = 1.0 - wCL;
+			// double wCL = 0.5;
+			// double wCR = 0.5;
 			
 			if(face.getType() == SEMO_Types::PROCESSOR_FACE){
 				
@@ -1618,8 +2087,9 @@ void SEMO_Utility_Math::calcGaussGreen(
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			double wCL = face.wC;
-			// double wCL = 0.5;
 			double wCR = 1.0 - wCL;
+			// double wCL = 0.5;
+			// double wCR = 0.5;
 			
 			double varF = wCL*phi[face.owner] + wCR*phi[face.neighbour];
 			
@@ -1822,7 +2292,6 @@ void SEMO_Utility_Math::calcGaussGreen(
 		if(face.getType() == SEMO_Types::INTERNAL_FACE){
 			
 			double wCL = face.wC;
-			// double wCL = 0.5;
 			double wCR = 1.0 - wCL;
 			
 			double var0F = wCL*phi0[face.owner] + wCR*phi0[face.neighbour];
@@ -2498,20 +2967,23 @@ void SEMO_Utility_Math::calcLimiterGradient(
 		if( delPF > 0.0 ){
 			double maxDelP = maxPhi[own] - mesh.cells[own].var[cn];
 			rPF = delPF/(maxDelP+1.e-200);
+			// rPF = maxDelP;
 		}
 		else{
 			double minDelP = minPhi[own] - mesh.cells[own].var[cn];
 			rPF = delPF/(minDelP+1.e-200);
+			// rPF = minDelP;
 		}
 		
-		// // venka
-		// double alphaPF = (2.0*rPF+1.0)/(rPF*(2.0*rPF+1.0)+1.0);
+		// venka
+		double alphaPF = (2.0*rPF+1.0)/(rPF*(2.0*rPF+1.0)+1.0);
 		
 		// min-mod
 		// double alphaPF = min(1.0,1.0/(abs(rPF)+1.e-200));
 		
 		// m-venka
-		double alphaPF = (rPF*(2.0*rPF+1.0)+1.0)/(rPF*(rPF*(2.0*rPF+1.0)+1.0)+1.0);
+		// double alphaPF = (rPF*(2.0*rPF+1.0)+1.0)/(rPF*(rPF*(2.0*rPF+1.0)+1.0)+1.0);
+		
 		
 		limGrad[own] = min(limGrad[own],alphaPF);
 			
@@ -2533,14 +3005,14 @@ void SEMO_Utility_Math::calcLimiterGradient(
 				rNF = delNF/(minDelP+1.e-200);
 			}
 			
-			// // venka
-			// double alphaNF = (2.0*rNF+1.0)/(rNF*(2.0*rNF+1.0)+1.0);
+			// venka
+			double alphaNF = (2.0*rNF+1.0)/(rNF*(2.0*rNF+1.0)+1.0);
 			
 			// min-mod
 			// double alphaNF = min(1.0,1.0/(abs(rNF)+1.e-200));
 			
 			// m-venka
-			double alphaNF = (rNF*(2.0*rNF+1.0)+1.0)/(rNF*(rNF*(2.0*rNF+1.0)+1.0)+1.0);
+			// double alphaNF = (rNF*(2.0*rNF+1.0)+1.0)/(rNF*(rNF*(2.0*rNF+1.0)+1.0)+1.0);
 			
 			limGrad[ngb] = min(limGrad[ngb],alphaNF);
 			

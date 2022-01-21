@@ -11,42 +11,94 @@ void SEMO_Solvers_Builder::compressibleDensityBasedSingleTime(
 	
 	int rank = MPI::COMM_WORLD.Get_rank();
 	
+	double strSolverClock = clock();
+	
 
+	// save Q^(n-1)
+	for(auto& cell : mesh.cells){
+		cell.var[controls.Qm[0]] = cell.var[controls.oldP];
+		cell.var[controls.Qm[1]] = cell.var[controls.oldU];
+		cell.var[controls.Qm[2]] = cell.var[controls.oldV];
+		cell.var[controls.Qm[3]] = cell.var[controls.oldW];
+		cell.var[controls.Qm[4]] = cell.var[controls.oldT];
+		cell.var[controls.Qm[5]] = cell.var[controls.oldRho];
+		cell.var[controls.Qm[6]] = cell.var[controls.oldHt];
+		for(int i=0; i<controls.nSp-1; ++i){
+			cell.var[controls.Qm[7+i]] = cell.var[controls.oldMF[i]];
+		}
+	}
 	
+	// for(auto& face : mesh.faces){
+		// face.var[controls.old2Un] = face.var[controls.oldUn];
+	// }
 	
+	// save Q^(n)
 	for(auto& cell : mesh.cells){
 		cell.var[controls.oldP] = cell.var[controls.P];
 		cell.var[controls.oldU] = cell.var[controls.U];
 		cell.var[controls.oldV] = cell.var[controls.V];
 		cell.var[controls.oldW] = cell.var[controls.W];
 		cell.var[controls.oldT] = cell.var[controls.T];
+		cell.var[controls.oldRho] = cell.var[controls.Rho];
+		cell.var[controls.oldHt] = cell.var[controls.Ht];
 		for(int i=0; i<controls.nSp-1; ++i){
-			cell.var[controls.oldVF[i]] = cell.var[controls.VF[i]];
 			cell.var[controls.oldMF[i]] = cell.var[controls.MF[i]];
 		}
 	}
 	
+	for(auto& face : mesh.faces){
+		face.var[controls.oldUn] = face.var[controls.Un];
+	}
+	
+	
+	
+
+	// save old timesteps
+	controls.old2TimeStep = controls.oldTimeStep;
+	controls.oldTimeStep = controls.timeStep;
+	
+	
 
 	this->calcRealTimeStep(mesh, controls);
+	// if(rank==0) cout << " | timeStep = " << controls.timeStep << endl;
+	// if(rank==0) cout << "|  └ residuals" << " | ";
 	
-	if(rank==0) cout << " | timeStep = " << controls.timeStep << endl;
+	//===================================================
+	double corantNum = -10.0;
+	if(controls.adjustTimeStep == "yes"){
+		// corantNum = this->calcTimeStepFromCorantNumber(mesh, controls, species);
+		corantNum = this->calcExplicitTimeStepFromCorantNumber(mesh, controls, species);
+	}
+	else{
+		// this->calcCorantNumberForPrint(mesh, controls, corantNum);
+		this->calcExplicitCorantNumberForPrint(mesh, controls, corantNum);
+	}
+	if(rank==0) cout << " | timeStep = " << controls.timeStep;
+	if(rank==0) cout << " | corantNumber = " << corantNum << endl;
 	if(rank==0) cout << "|  └ residuals" << " | ";
 	
-	// this->setCompValuesLeftRightFace(mesh, controls, species);
-	this->setCompValuesLeftRightFaceWithRecon(mesh, controls, species);
 	
+	
+	this->setCompValuesLeftRightFace(mesh, controls, species);
+	// this->setCompValuesLeftRightFaceWithVfMSTACS(mesh, controls, species);
+	// this->setCompValuesLeftRightFaceWithRecon(mesh, controls, species);
 	vector<vector<double>> residuals(
 		mesh.cells.size(),vector<double>(controls.nEq,0.0));
+	// cout << "aaaaa1" << endl;
 
 	this->calcSingleRHS(mesh, controls, species, residuals);
+	// cout << "aaaaa2" << endl;
 
 	this->calcSingleLinearSolver(mesh, controls, residuals);
+	// cout << "aaaaa3" << endl;
 
 	vector<double> norm;
 	this->calcNormResiduals(mesh, controls, residuals, norm);
+	// cout << "aaaaa4" << endl;
 	
 	if(rank==0) {
-		double dClock = clock() - controls.startClock;
+		// double dClock = clock() - controls.startClock;
+		double dClock = clock() - strSolverClock;
 		dClock /= CLOCKS_PER_SEC;
 		
 		cout.precision(3);

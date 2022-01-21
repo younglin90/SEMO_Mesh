@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 	
 	if(rank==0) cout << "| End Program" << endl;
 	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	//MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	
 

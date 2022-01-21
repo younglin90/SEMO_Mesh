@@ -35,10 +35,10 @@ void SEMO_Poly_AMR_Builder::polyAMR(
 	}
 	// cout << "AAAAAAAA" << endl;
 	vector<vector<double>> gradVF(mesh.cells.size(),vector<double>(3,0.0));
-	vector<double> dummy;
-	math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
-		controls.VF[0], controls.fVF[0], dummy, gradVF);
-	// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
+	// vector<double> dummy;
+	// math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+		// controls.VF[0], controls.fVF[0], dummy, gradVF);
+	math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	for(int i=0; i<mesh.cells.size(); ++i){
 		mesh.cells[i].var[controls.indicatorAMR[0]] = 
 			sqrt(gradVF[i][0]*gradVF[i][0]+

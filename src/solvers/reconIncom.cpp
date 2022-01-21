@@ -361,13 +361,13 @@ void SEMO_Solvers_Builder::setIncomValuesLeftRightFaceWithVfMSTACS(
 	// calc gradient
 	SEMO_Utility_Math math;
 	
-	vector<vector<double>> gradVF(mesh.cells.size(),vector<double>(9,0.0));
+	vector<vector<double>> gradVF(mesh.cells.size(),vector<double>(3,0.0));
 	
 	{
-		// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 		vector<double> dummyVec;
 		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.VF[0], controls.fVF[0], dummyVec, gradVF);
+		// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradVF);
 	}
 	
 	
@@ -925,6 +925,94 @@ void SEMO_Solvers_Builder::reconIncomZeroOrder(
 				face.varR[controls.fVF[0]] = face.varL[controls.fVF[0]];
 				face.varR[controls.fMF[0]] = face.varL[controls.fMF[0]];
 			}
+		}
+		else if( boundary.type[controls.VF[0]] == "function" ){
+			
+			// CSV format
+			vector<vector<double>> readDatas;
+			{
+				string filename("./VF.csv");
+				string file_contents;
+				vector<vector<string>> csv_contents;
+				char delimiter = ',';
+				{
+					auto ss = ostringstream{};
+					ifstream input_file(filename);
+					if (!input_file.is_open()) {
+						cerr << "Could not open the file - '"
+							 << filename << "'" << endl;
+						exit(EXIT_FAILURE);
+					}
+					ss << input_file.rdbuf();
+					file_contents = ss.str();
+				}
+				istringstream sstream(file_contents);
+				vector<string> items;
+				string record;
+
+				int counter = 0;
+				while (std::getline(sstream, record)) {
+					istringstream line(record);
+					while (std::getline(line, record, delimiter)) {
+						items.push_back(record);
+					}
+
+					csv_contents.push_back(items);
+					items.clear();
+					counter += 1;
+				}
+				counter = 0;
+				for(auto& contents : csv_contents){
+					++counter;
+					if(counter==1) continue;
+					vector<double> tmp_vec;
+					bool itemIsNumber = true;
+					for(auto& item : contents){
+						// for (char const &c : item) {
+							// if (std::isdigit(c) == 0) {
+								// itemIsNumber = false;
+								// break;
+							// }
+						// }
+						// if (std::isdigit(item[0]) != 0) {
+						// if (counttt != 0) {
+						// if (item.find_first_not_of("-+0123456789") == string::npos) {
+							tmp_vec.push_back(stod(item));
+							// cout << item << endl;
+						// }
+					}
+					readDatas.push_back(tmp_vec);
+				}
+			}
+			
+			
+			
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				
+				double dist_save = 1.e9;
+				double VF_save;
+				for(auto& item : readDatas){
+					double VF_tmp = item[3];
+					double x_tmp = item[4];
+					double y_tmp = item[5];
+					double z_tmp = item[6];
+					
+					double distance2 = (pow(face.x-x_tmp,2.0) + pow(face.y-y_tmp,2.0) + pow(face.z-z_tmp,2.0));
+					if(distance2 < dist_save){
+						dist_save = distance2;
+						VF_save = VF_tmp;
+					}
+				}
+				
+				face.varL[controls.fVF[0]] = VF_save;
+				face.varL[controls.fMF[0]] = VF_save;
+				
+				face.varR[controls.fVF[0]] = VF_save;
+				face.varR[controls.fMF[0]] = VF_save;
+			}
+			
+			
 		}
 		else{
 			cerr << "| #Error : not defined B.C., var = " << controls.VF[0] << endl;

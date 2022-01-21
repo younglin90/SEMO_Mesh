@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <iomanip>
 #include <mpi.h>
+#include <dlfcn.h>
 
 using namespace std;
 #include "../mesh/build.h" 
@@ -56,8 +57,10 @@ int main(int argc, char* argv[]) {
 	// cout << "BBB" << endl;
 	
 		
+	// cout << "AAA" << endl;
 	controls.readSpecies(species);
 	
+	// cout << "AAA" << endl;
 	controls.readConfigures();
 	
 	controls.setValues(species);
@@ -128,6 +131,7 @@ int main(int argc, char* argv[]) {
 	cout << "| #WARNING : " << noAMR_Cells << " cells can NOT AMR" << endl;
 	
 	
+	// cout << "AAA" << endl;
 	
 	
 	vector<string> type;
@@ -139,6 +143,7 @@ int main(int argc, char* argv[]) {
 	
 	initialConditionSetting("./constant/pressure", type, values);
 	
+	// cout << "BBB" << endl;
 	
 	if(type.back() == "fixedValue"){
 		for(auto& cell : mesh.cells){
@@ -159,6 +164,25 @@ int main(int argc, char* argv[]) {
 			}
 		}
 	}
+	// UDF 펑션
+	else if(type.back() == "function")
+	{
+		void *handle = dlopen("./constant/initialFunctions.so", RTLD_NOW);
+		char *error = nullptr;
+		if (handle) {
+			typedef void (*setFunc_t)(double, double, double, double, double&);
+			setFunc_t setFunction;
+			*(void **) (&setFunction) = dlsym(handle, "setFunctionPressure");
+			for(int i=0; i<mesh.cells.size(); ++i){
+				SEMO_Cell& cell = mesh.cells[i];
+				double phi;
+				setFunction(0.0, cell.x, cell.y, cell.z, phi);
+				cell.var[0] = phi;
+			}
+		}
+		dlclose(handle);
+	}
+	
 	
 	// cout << "AAA" << endl;
 	
@@ -290,6 +314,33 @@ int main(int argc, char* argv[]) {
 			}
 		}
 	}
+	// UDF 펑션
+	else if(type.back() == "function")
+	{
+		void *handle = dlopen("./constant/initialFunctions.so", RTLD_NOW);
+		char *error = nullptr;
+		if (handle) {
+			typedef void (*setFunc_t)(double, double, double, double, double&);
+			setFunc_t setFunctionU, setFunctionV, setFunctionW;
+			*(void **) (&setFunctionU) = dlsym(handle, "setFunctionUvelocity");
+			*(void **) (&setFunctionV) = dlsym(handle, "setFunctionVvelocity");
+			*(void **) (&setFunctionW) = dlsym(handle, "setFunctionWvelocity");
+			for(int i=0; i<mesh.cells.size(); ++i){
+				SEMO_Cell& cell = mesh.cells[i];
+				double phiU, phiV, phiW;
+				setFunctionU(0.0, cell.x, cell.y, cell.z, phiU);
+				setFunctionV(0.0, cell.x, cell.y, cell.z, phiV);
+				setFunctionW(0.0, cell.x, cell.y, cell.z, phiW);
+				cell.var[1] = phiU;
+				cell.var[2] = phiV;
+				cell.var[3] = phiW;
+			}
+		}
+		dlclose(handle);
+	}
+		
+		
+		
 		
 	initialConditionSetting("./constant/temperature", type, values);
 	
@@ -312,6 +363,26 @@ int main(int argc, char* argv[]) {
 			}
 		}
 	}
+	// UDF 펑션
+	else if(type.back() == "function")
+	{
+		void *handle = dlopen("./constant/initialFunctions.so", RTLD_NOW);
+		char *error = nullptr;
+		if (handle) {
+			typedef void (*setFunc_t)(double, double, double, double, double&);
+			setFunc_t setFunction;
+			*(void **) (&setFunction) = dlsym(handle, "setFunctionTemperature");
+			for(int i=0; i<mesh.cells.size(); ++i){
+				SEMO_Cell& cell = mesh.cells[i];
+				double phi;
+				setFunction(0.0, cell.x, cell.y, cell.z, phi);
+				cell.var[4] = phi;
+			}
+		}
+		dlclose(handle);
+	}
+	
+	
 	
 	// cout << "AAA" << endl;
 	
@@ -438,54 +509,97 @@ int main(int argc, char* argv[]) {
 			}
 		}
 	}
-	
-	
-	
-	
-		// 2차원 오실레이션 드랍
-		for(int i=0; i<mesh.cells.size(); ++i){
-			auto& cell = mesh.cells[i];
-			
-			bool boolLiquid = false;
-			
-			
-			double X = cellXYZ[i][0]-0.5; double Y = cellXYZ[i][1]-0.5;
-			double theta = atan2(abs(Y),abs(X));
-			if(X>0.0 && Y>0.0){
-			}
-			else if(X<0.0 && Y>0.0){
-				theta = 3.141592-theta;
-			}
-			else if(X<0.0 && Y<0.0){
-				theta = 3.141592+theta;
-			}
-			else if(X>0.0 && Y>0.0){
-				theta = 2.0*3.141592-theta;
-			}
-			
-			// double R0 = 0.2;
-			double R0 = 0.1;
-			double Eta = 0.2;
-			double N = 4.0;
-			
-			// double dagak = sqrt(pow(cell.x-0.5,2.0) + pow(cell.y-0.5,2.0)+1.e-200);
-			// double theta = acos(cell.x/dagak);
-			double R = R0*(1.0+Eta*cos(N*theta)-0.25*Eta*Eta);
-			// cout << X << " " << Y << " " << theta << " " << R << endl;
-			if( pow(X,2.0) + pow(Y,2.0) < R*R ){
-				boolLiquid = true;
-			}
-			
-			
-			if(boolLiquid){
-				cell.var[controls.MF[0]] = 1.0;
-				cell.var[controls.VF[0]] = 1.0;
-			}
-			else{
-				cell.var[controls.MF[0]] = 0.0;
-				cell.var[controls.VF[0]] = 0.0;
+	// UDF 펑션
+	else if(type.back() == "function")
+	{
+		void *handle = dlopen("./constant/initialFunctions.so", RTLD_NOW);
+		char *error = nullptr;
+		if (handle) {
+			typedef void (*setFunc_t)(double, double, double, double, double&);
+			setFunc_t setFunction;
+			*(void **) (&setFunction) = dlsym(handle, "setFunctionMassFraction");
+			for(int i=0; i<mesh.cells.size(); ++i){
+				SEMO_Cell& cell = mesh.cells[i];
+				double phi;
+				setFunction(0.0, cell.x, cell.y, cell.z, phi);
+				cell.var[controls.MF[0]] = phi;
+				cell.var[controls.VF[0]] = phi;
 			}
 		}
+		dlclose(handle);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		// // 2차원 오실레이션 드랍
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// auto& cell = mesh.cells[i];
+			
+			// bool boolLiquid = false;
+			
+			
+			// // double X = cellXYZ[i][0]-0.500300000000000000000001; double Y = cellXYZ[i][1]-0.500000000000000000001;
+			// // double X = cellXYZ[i][0]-0.025; double Y = cellXYZ[i][1]-0.025;
+			// // double X = cellXYZ[i][0]-0.5*0.00125; double Y = cellXYZ[i][1]-0.5*0.00125;
+			// double X = cellXYZ[i][0]-0.000625375; double Y = cellXYZ[i][1]-0.000625;
+			// double theta = atan2(abs(Y),abs(X));
+			// if(X>0.0 && Y>0.0){
+			// }
+			// else if(X<=0.0 && Y>0.0){
+				// theta = 3.141592-theta;
+			// }
+			// else if(X<=0.0 && Y<=0.0){
+				// theta = 3.141592+theta;
+			// }
+			// else if(X>0.0 && Y<=0.0){
+				// theta = 2.0*3.141592-theta;
+			// }
+			
+			// // double R0 = 0.2;
+			// // double R0 = 0.1;
+			// // double R0 = 0.005;
+			// double R0 = 1.25e-4;
+			// // double Eta = 0.2;
+			// double Eta = 0.05;
+			// double N = 2.0;
+			
+			// // double dagak = sqrt(pow(cell.x-0.5,2.0) + pow(cell.y-0.5,2.0)+1.e-200);
+			// // double theta = acos(cell.x/dagak);
+			// double R = R0*(1.0+Eta*cos(N*theta)-0.25*Eta*Eta);
+			// // cout << X << " " << Y << " " << theta << " " << R << endl;
+			// if( pow(X,2.0) + pow(Y,2.0) <= R*R ){
+				// boolLiquid = true;
+			// }
+			
+			
+			// if(boolLiquid){
+				// cell.var[controls.MF[0]] = 1.0;
+				// cell.var[controls.VF[0]] = 1.0;
+			// }
+			// else{
+				// cell.var[controls.MF[0]] = 0.0;
+				// cell.var[controls.VF[0]] = 0.0;
+			// }
+		// }
 		
 		
 		
@@ -563,8 +677,13 @@ int main(int argc, char* argv[]) {
 
 	if(rank==0) cout << "| completed save initial files : ./save/0/" << endl;
 	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-	return 0;
+	// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	MPI_Finalize();
+	// exit(EXIT_FAILURE);
+	exit(EXIT_SUCCESS);
+	// return 0;
+	return EXIT_SUCCESS;
+	
 }
 
 
@@ -1775,6 +1894,7 @@ void loadOnlyMeshVtu(
 	vector<vector<double>> saveValueVel;
 	load.boundaryVelocities("./constant/velocities", mesh, saveNameVel, saveTypeVel, saveValueVel);
 	
+	// cout << "AAA" << endl;
 	int neq = 6;
 	for(int i=0; i<mesh.boundary.size(); ++i){
 		

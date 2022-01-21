@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
 						
 					double diff_magGradPF = alpha / dPN * area;
 					// double diff_magGradPF = alpha_grad * alpha / dPN * area;
-			
+			 
 			
 			
 					

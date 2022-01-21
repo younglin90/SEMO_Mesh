@@ -311,13 +311,228 @@ void SEMO_Solvers_Builder::setCompValuesLeftRightFace(
 
 
 
+	// cout << "aaaaa1" << endl;
 	// calc recon. zero order
 	this->reconZeroOrder(mesh, controls, species);
+	
+	// cout << "aaaaa2" << endl;
+	
+	
+	
+	
+	
+	{
+		// calc gradient
+		SEMO_Utility_Math math;
+		
+		mesh.cellsGradientVar[controls.P].resize(mesh.cells.size(),vector<double>(3,0.0));
+		mesh.cellsGradientVar[controls.U].resize(mesh.cells.size(),vector<double>(3,0.0));
+		mesh.cellsGradientVar[controls.V].resize(mesh.cells.size(),vector<double>(3,0.0));
+		mesh.cellsGradientVar[controls.W].resize(mesh.cells.size(),vector<double>(3,0.0));
+		mesh.cellsGradientVar[controls.T].resize(mesh.cells.size(),vector<double>(3,0.0));
+		// mesh.cellsGradientVar[controls.VF[0]].resize(mesh.cells.size(),vector<double>(3,0.0));
+		for(auto& boundary : mesh.boundary){
+			if(boundary.neighbProcNo == -1){
+				int str = boundary.startFace;
+				int end = str + boundary.nFaces;
+				for(int i=str; i<end; ++i){
+					auto& face = mesh.faces[i];
+					for(int ii=0; ii<3; ++ii){
+						mesh.cellsGradientVar[controls.P][face.owner][ii] = 0.0;
+						mesh.cellsGradientVar[controls.U][face.owner][ii] = 0.0;
+						mesh.cellsGradientVar[controls.V][face.owner][ii] = 0.0;
+						mesh.cellsGradientVar[controls.W][face.owner][ii] = 0.0;
+						mesh.cellsGradientVar[controls.T][face.owner][ii] = 0.0;
+						// mesh.cellsGradientVar[controls.VF[0]][face.owner][ii] = 0.0;
+					}
+				}
+			}
+		}
+		{
+			vector<double> dummyVec;
+			math.calcGaussGreen(mesh, controls.P, controls.fP, mesh.cellsGradientVar[controls.P]);
+			math.calcGaussGreen(mesh, controls.U, controls.fU, mesh.cellsGradientVar[controls.U]);
+			math.calcGaussGreen(mesh, controls.V, controls.fV, mesh.cellsGradientVar[controls.V]);
+			math.calcGaussGreen(mesh, controls.W, controls.fW, mesh.cellsGradientVar[controls.W]);
+			math.calcGaussGreen(mesh, controls.T, controls.fT, mesh.cellsGradientVar[controls.T]);
+				// controls.P, controls.fP, dummyVec, mesh.cellsGradientVar[controls.P]);
+			// math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+				// controls.U, controls.fU, dummyVec, mesh.cellsGradientVar[controls.U]);
+			// math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+				// controls.V, controls.fV, dummyVec, mesh.cellsGradientVar[controls.V]);
+			// math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+				// controls.W, controls.fW, dummyVec, mesh.cellsGradientVar[controls.W]);
+			// math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+				// controls.T, controls.fT, dummyVec, mesh.cellsGradientVar[controls.T]);
+		}
+		
+		
+		
+		// this->calcMINMOD(mesh, controls, controls.P, controls.fP, mesh.cellsGradientVar[controls.P]);
+		this->calcVanLeer(mesh, controls, controls.U, controls.fU, mesh.cellsGradientVar[controls.U]);
+		this->calcVanLeer(mesh, controls, controls.V, controls.fV, mesh.cellsGradientVar[controls.V]);
+		this->calcVanLeer(mesh, controls, controls.W, controls.fW, mesh.cellsGradientVar[controls.W]);
+		this->calcMINMOD(mesh, controls, controls.T, controls.fT, mesh.cellsGradientVar[controls.T]);
+		
+		
+		// vector<double> limGradP;
+		// vector<double> limGradU;
+		// vector<double> limGradV;
+		// vector<double> limGradW;
+		// vector<double> limGradT;
+		// math.calcLimiterGradient(mesh, controls.P, controls.fP, mesh.cellsGradientVar[controls.P], limGradP);
+		// math.calcLimiterGradient(mesh, controls.U, controls.fU, mesh.cellsGradientVar[controls.U], limGradU);
+		// math.calcLimiterGradient(mesh, controls.V, controls.fV, mesh.cellsGradientVar[controls.V], limGradV);
+		// math.calcLimiterGradient(mesh, controls.W, controls.fW, mesh.cellsGradientVar[controls.W], limGradW);
+		// math.calcLimiterGradient(mesh, controls.T, controls.fT, mesh.cellsGradientVar[controls.T], limGradT);
+		// for(int i=0; i<mesh.cells.size(); ++i){
+			// for(int j=0; j<3; ++j){
+				// mesh.cellsGradientVar[controls.P][i][j] *= limGradP[i];
+				// mesh.cellsGradientVar[controls.U][i][j] *= limGradU[i];
+				// mesh.cellsGradientVar[controls.V][i][j] *= limGradV[i];
+				// mesh.cellsGradientVar[controls.W][i][j] *= limGradW[i];
+				// mesh.cellsGradientVar[controls.T][i][j] *= limGradT[i];
+			// }
+		// }
+		// // internal faces
+		// for(auto& face : mesh.faces){
+			// if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				
+				// double distFace[3];
+				
+				// distFace[0] = face.x-mesh.cells[face.owner].x;
+				// distFace[1] = face.y-mesh.cells[face.owner].y;
+				// distFace[2] = face.z-mesh.cells[face.owner].z;
+				
+				// // face.varL[controls.fP] += 
+					 // // (mesh.cellsGradientVar[controls.P][face.owner][0]*distFace[0]+
+					  // // mesh.cellsGradientVar[controls.P][face.owner][1]*distFace[1]+
+					  // // mesh.cellsGradientVar[controls.P][face.owner][2]*distFace[2]);
+				// face.varL[controls.fU] += 
+					 // (mesh.cellsGradientVar[controls.U][face.owner][0]*distFace[0]+
+					  // mesh.cellsGradientVar[controls.U][face.owner][1]*distFace[1]+
+					  // mesh.cellsGradientVar[controls.U][face.owner][2]*distFace[2]);
+				// face.varL[controls.fV] +=  
+					 // (mesh.cellsGradientVar[controls.V][face.owner][0]*distFace[0]+
+					  // mesh.cellsGradientVar[controls.V][face.owner][1]*distFace[1]+
+					  // mesh.cellsGradientVar[controls.V][face.owner][2]*distFace[2]);
+				// face.varL[controls.fW] += 
+					 // (mesh.cellsGradientVar[controls.W][face.owner][0]*distFace[0]+
+					  // mesh.cellsGradientVar[controls.W][face.owner][1]*distFace[1]+
+					  // mesh.cellsGradientVar[controls.W][face.owner][2]*distFace[2]);
+				// // face.varL[controls.fT] += 
+					 // // (mesh.cellsGradientVar[controls.T][face.owner][0]*distFace[0]+
+					  // // mesh.cellsGradientVar[controls.T][face.owner][1]*distFace[1]+
+					  // // mesh.cellsGradientVar[controls.T][face.owner][2]*distFace[2]);
+				
+				
+				// distFace[0] = face.x-mesh.cells[face.neighbour].x;
+				// distFace[1] = face.y-mesh.cells[face.neighbour].y;
+				// distFace[2] = face.z-mesh.cells[face.neighbour].z;
+				
+				// // face.varR[controls.fP] +=  
+					 // // (mesh.cellsGradientVar[controls.P][face.neighbour][0]*distFace[0]+
+					  // // mesh.cellsGradientVar[controls.P][face.neighbour][1]*distFace[1]+
+					  // // mesh.cellsGradientVar[controls.P][face.neighbour][2]*distFace[2]);
+				// face.varR[controls.fU] +=  
+					 // (mesh.cellsGradientVar[controls.U][face.neighbour][0]*distFace[0]+
+					  // mesh.cellsGradientVar[controls.U][face.neighbour][1]*distFace[1]+
+					  // mesh.cellsGradientVar[controls.U][face.neighbour][2]*distFace[2]);
+				// face.varR[controls.fV] +=  
+					 // (mesh.cellsGradientVar[controls.V][face.neighbour][0]*distFace[0]+
+					  // mesh.cellsGradientVar[controls.V][face.neighbour][1]*distFace[1]+
+					  // mesh.cellsGradientVar[controls.V][face.neighbour][2]*distFace[2]);
+				// face.varR[controls.fW] +=  
+					 // (mesh.cellsGradientVar[controls.W][face.neighbour][0]*distFace[0]+
+					  // mesh.cellsGradientVar[controls.W][face.neighbour][1]*distFace[1]+
+					  // mesh.cellsGradientVar[controls.W][face.neighbour][2]*distFace[2]);
+				// // face.varR[controls.fT] +=  
+					 // // (mesh.cellsGradientVar[controls.T][face.neighbour][0]*distFace[0]+
+					  // // mesh.cellsGradientVar[controls.T][face.neighbour][1]*distFace[1]+
+					  // // mesh.cellsGradientVar[controls.T][face.neighbour][2]*distFace[2]);
+				
+			// }
+		// }
+	
+	}
+	
+	
+	
+	
+	
+	
+	
+	// MSTACS
+	{
+		// calc gradient
+		SEMO_Utility_Math math;
+		
+		vector<vector<double>> gradMF(mesh.cells.size(),vector<double>(3,0.0));
+		
+		{
+			vector<double> dummyVec;
+			math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
+				controls.MF[0], controls.fMF[0], dummyVec, gradMF);
+		}
+		
+
+		// processor faces
+		if(size>1){
+			vector<double> phi_send0, phi_recv0;
+			vector<double> phi_send1, phi_recv1;
+			vector<double> phi_send2, phi_recv2;
+			for(int i=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					phi_send0.push_back(gradMF[face.owner][0]);
+					phi_send1.push_back(gradMF[face.owner][1]);
+					phi_send2.push_back(gradMF[face.owner][2]);
+				}
+			}
+			
+			SEMO_MPI_Builder mpi;
+			
+			mpi.setProcsFaceDatas(
+						phi_send0, phi_recv0,
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+			mpi.setProcsFaceDatas(
+						phi_send1, phi_recv1,
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+			mpi.setProcsFaceDatas(
+						phi_send2, phi_recv2,
+						mesh.countsProcFaces, mesh.countsProcFaces, 
+						mesh.displsProcFaces, mesh.displsProcFaces);
+						
+			int proc_num=0;
+			for(int i=0; i<mesh.faces.size(); ++i){
+				auto& face = mesh.faces[i];
+				
+				if(face.getType() == SEMO_Types::PROCESSOR_FACE){
+					vector<double> tmp;
+					tmp.push_back(phi_recv0[proc_num]);
+					tmp.push_back(phi_recv1[proc_num]);
+					tmp.push_back(phi_recv2[proc_num]);
+					gradMF.push_back(tmp);
+					++proc_num;
+				}
+			}
+		}
+		
+		
+		// NVD, MSTACS
+		this->calcMSTACS(mesh, controls, controls.MF[0], controls.fMF[0], gradMF, controls.fMF[0]);
+	}
+	
+	
 	
 	
 	// rho, C, Ht from EOS
 	// this->calcOtherDataFromEOS(mesh, controls, species);
 	this->calcOtherDataFromEOSMF(mesh, controls, species);
+	// cout << "aaaaa3" << endl;
 	
 	
 }
@@ -878,6 +1093,7 @@ void SEMO_Solvers_Builder::reconZeroOrder(
     int size = MPI::COMM_WORLD.Get_size();
 	
 	SEMO_MPI_Builder mpi;
+			// (*mesh.boundary[0].setFunctionP)(1.0, 1.0, 1.0, 1.0);
 
 	// internal faces
 	for(auto& face : mesh.faces){
@@ -1001,6 +1217,12 @@ void SEMO_Solvers_Builder::reconZeroOrder(
 				face.varR[controls.fP] = face.varL[controls.fP];
 			}
 		}
+		// else if( boundary.type[controls.P] == "function" ){
+			// for(int i=str; i<end; ++i){
+				// SEMO_Face& face = mesh.faces[i];
+				// // boundary.setFunctionP(mesh, face, controls.fP, controls.P);
+			// }
+		// }
 		else{
 			cerr << "| #Error : not defined B.C., var = " << controls.P << endl;
 			MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
@@ -1146,6 +1368,22 @@ void SEMO_Solvers_Builder::reconZeroOrder(
 			}
 			
 		}
+		else if( boundary.type[controls.U] == "function" ){
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				double phi;
+				(*boundary.setFunctionVariables[1])(controls.time, face.x, face.y, face.z, phi);
+				face.varL[controls.fU] = phi;
+				face.varR[controls.fU] = phi;
+				(*boundary.setFunctionVariables[2])(controls.time, face.x, face.y, face.z, phi);
+				// cout << phi << endl;
+				face.varL[controls.fV] = phi;
+				face.varR[controls.fV] = phi;
+				(*boundary.setFunctionVariables[3])(controls.time, face.x, face.y, face.z, phi);
+				face.varL[controls.fW] = phi;
+				face.varR[controls.fW] = phi;
+			}
+		}
 		else{
 			cerr << "| #Error : not defined B.C., var = " << controls.P << endl;
 			MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
@@ -1165,6 +1403,12 @@ void SEMO_Solvers_Builder::reconZeroOrder(
 				SEMO_Face& face = mesh.faces[i];
 				face.varL[controls.fT] = mesh.cells[face.owner].var[controls.T];
 				face.varR[controls.fT] = face.varL[controls.fT];
+			}
+		}
+		else if( boundary.type[controls.T] == "function" ){
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				// boundary.setFunctionT(mesh, face, controls.fT, controls.T);
 			}
 		}
 		else{
@@ -1220,6 +1464,108 @@ void SEMO_Solvers_Builder::reconZeroOrder(
 				
 				face.varR[controls.fVF[0]] = face.varL[controls.fVF[0]];
 				face.varR[controls.fMF[0]] = face.varL[controls.fMF[0]];
+			}
+		}
+		// else if( boundary.type[controls.VF[0]] == "function" ){
+			
+			// // CSV format
+			// vector<vector<double>> readDatas;
+			// {
+				// string filename("./VF.csv");
+				// string file_contents;
+				// vector<vector<string>> csv_contents;
+				// char delimiter = ',';
+				// {
+					// auto ss = ostringstream{};
+					// ifstream input_file(filename);
+					// if (!input_file.is_open()) {
+						// cerr << "Could not open the file - '"
+							 // << filename << "'" << endl;
+						// exit(EXIT_FAILURE);
+					// }
+					// ss << input_file.rdbuf();
+					// file_contents = ss.str();
+				// }
+				// istringstream sstream(file_contents);
+				// vector<string> items;
+				// string record;
+
+				// int counter = 0;
+				// while (std::getline(sstream, record)) {
+					// istringstream line(record);
+					// while (std::getline(line, record, delimiter)) {
+						// items.push_back(record);
+					// }
+
+					// csv_contents.push_back(items);
+					// items.clear();
+					// counter += 1;
+				// }
+				// counter = 0;
+				// for(auto& contents : csv_contents){
+					// ++counter;
+					// if(counter==1) continue;
+					// vector<double> tmp_vec;
+					// bool itemIsNumber = true;
+					// for(auto& item : contents){
+						// // for (char const &c : item) {
+							// // if (std::isdigit(c) == 0) {
+								// // itemIsNumber = false;
+								// // break;
+							// // }
+						// // }
+						// // if (std::isdigit(item[0]) != 0) {
+						// // if (counttt != 0) {
+						// // if (item.find_first_not_of("-+0123456789") == string::npos) {
+							// tmp_vec.push_back(stod(item));
+							// // cout << item << endl;
+						// // }
+					// }
+					// readDatas.push_back(tmp_vec);
+				// }
+			// }
+			
+			
+			
+			// for(int i=str; i<end; ++i){
+				// SEMO_Face& face = mesh.faces[i];
+				
+				// double dist_save = 1.e9;
+				// double VF_save;
+				// for(auto& item : readDatas){
+					// double VF_tmp = item[3];
+					// double x_tmp = item[4];
+					// double y_tmp = item[5];
+					// double z_tmp = item[6];
+					
+					// double distance2 = (pow(face.x-x_tmp,2.0) + pow(face.y-y_tmp,2.0) + pow(face.z-z_tmp,2.0));
+					// if(distance2 < dist_save){
+						// dist_save = distance2;
+						// VF_save = VF_tmp;
+					// }
+				// }
+				
+				// face.varL[controls.fVF[0]] = VF_save;
+				// face.varL[controls.fMF[0]] = VF_save;
+				
+				// face.varR[controls.fVF[0]] = VF_save;
+				// face.varR[controls.fMF[0]] = VF_save;
+			// }
+			
+			
+		// }
+		else if( boundary.type[controls.VF[0]] == "function" ){
+			for(int i=str; i<end; ++i){
+				SEMO_Face& face = mesh.faces[i];
+				double phi;
+				(*boundary.setFunctionVariables[5])(controls.time, face.x, face.y, face.z, phi);
+				face.varL[controls.fMF[0]] = phi;
+				face.varR[controls.fMF[0]] = phi;
+				face.varL[controls.fVF[0]] = phi;
+				face.varR[controls.fVF[0]] = phi;
+				
+				// boundary.setFromFunction("./lib", mesh, face, controls.fVF[0], controls.VF[0]);
+				// boundary.setFunctionMF(mesh, face, controls.fMF[0], controls.MF[0]);
 			}
 		}
 		else{

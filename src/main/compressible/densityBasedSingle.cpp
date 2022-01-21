@@ -14,6 +14,7 @@
 #include "../../mesh/build.h" 
 #include "../../load/load.h" 
 #include "../../mesh/geometric.h" 
+#include "../../mesh/polyAMR.h"
 
 #include "../../controls/build.h" 
 #include "../../variables/build.h" 
@@ -48,7 +49,7 @@ int main(int argc, char* argv[]) {
 	
 	bool boolLoad = true;
 	bool boolPartitioning = false;
-	bool boolAMR = false;
+	bool boolAMR = true;
 	bool boolGeometric = true;
 	
 	if(boolLoad){
@@ -67,7 +68,8 @@ int main(int argc, char* argv[]) {
 		load.vtu(foldername, mesh, controls, species);
 		
 		
-		solvers.calcCellEOSVF(mesh, controls, species);
+		//solvers.calcCellEOSVF(mesh, controls, species);
+		solvers.calcCellEOSMF(mesh, controls, species);
 		
 		solvers.calcCellTransport(mesh, controls, species);
 		
@@ -88,6 +90,19 @@ int main(int argc, char* argv[]) {
 				cell.var[controls.Qn[i]] = Q[i];
 			}
 		}
+			
+		for(auto& face : mesh.faces){
+			if(face.getType() == SEMO_Types::INTERNAL_FACE){
+				face.var[controls.Un] = 0.5 * mesh.cells[face.owner].var[controls.U] * face.unitNormals[0];
+				face.var[controls.Un] += 0.5 * mesh.cells[face.owner].var[controls.V] * face.unitNormals[1];
+				face.var[controls.Un] += 0.5 * mesh.cells[face.owner].var[controls.W] * face.unitNormals[2];
+				face.var[controls.Un] += 0.5 * mesh.cells[face.neighbour].var[controls.U] * face.unitNormals[0];
+				face.var[controls.Un] += 0.5 * mesh.cells[face.neighbour].var[controls.V] * face.unitNormals[1];
+				face.var[controls.Un] += 0.5 * mesh.cells[face.neighbour].var[controls.W] * face.unitNormals[2];
+				
+				face.var[controls.oldUn] = face.var[controls.Un];
+			}
+		}
 	
 	}
 	else {
@@ -102,21 +117,21 @@ int main(int argc, char* argv[]) {
 
 	
 	
-	// partitioning
-	if(boolPartitioning){
+	// // partitioning
+	// if(boolPartitioning){
 		
-		mesh.distributeOneToAll("EVENLY");
+		// mesh.distributeOneToAll("EVENLY");
 		
-	}
+	// }
 	
 	
 	
-	if(boolAMR){
+	// if(boolAMR){
 		
-		mesh.hexaOctAMR();
+		// mesh.hexaOctAMR();
 		
-		MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
-	}
+		// MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	// }
 	
 
 	
@@ -156,7 +171,11 @@ int main(int argc, char* argv[]) {
 	// flow calculation
 	if(calcFlow){
 		
+		solvers.calcCellTransport(mesh, controls, species);
+		
+		
 		SEMO_Mesh_Save save;
+		
 		
 		while(
 		controls.iterReal<controls.iterRealMax ||
@@ -169,6 +188,21 @@ int main(int argc, char* argv[]) {
 			}
 		
 			solvers.compressibleDensityBasedSingleTime(mesh, controls, species);
+			
+			//==============================
+			// AMR
+			if(
+			// controls.iterReal != 0 && 
+			( (controls.iterReal+1) % controls.intervalRefine == 0 ||
+			  (controls.iterReal+1) % controls.intervalUnrefine == 0)
+			){ 
+				SEMO_Poly_AMR_Builder AMR;
+				AMR.polyAMR(mesh, controls, species, 0);
+				mesh.cellsGlobal();
+				solvers.calcCellEOSMF(mesh, controls, species);
+				solvers.calcCellTransport(mesh, controls, species);
+			} 
+			//==============================
 				
 			controls.time += controls.timeStep;
 			
@@ -216,7 +250,7 @@ int main(int argc, char* argv[]) {
 	
 	if(rank==0) cout << "| End Program" << endl;
 	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
+	//MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
 	
 	
 

@@ -1,4 +1,5 @@
 
+
 using namespace std;
 
 #include "load.h" 
@@ -6,7 +7,15 @@ using namespace std;
 #include "../controls/build.h" 
 #include "../utility/read.h" 
 #include "../solvers/build.h" 
+#include <dlfcn.h>
 
+// extern "C" void setFunctionPressure();
+// extern "C" int setFunctionPressure();
+// extern "C" void setFunctionPressure(double time, double x, double y, double z, double& fP);
+// extern "C" void setFunctionVelocities(double time, double x, double y, double z, double& fU, double& fV, double& fW);
+// extern "C" void setFunctionTemperature(double time, double x, double y, double z, double& fT);
+// extern "C" void setFunctionVolumeFractions(double time, double x, double y, double z, vector<double>& fVF);
+// extern "C" void setFunctionMassFractions(double time, double x, double y, double z, vector<double>& fMF);
 
 //앞에 있는 개행 문자 제거 
 string &SEMO_Mesh_Load::ltrim(std::string &s) { 
@@ -577,6 +586,172 @@ void SEMO_Mesh_Load::vtu(
 			
 		}
 	}
+	
+	
+	
+	// udf 펑션 함수 로딩
+	{
+		void *handle = dlopen("./constant/boundaryFunctions.so", RTLD_NOW);
+		char *error = nullptr;
+		if (handle) {
+			for(int i=0; i<mesh.boundary.size(); ++i){
+				if(mesh.boundary[i].neighbProcNo != -1) continue;
+				
+					mesh.boundary[i].setFunctionVariables.resize(neq);
+					
+					typedef void (*setFunc_t)(double, double, double, double, double&);
+					setFunc_t setFunction;
+					if(mesh.boundary[i].type[0] == "function"){
+						// *(void **) (&mesh.boundary[i].setFunctionPressure) = 
+						// dlsym(handle, "setFunctionPressure");
+						// if((error = dlerror()) != NULL) printf("dlsym error: %s\n", error);
+						// double phi;
+						// (*mesh.boundary[0].setFunctionPressure)(1.0, 1.0, 1.0, 1.0, phi);
+						
+						*(void **) (&setFunction) = dlsym(handle, "setFunctionPressure");
+						mesh.boundary[i].setFunctionVariables[0] = setFunction;
+					}
+					
+					if(mesh.boundary[i].type[1] == "function"){
+						// *(void **) (&mesh.boundary[i].setFunctionVelocities) = 
+						// dlsym(handle, "setFunctionVelocities");
+						// if((error = dlerror()) != NULL) printf("dlsym error: %s\n", error);
+						
+						*(void **) (&setFunction) = dlsym(handle, "setFunctionUvelocity");
+						mesh.boundary[i].setFunctionVariables[1] = setFunction;
+						*(void **) (&setFunction) = dlsym(handle, "setFunctionVvelocity");
+						mesh.boundary[i].setFunctionVariables[2] = setFunction;
+						*(void **) (&setFunction) = dlsym(handle, "setFunctionWvelocity");
+						mesh.boundary[i].setFunctionVariables[3] = setFunction;
+					}
+					
+					if(mesh.boundary[i].type[4] == "function"){
+						// *(void **) (&mesh.boundary[i].setFunctionTemperature) = 
+						// dlsym(handle, "setFunctionTemperature");
+						// if((error = dlerror()) != NULL) printf("dlsym error: %s\n", error);
+						
+						*(void **) (&setFunction) = dlsym(handle, "setFunctionTemperature");
+						mesh.boundary[i].setFunctionVariables[4] = setFunction;
+					}
+					
+					if(mesh.boundary[i].type[5] == "function"){
+						// *(void **) (&mesh.boundary[i].setFunctionVolumeFractions) = 
+						// dlsym(handle, "setFunctionVolumeFractions");
+						// if((error = dlerror()) != NULL) printf("dlsym error: %s\n", error);
+						
+						*(void **) (&setFunction) = dlsym(handle, "setFunctionMassFractions");
+						mesh.boundary[i].setFunctionVariables[5] = setFunction;
+					}
+					
+					// if(mesh.boundary[i].type[5] == "function"){
+						// // *(void **) (&mesh.boundary[i].setFunctionMassFractions) = 
+						// // dlsym(handle, "setFunctionMassFractions");
+						// // if((error = dlerror()) != NULL) printf("dlsym error: %s\n", error);
+						// // (*mesh.boundary[0].setFunctionMassFractions)(1.0, 1.0, 1.0, 1.0, phi);
+					// }
+					// else{
+						// setFunc_t dummyFunc;
+						// mesh.boundary[i].setFunctionVariables.push_back(dummyFunc);
+					// }
+					
+					
+					// if(mesh.boundary[i].type[0] == "zeroGradient"){
+						// // typedef std::vector<double> PluginInterfaceCreateFunction();
+						// // auto addfunc = (PluginInterfaceCreateFunction*)(dlsym(handle, "setFunctionPressure"));
+						// // const auto& add = addfunc();
+						// // add;
+						// // vector<void*> testfunc;
+						// // testfunc.resize(1);
+						// // *(void **) (&testfunc[0]) = dlsym(handle, "setFunctionPressure");
+						
+						// // void (*setFunctionPressure)(double, double, double, double, double&);
+						// typedef void (*setFunc_t)(double, double, double, double, double&);
+						// setFunc_t setFunctionPressure;
+						
+						// *(void **) (&setFunctionPressure) = dlsym(handle, "setFunctionPressure");
+						// double phi;
+						// // (*setFunctionPressure)(1.0, 1.0, 1.0, 1.0, phi);
+						
+						// mesh.boundary[i].setFunctionVariables.push_back(setFunctionPressure);
+						// (*mesh.boundary[i].setFunctionVariables[0])(1.0, 1.0, 1.0, 1.0, phi);
+						
+						// // vector<setFunc_t> testFunc;
+						// // testFunc.push_back(setFunctionPressure);
+						// // (*testFunc[0])(1.0, 1.0, 1.0, 1.0, phi);
+						
+						// // *(void **) (&mesh.boundary[i].setFunctionTest) = 
+						// // dlsym(handle, "setFunctionTest");
+						// // if((error = dlerror()) != NULL) printf("dlsym error: %s\n", error);
+						// // double phi;
+						// // // (*mesh.boundary[0].setFunctionTest).at(0).(1.0, 1.0, 1.0, 1.0, phi);
+						// // (&mesh.boundary[0].setFunctionTest).at(0);
+					// }
+			}
+		}
+		else{
+			for(int i=0; i<mesh.boundary.size(); ++i){
+				if(mesh.boundary[i].neighbProcNo != -1) continue;
+				for(int j=0; j<mesh.boundary[i].type.size(); ++j){
+					if(mesh.boundary[i].type[j] == "function"){
+						cout << "| #Warning, bc type is function, no file boundaryFunctions.so" << endl;
+					}
+				}
+			}
+		}
+	}
+	
+	
+	// if(mesh.boundary[0].type[0] == "zeroGradient"){
+		// cout << "FUNCTION test" << endl;
+		// void *handle = dlopen("./boundaryFunctions.so", RTLD_NOW);
+		// char *error = nullptr;
+		// if (handle) {
+			// cout << "success function test" << endl;
+			// // typedef void *func_t;
+			// // void (*test_func)(mesh, face, controls.P, controls.fP);
+			// // func_t test_dl_func = (func_t)dlsym(handle, "setFunctionPressure");
+			// // mesh.boundary[0].setFunctionP = (func_t)dlsym(handle, "setFunctionPressure");
+			// // func_t testf = (func_t)dlsym(handle, "setFunctionPressure");
+			// // mesh.boundary[0].setFunctionP = (void*)dlsym(handle, "setFunctionPressure");
+			
+			// // mesh.boundary[0].setFunctionP;
+
+			// // if((error = dlerror()) != NULL) {
+				// // printf("dlsym error: %s\n", error);
+				// // // dlclose(handle);
+				// // // return -1;
+			// // }
+
+			// // typedef void *func_t;
+			// void (*test_func)(double, double, double, double);
+			// // *(void **) (&test_func) = dlsym(handle, "setFunctionPressure");
+			// // (*test_func)(1.0, 1.0, 1.0, 1.0);
+			// *(void **) (&mesh.boundary[0].setFunctionP) = dlsym(handle, "setFunctionPressure");
+			// // dlclose(handle);
+			// (*mesh.boundary[0].setFunctionP)(1.0, 1.0, 1.0, 1.0);
+			
+			
+			// // void (*test_func)(double, double, double, double);
+			// // // *(void **) (&test_func) = dlsym(handle, "setFunctionPressure");
+			// // test_func = dlsym(handle, "setFunctionPressure");
+			
+			// // func_t test_dl_func = (func_t)dlsym(handle, "setFunctionPressure");
+			
+			// // (*mesh.boundary[0].setFunctionP)(mesh, face, controls.P, controls.fP);
+			// // dlclose(handle);
+		// } 
+		// else {
+			// cout << "error function test" << endl;
+			// // if((error = dlerror()) != NULL) {
+				// // printf("dlopen error: %s\n", error);
+				// // return -1;
+			// // }
+		// }
+	// }
+	
+	
+	
+	
 	
 	
 	if(rank==0){

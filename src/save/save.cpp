@@ -392,6 +392,18 @@ void SEMO_Mesh_Save::vtu(
 	}
 	
 	
+	// // level-set
+	// {
+		// outputFile << "     <DataArray type=\"Float64\" Name=\"" << "level-set" << "\" format=\"" << saveFormat << "\">" << endl;
+		// vector<double> values;
+		// for(auto& cell : mesh.cells) values.push_back(cell.var[controls.LS]);
+		// writeDatasAtVTU(controls, outputFile, values);
+		// outputFile << "     </DataArray>" << endl;
+	// }
+	
+	
+	
+	
 	
 	outputFile << "    </CellData>" << endl;
 	
@@ -665,6 +677,10 @@ void SEMO_Mesh_Save::vtu(
 		for(int i=0; i<controls.UDV.size(); ++i){
 			outputFile << "    <PDataArray type=\"Float64\" Name=\"" << controls.name[controls.UDV[i]] << "\"/>" << endl;
 		}
+		// // level-set
+		// {
+			// outputFile << "    <PDataArray type=\"Float64\" Name=\"" << "level-set" << "\"/>" << endl;
+		// }
 		
 		
 		outputFile << "   </PCellData>" << endl;

@@ -155,35 +155,82 @@ void SEMO_Solvers_Builder::calcFluxHAUS(
 }
 
 
-double SEMO_Solvers_Builder::M_func(double M, double op, double alp){
 
-	double mu;
+void SEMO_Solvers_Builder::calcFluxSLAU2(
+	double& PL, double& UL, double& VL, double& WL, double& TL, 
+	vector<double>& YL, double& rhoL, double& CL, double& HtL, 
+	double& PR, double& UR, double& VR, double& WR, double& TR, 
+	vector<double>& YR, double& rhoR, double& CR, double& HtR,
+	vector<double>& nvec,
+	vector<double>& flux
+	){
+	
 
-	if( abs(M) > 1.0 ) {
-		mu = 0.5*(M+op*abs(M));
+	
+    // properties of Left
+    double UnL = UL*nvec[0] + VL*nvec[1] + WL*nvec[2];
+    // properties of Right
+    double UnR = UR*nvec[0] + VR*nvec[1] + WR*nvec[2];
+	
+	double unhat = (UnL+UnR)/2.0;
+	double rhohat = 0.5*(rhoL+rhoR);
+    double chat= 0.5*(CL+CR);
+	
+	double ML = UnL/chat; 
+	double MR = UnR/chat;
+	double KLR = sqrt(0.5*(UL*UL+VL*VL+WL*WL+UR*UR+VR*VR+WR*WR));
+	double MLP  = M_func(ML,1.0,0.0); 
+	double MRM = M_func(MR,-1.0,0.0);
+	double preP = pre_func(ML,1.0,0.0); 
+	double preM = pre_func(MR,-1.0,0.0);
+	
+    double Mbar = ( rhoL*abs(ML)+rhoR*abs(MR) ) / ( rhoL + rhoR );
+
+	// SLAU
+	double Mcy = min(1.0,KLR/chat);
+	double phi_c = pow((1.0-Mcy),2.0);
+	double g_c = 1.0 + max( min(ML,0.0), -1.0 )*min( max(MR,0.0), 1.0 );
+
+    double D_L = ML+(1.0-g_c)*abs(ML);
+    double D_R = MR-(1.0-g_c)*abs(MR);
+    double D_rho = Mbar*g_c;
+
+	double preLs = abs(PL) + 0.1 * rhoL*CL*CL;
+	double preRs = abs(PR) + 0.1 * rhoR*CR*CR;
+	double w = 1.0 - pow( min(preLs/preRs,preRs/preLs),2.0);
+
+	double MLPL = 0.5*(D_L+D_rho);
+	double MRMR = 0.5*(D_R-D_rho);
+
+	double mdot = rhoL*chat*MLPL + rhoR*chat*MRMR - 0.5*phi_c/chat*(PR-PL);
+
+	double f1L;
+	double f1R;
+    if( mdot >= 0.0 ) {
+		f1L = mdot; f1R = 0.0;
 	}
-	else{
-		mu = op*0.25*pow((M + op),2.0) + op*alp*pow((M*M-1.0),2.0);
+    else{
+		f1L = 0.0; f1R = mdot;
+    }
+	
+	double PLR = 0.5*(PL+PR) - 
+				 0.5*Mcy*preP*preM*0.5*(PL+PR)/chat*(UnR-UnL) + 
+				 Mcy*0.5*(PL+PR)*(preP+preM-1.0) - 
+				 0.5*(preP-preM)*(PR-PL);
+
+	flux.clear();
+	flux.push_back(f1L+f1R);
+	flux.push_back(f1L*UL + f1R*UR + PLR*nvec[0]);
+	flux.push_back(f1L*VL + f1R*VR + PLR*nvec[1]);
+	flux.push_back(f1L*WL + f1R*WR + PLR*nvec[2]);
+	flux.push_back(f1L*HtL+ f1R*HtR);
+	
+	for(int i=0; i<YL.size()-1; ++i){
+		flux.push_back(f1L*YL[i]+ f1R*YR[i]);
 	}
 	
-	return mu;
+
 }
-double SEMO_Solvers_Builder::pre_func(double M, double op, double alp){
-
-	double mu;
-
-	if( abs(M) > 1.0 ) {
-		mu = 0.5*(1.0 + op * ( M>0.0 ? 1.0 : -1.0 ) );
-	}
-	else{
-		mu = 0.25*pow((M + op),2.0)*(2.0-op*M) + op*alp*M*pow((M*M-1.0),2.0);
-	}
-	
-	return mu;
-}
-
-
-
 
 
 
@@ -867,6 +914,38 @@ void SEMO_Solvers_Builder::calcFluxRoeM_N(
 		flux.push_back(fluxTemp);
 	}
 	
+}
+
+
+
+
+
+
+double SEMO_Solvers_Builder::M_func(double M, double op, double alp){
+
+	double mu;
+
+	if( abs(M) > 1.0 ) {
+		mu = 0.5*(M+op*abs(M));
+	}
+	else{
+		mu = op*0.25*pow((M + op),2.0) + op*alp*pow((M*M-1.0),2.0);
+	}
+	
+	return mu;
+}
+double SEMO_Solvers_Builder::pre_func(double M, double op, double alp){
+
+	double mu;
+
+	if( abs(M) > 1.0 ) {
+		mu = 0.5*(1.0 + op * ( M>0.0 ? 1.0 : -1.0 ) );
+	}
+	else{
+		mu = 0.25*pow((M + op),2.0)*(2.0-op*M) + op*alp*M*pow((M*M-1.0),2.0);
+	}
+	
+	return mu;
 }
 
 

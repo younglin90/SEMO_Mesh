@@ -310,6 +310,16 @@ class SEMO_Solvers_Builder{
 			SEMO_Mesh_Builder& mesh,
 			SEMO_Controls_Builder& controls,
 			vector<SEMO_Species>& species);
+
+		void calcExplicitCorantNumberForPrint(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			double& corantNum);
+
+		double calcExplicitTimeStepFromCorantNumber(
+			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
+			vector<SEMO_Species>& species);
 			
 		void calcRHS(
 			SEMO_Mesh_Builder& mesh,
@@ -330,6 +340,15 @@ class SEMO_Solvers_Builder{
 			vector<vector<double>>& residuals);
 			
 		void calcFluxHAUS(
+			double& PL, double& UL, double& VL, double& WL, double& TL, 
+			vector<double>& YL, double& RhoL, double& CL, double& HtL, 
+			double& PR, double& UR, double& VR, double& WR, double& TR, 
+			vector<double>& YR, double& RhoR, double& CR, double& HtR,
+			vector<double>& nvec,
+			vector<double>& flux
+			);
+			
+		void calcFluxSLAU2(
 			double& PL, double& UL, double& VL, double& WL, double& TL, 
 			vector<double>& YL, double& RhoL, double& CL, double& HtL, 
 			double& PR, double& UR, double& VR, double& WR, double& TR, 
@@ -609,6 +628,7 @@ class SEMO_Solvers_Builder{
 			);
 		void calcCurvature(
 			SEMO_Mesh_Builder& mesh,
+			SEMO_Controls_Builder& controls,
 			int cn,
 			vector<double>& kappa);
 			

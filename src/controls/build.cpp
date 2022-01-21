@@ -822,6 +822,9 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->kappa = this->nTotalCellVar++;
 	this->name.push_back("curvature");
 	
+	this->LS = this->nTotalCellVar++;
+	this->name.push_back("level-set");
+	
 	
 	{
 		this->sourceGravity.push_back(this->nTotalCellVar++);
@@ -893,14 +896,14 @@ void SEMO_Controls_Builder::setValues(vector<SEMO_Species>& species){
 	this->name.push_back("indicatorAMR");
 	
 	this->UDV.clear();
-	this->UDV.push_back(this->nTotalCellVar++);
-	this->name.push_back("UDV0");
-	this->UDV.push_back(this->nTotalCellVar++); 
-	this->name.push_back("UDV1");
-	this->UDV.push_back(this->nTotalCellVar++);
-	this->name.push_back("UDV2");
-	this->UDV.push_back(this->nTotalCellVar++);
-	this->name.push_back("UDV3");
+	// this->UDV.push_back(this->nTotalCellVar++);
+	// this->name.push_back("UDV0");
+	// this->UDV.push_back(this->nTotalCellVar++); 
+	// this->name.push_back("UDV1");
+	// this->UDV.push_back(this->nTotalCellVar++);
+	// this->name.push_back("UDV2");
+	// this->UDV.push_back(this->nTotalCellVar++);
+	// this->name.push_back("UDV3");
 	
 	
 

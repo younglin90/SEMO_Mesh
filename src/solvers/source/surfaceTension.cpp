@@ -27,15 +27,17 @@ double SEMO_Solvers_Builder::calcSourceSurfaceTension(
 	
 	// ===============================
 	vector<double> kappa;
-	this->calcCurvature(mesh, controls.VF[0], kappa);
+	this->calcCurvature(mesh, controls, controls.VF[0], kappa);
 	
 	
-	vector<vector<double>> gradAi(mesh.cells.size(),vector<double>(9,0.0));
+	vector<vector<double>> gradAi(mesh.cells.size(),vector<double>(3,0.0));
 	for(int iter=0; iter<gradIterMax_LG; ++iter){
 		// math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradAi);
 		vector<double> dummyVec;
-		math.calcLeastSquare(mesh, "cellVertex", "2nd", "cell", 
+		math.calcLeastSquare(mesh, "cellVertex", "1st", "cell", 
 			controls.VF[0], controls.fVF[0], dummyVec, gradAi);
+		// math.calcLeastSquare(mesh, "face", "1st", "cell", 
+			// controls.VF[0], controls.fVF[0], dummyVec, gradAi);
 	}
 	for(int iter=0; iter<gradIterMax_GG; ++iter){
 		math.calcGaussGreen(mesh, controls.VF[0], controls.fVF[0], gradAi);
@@ -45,12 +47,31 @@ double SEMO_Solvers_Builder::calcSourceSurfaceTension(
 	for(int i=0; i<mesh.cells.size(); ++i){
 		auto& cell = mesh.cells[i];
 		
+		// double magGrad = 0.0;
+		// for(int ii=0; ii<3; ++ii){
+			// magGrad += gradAi[i][ii]*gradAi[i][ii];
+		// }
+		// magGrad = sqrt(magGrad);
+			
+		// if( magGrad > std::numeric_limits<double>::min() ){
+		// // if( magGrad > 1.e-25 ){
+			// for(int ii=0; ii<3; ++ii){
+				// gradAi[i][ii] = gradAi[i][ii]/magGrad;
+			// }
+		// }
+		// else{
+			// for(int ii=0; ii<3; ++ii) gradAi[i][ii] = 0.0;
+		// }
+		
+		
 		// cell.var[controls.sourceSurfaceTension[0]] = 
 			// (species[0].sigma * 100.0 * gradAi[i][0]);
 		// cell.var[controls.sourceSurfaceTension[1]] = 
 			// (species[0].sigma * 100.0 * gradAi[i][1]);
 		// cell.var[controls.sourceSurfaceTension[2]] = 
 			// (species[0].sigma * 100.0 * gradAi[i][2]);
+			
+		cell.var[controls.kappa] = kappa[i];
 		
 		cell.var[controls.sourceSurfaceTension[0]] = 
 			(species[0].sigma * kappa[i] * gradAi[i][0]);
@@ -63,7 +84,8 @@ double SEMO_Solvers_Builder::calcSourceSurfaceTension(
 			(gradAi[i][0] * cell.var[controls.U] +
 			 gradAi[i][1] * cell.var[controls.V] +
 			 gradAi[i][2] * cell.var[controls.W]);
-		
+			 
+			 
 	}
 	
 	

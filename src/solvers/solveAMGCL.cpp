@@ -620,7 +620,7 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		// prm.solver.M = 50;
 		// prm.solver.s = 8;
 		// prm.solver.omega = 0.7;
-		prm.solver.maxiter = 1000;
+		prm.solver.maxiter = 100;//1000;
 		prm.solver.tol = 1.e-9;
 		// prm.solver.replacement = true;
 		// prm.solver.smoothing = true;
@@ -908,7 +908,7 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		// prm.solver.M = 35;
 		prm.solver.tol = 1e-9;
 		// prm.solver.relTol = 1.e-200;
-		prm.solver.maxiter = 1000;
+		prm.solver.maxiter = 100;//1000;
 		
 		// prm.solver.ns_search = true;
 		// prm.solver.verbose = false;
@@ -956,17 +956,17 @@ void SEMO_Solvers_Builder::solveAMGCL(
 		Solver::params prm;
 
 		// prm.precond.relax.k = 2;
-		// prm.precond.npre = 1;
-		// prm.precond.npost = 3;
+		prm.precond.npre = 1;
+		prm.precond.npost = 5;
 		// prm.precond.coarsening.over_interp = 1.2;
 		// prm.precond.coarsening.relax = 0.7;
 
 		// prm.solver.ns_search = true;
 		// prm.solver.verbose = false;
 		// if(world.rank == 0) prm.solver.verbose = true;
-		prm.solver.tol = 1e-7;
+		prm.solver.tol = 1e-9;
 		// prm.solver.replacement = true;
-		prm.solver.maxiter = 500;
+		prm.solver.maxiter = 1000;
 		// prm.solver.smoothing = true;
 		
 
@@ -1225,7 +1225,7 @@ void SEMO_Solvers_Builder::solveAMGCL(
 	// prm.solver.M = 35;
 	// prm.solver.ns_search = true;
 	prm.solver.tol = 1e-9;
-	prm.solver.maxiter = 1000;
+	prm.solver.maxiter = 100;//1000;
 	// prm.solver.replacement = true;
 	// prm.solver.smoothing = true;
 	

@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <list>
+// #include <dlfnc.h>
 using namespace std;
 
 #include "../load/load.h"
@@ -139,6 +140,30 @@ class SEMO_Boundary{
 			myProcNo=-1;
 			neighbProcNo=-1;
 		}
+		
+		// typedef void (*func_t)();
+		// func_t setFunctionP;
+		typedef void (*setFunc_t)(double, double, double, double, double&);
+		vector<setFunc_t> setFunctionVariables;
+		
+		// void (*setFunctionPressure)(double, double, double, double, double&);
+		// void (*setFunctionVelocities)(double, double, double, double, double&, double&, double&);
+		// void (*setFunctionTemperature)(double, double, double, double, double&);
+		// void (*setFunctionVolumeFractions)(double, double, double, double, vector<double>&);
+		// // void (*setFunctionMassFractions)(double, double, double, double, vector<double>&);
+		// // void (*setFunctionMassFractions)(double, double, double, double, vector<double>&);
+		// vector<void> (*setFunctionTest)(double, double, double, double, double&);
+		
+		// func_t setFunctionP;
+		// int *setFunctionP();
+		// void *setFunctionP;
+		// void setFunctionP(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
+		// void setFunctionU(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
+		// void setFunctionV(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
+		// void setFunctionW(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
+		// void setFunctionT(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
+		// void setFunctionVF(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
+		// void setFunctionMF(SEMO_Mesh_Builder& mesh, SEMO_Face& face, int fPhi, int cPhi);
 		
 		string name;
 		vector<string> type;
